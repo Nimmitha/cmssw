@@ -4,4 +4,5 @@
 <use name="CommonTools/UtilAlgos"/>
 <use name="FWCore/ServiceRegistry"/>
 <use name="DataFormats/TrackReco"/>
+<use name="root"/>
 <flags EDM_PLUGIN="1"/>

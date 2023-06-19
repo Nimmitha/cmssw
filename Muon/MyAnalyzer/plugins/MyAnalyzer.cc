@@ -34,7 +34,12 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "TH1.h"
+#include <TFile.h> //??
 
+//kalman vertexing
+#include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
+
+#include "DataFormats/PatCandidates/interface/Muon.h"
 //
 // class declaration
 //
@@ -45,6 +50,7 @@
 // This will improve performance in multithreaded jobs.
 
 using reco::TrackCollection;
+edm::EDGetTokenT<std::vector<pat::Muon> > muonCollToken;
 
 class MyAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
@@ -59,11 +65,13 @@ private:
   void endJob() override;
 
   // ----------member data ---------------------------
+  TH1D* mumuMass_;
+  TH1D* pt_;
+  TH1D* eta_;
+  TH1D* phi_;
+
   edm::EDGetTokenT<TrackCollection> tracksToken_;  //used to select what tracks to read from configuration file
-  double trackPtMin_;
-#ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
-  edm::ESGetToken<SetupData, SetupRecord> setupToken_;
-#endif
+  // double trackPtMin_;
 };
 
 //
@@ -78,12 +86,16 @@ private:
 // constructors and destructor
 //
 MyAnalyzer::MyAnalyzer(const edm::ParameterSet& iConfig)
-    : tracksToken_(consumes<TrackCollection>(iConfig.getUntrackedParameter<edm::InputTag>("tracks"))),
-      trackPtMin_(iConfig.getParameter<double>("trackPtMin")) {
-#ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
-  setupDataToken_ = esConsumes<SetupData, SetupRecord>();
-#endif
+    : tracksToken_(consumes<TrackCollection>(iConfig.getUntrackedParameter<edm::InputTag>("tracks"))) {
   //now do what ever initialization is needed
+  edm::InputTag muonTag("slimmedMuons");
+  muonCollToken = consumes<pat::MuonCollection>(muonTag);
+
+  edm::Service<TFileService> fs;
+  mumuMass_ = fs->make<TH1D>("mumuMass", "Z Candidates in Di-Muon Channel", 100, 0, 120);
+  pt_ = fs->make<TH1D>("pt", "pt", 100, 0, 120);
+  eta_ = fs->make<TH1D>("eta", "eta", 100, -4, 4);
+  phi_ = fs->make<TH1D>("phi", "phi", 100, -4, 4);
 }
 
 MyAnalyzer::~MyAnalyzer() {
@@ -102,22 +114,55 @@ void MyAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   using namespace edm;
   using namespace std;
 
-  int nTrack = 0;
-  for (const auto& track : iEvent.get(tracksToken_)) {
-    // do something with track parameters, e.g, plot the charge.
-    // int charge = track.charge();
-    if (track.pt() < trackPtMin_)
-      continue;
-    nTrack++;
-  }
-  cout << "nTrack = " << nTrack << endl;
+  //Kalman Vtx----------------------//
+	// vector <TransientTrack> mu_tks;
+	// vector <TransientTrack> mmmm_tks;
+	KalmanVertexFitter kvf(true);
 
-#ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
-  // if the SetupData is always needed
-  auto setup = iSetup.getData(setupToken_);
-  // if need the ESHandle to check if the SetupData was there or not
-  auto pSetup = iSetup.getHandle(setupToken_);
-#endif
+  edm::Handle<pat::MuonCollection> thePATMuonHandle;
+  iEvent.getByToken(muonCollToken, thePATMuonHandle);
+
+  // get the collection of muons from the event
+  // edm::Handle<pat::MuonCollection> thePATMuonHandle;
+  // edm::Handle<std::vector<Muon> > thePATMuonHandle;
+  // iEvent.getByLabel("slimmedMuons", thePATMuonHandle);
+
+  if (!thePATMuonHandle.isValid()) {
+    cout << "No PAT Muons in event!" << endl;
+    return;
+  }
+
+  // length of the muon collection
+  cout << "thePATMuonHandle->size() = " << thePATMuonHandle->size() << endl;
+
+  // construct Z candidates
+  for (pat::MuonCollection::const_iterator iMuon1 = thePATMuonHandle->begin(); iMuon1 != thePATMuonHandle->end(); ++iMuon1) {
+    // eta cut and pt cut
+        pt_->Fill(iMuon1->pt());
+        eta_->Fill(iMuon1->eta());
+        phi_->Fill(iMuon1->phi());
+    if (iMuon1->pt()<3 || fabs(iMuon1->eta()) > 2.4)
+      continue;
+    for (pat::MuonCollection::const_iterator iMuon2 = iMuon1 + 1; iMuon2 != thePATMuonHandle->end(); ++iMuon2) {
+      if (iMuon1->charge() * iMuon2->charge() < 0) {
+        // eta cut
+        if (iMuon2->pt()<3 || fabs(iMuon2->eta()) > 2.4)
+          continue;
+        mumuMass_->Fill((iMuon1->p4() + iMuon2->p4()).mass());
+        // cout << "muon1 pt = " << iMuon1->pt() << ", muon2 pt = " << iMuon2->pt() << endl;
+      }
+    }
+  }
+
+  // int nTrack = 0;
+  // for (const auto& track : iEvent.get(tracksToken_)) {
+  //   // do something with track parameters, e.g, plot the charge.
+  //   // int charge = track.charge();
+  //   if (track.pt() < trackPtMin_)
+  //     continue;
+  //   nTrack++;
+  // }
+  // cout << "nTrack = " << nTrack << endl;
 }
 
 // ------------ method called once each job just before starting event loop  ------------
