@@ -30,11 +30,12 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
     #    'root://cms-xrd-global.cern.ch///store/relval/CMSSW_2_1_8/RelValTTbar/GEN-SIM-DIGI-RAW-HLTDEBUG-RECO/IDEAL_V9_v1/0002/04983078-9082-DD11-BB8C-0019DB2F3F9B.root'
     # 'file:/eos/home-n/nkarunar/2023Analysis/datasets/2022C/7afde7ee-e709-46e9-ae45-7725c28af2bb.root'   
-    'file:/eos/home-n/nkarunar/2023Analysis/datasets/2018_MC/Zuu_2018_AOD.root'   
+    # 'file:/eos/home-n/nkarunar/2023Analysis/datasets/2018_MC/Zuu_2018_MINIAOD.root'
+    'file:/eos/home-n/nkarunar/2023Analysis/datasets/2018_MC/Zuu_2018_AOD.root'
        )
 )
 
-process.simpleVertexAnalysis = cms.EDAnalyzer("KVFTest",
+process.simpleVertexAnalysis = cms.EDAnalyzer("myKVF",
     KVFParameters = cms.PSet(
         maxDistance = cms.double(0.01),
         maxNbrOfIterations = cms.int32(10)
