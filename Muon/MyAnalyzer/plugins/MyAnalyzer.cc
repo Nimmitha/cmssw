@@ -38,6 +38,10 @@
 #include <TFile.h>
 #include "TLorentzVector.h"
 
+// Kinematic vertex fitter
+#include "RecoVertex/KinematicFit/interface/KinematicParticleVertexFitter.h"
+#include "RecoVertex/KinematicFitPrimitives/interface/KinematicParticleFactoryFromTransientTrack.h"
+
 // From Kalman example
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
@@ -287,6 +291,8 @@ void MyAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         mu_tks.push_back(glbTrackM_TT);
 
         TransientVertex Z_candi = kvf.vertex(mu_tks);
+        // fit parameters
+        // cout << "TESTING REFITTED TRACKS" << Z_candi.refittedTrack(mu_tks[0]) << endl;
 
         if (!Z_candi.isValid()) {
           cout << "Continue due to invalid vertex" << endl;
@@ -304,6 +310,198 @@ void MyAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
         cout << "Z mass before fit = " << MM.M() << endl;
         cout << "Z mass after fit = " << Z_mom.mass() << endl;
+
+        cout << "Z pt before fit = " << MM.Pt() << endl;
+        cout << "Z pt after fit = " << Z_mom.Pt() << endl;
+
+        // Get the refitted tracks
+        reco::TransientTrack ref_glbTrackP_TT = Z_candi.refittedTrack(glbTrackP_TT);
+        reco::TransientTrack ref_glbTrackM_TT = Z_candi.refittedTrack(glbTrackM_TT);
+
+        // Check if refitted tracks are valid
+        if (!ref_glbTrackP_TT.isValid() || !ref_glbTrackM_TT.isValid()) {
+          cout << "Continue due to invalid refitted tracks" << endl;
+          continue;
+        }
+
+        cout << "Mu1 pt before = " << iMuon1->pt() << endl;
+        cout << "Mu1 pt after = " << ref_glbTrackP_TT.track().pt() << endl;
+
+        cout << "Mu2 pt before = " << iMuon2->pt() << endl;
+        cout << "Mu2 pt after = " << ref_glbTrackM_TT.track().pt() << endl;
+
+        cout << "Mu1 eta before = " << iMuon1->eta() << endl;
+        cout << "Mu1 eta after = " << ref_glbTrackP_TT.track().eta() << endl;
+
+        cout << "Mu2 eta before = " << iMuon2->eta() << endl;
+        cout << "Mu2 eta after = " << ref_glbTrackM_TT.track().eta() << endl;
+
+        cout << "Mu1 phi before = " << iMuon1->phi() << endl;
+        cout << "Mu1 phi after = " << ref_glbTrackP_TT.track().phi() << endl;
+
+        cout << "Mu2 phi before = " << iMuon2->phi() << endl;
+        cout << "Mu2 phi after = " << ref_glbTrackM_TT.track().phi() << endl;
+
+        cout << "Mu1 charge before = " << iMuon1->charge() << endl;
+        cout << "Mu1 charge after = " << ref_glbTrackP_TT.track().charge() << endl;
+
+        cout << "Mu2 charge before = " << iMuon2->charge() << endl;
+        cout << "Mu2 charge after = " << ref_glbTrackM_TT.track().charge() << endl;
+
+
+        bool KinFit = false;
+
+        if (KinFit) {
+          ParticleMass muon_mass = 0.10565837;  // pdg mass
+          float muon_sigma = muon_mass * 1.e-6;
+          vector<RefCountedKinematicParticle> muonParticles;
+
+          // Creating a KinematicParticleFactory
+          KinematicParticleFactoryFromTransientTrack pFactory;
+
+          // initial chi2 and ndf before kinematic fits.
+          float chi = 0.;
+          float ndf = 0.;
+          muonParticles.push_back(pFactory.particle(glbTrackP_TT, muon_mass, chi, ndf, muon_sigma));
+          muonParticles.push_back(pFactory.particle(glbTrackM_TT, muon_mass, chi, ndf, muon_sigma));
+
+          KinematicParticleVertexFitter fitter;
+          RefCountedKinematicTree ZTree;
+
+          try {
+            ZTree = fitter.fit(muonParticles);
+          } catch (...) {
+            cout << "ZTree failed" << endl;
+            continue;
+          }
+
+          if (!ZTree->isValid()) {
+            cout << "ZTree is not valid" << endl;
+            continue;
+          }
+
+          ZTree->movePointerToTheTop();
+
+          RefCountedKinematicParticle Z_vfit = ZTree->currentParticle();
+          RefCountedKinematicVertex Z_vfit_vertex = ZTree->currentDecayVertex();
+
+          // refitted dimuon pt
+          // float Z_vfit_pt = Z_vfit->currentState().kinematicParameters().momentum().perp();
+
+          // cout << "Z_vfit_pt = " << Z_vfit_pt << endl;
+          // cout << "Z pt before (using previous state) = " << Z_vfit->initialState().kinematicParameters().momentum().perp() << endl;  
+
+          // // // refitted muon eta
+          // // float Z_vfit_eta = Z_vfit->currentState().kinematicParameters().momentum().eta();
+
+          // // cout << "Z_vfit_eta = " << Z_vfit_eta << endl;
+
+          // cout << "Z_vfit_vertex->chiSquared() = " << Z_vfit_vertex->chiSquared() << endl;
+          // cout << "Z_vfit_vertex->degreesOfFreedom() = " << Z_vfit_vertex->degreesOfFreedom() << endl;
+
+          // // Get Z mass from the tree
+          // float Z_vfit_mass = Z_vfit->currentState().mass();
+          // // float Z_vfit_massErr = sqrt(Z_vfit->currentState().kinematicParametersError().matrix()(6, 6));
+
+          // cout << "Z_vfit_mass = " << Z_vfit_mass << endl;
+          // // cout << "Z_vfit_massErr = " << Z_vfit_massErr << endl;
+
+          // // Get Z momentum from the tree
+          // GlobalVector Z_vfit_momentum2 = Z_vfit->currentState().globalMomentum();
+          // float Z_vfit_pt2 = Z_vfit_momentum2.perp();
+
+          // cout << "Z_vfit_pt = " << Z_vfit_pt2 << endl;
+
+          // // probability of the fit
+          // float Z_vfit_prob = TMath::Prob(Z_vfit_vertex->chiSquared(), Z_vfit_vertex->degreesOfFreedom());
+
+          // cout << "Z_vfit_prob = " << Z_vfit_prob << endl;
+
+          // Get Z vertex from the tree
+          // GlobalPoint Z_vfit_vertex_pos = Z_vfit_vertex->position();
+          // float Z_vfit_vertex_x = Z_vfit_vertex_pos.x();
+          // float Z_vfit_vertex_y = Z_vfit_vertex_pos.y();
+          // float Z_vfit_vertex_z = Z_vfit_vertex_pos.z();
+
+          // cout << "Z_vfit_vertex_x = " << Z_vfit_vertex_x << endl;
+          // cout << "Z_vfit_vertex_y = " << Z_vfit_vertex_y << endl;
+          // cout << "Z_vfit_vertex_z = " << Z_vfit_vertex_z << endl;
+
+          // Get Z vertex chi2 from the tree
+          // float Z_vfit_vertex_chi2 = Z_vfit_vertex->chiSquared();
+          // float Z_vfit_vertex_ndof = Z_vfit_vertex->degreesOfFreedom();
+
+          // cout << "Z_vfit_vertex_chi2 = " << Z_vfit_vertex_chi2 << endl;
+
+          // // Get Z vertex normalized chi2 from the tree
+          // float Z_vfit_vertex_normChi2 = Z_vfit_vertex_chi2 / Z_vfit_vertex_ndof;
+
+          // cout << "Z_vfit_vertex_normChi2 = " << Z_vfit_vertex_normChi2 << endl;
+
+          // move to a child node
+          // bool child = ZTree->movePointerToTheFirstChild();
+
+          // // Get first muon from the tree
+          // if (!child){
+          //   cout << "ZTree->movePointerToTheFirstChild() failed" << endl;
+          //   continue;
+          // }
+
+          // RefCountedKinematicParticle fitMu1 = ZTree->currentParticle();
+          // float fitMu1_pt = fitMu1->currentState().kinematicParameters().momentum().perp();
+          // float fitMu1_eta = fitMu1->currentState().kinematicParameters().momentum().eta();
+          // float fitMu1_phi = fitMu1->currentState().kinematicParameters().momentum().phi();
+          // float fitMu1_mass = fitMu1->currentState().mass();
+
+          // cout << "before fit Mu1" << endl;
+          // cout << "Mu1_charge = " << iMuon1->charge() << endl;
+          // cout << "Mu1_pt = " << iMuon1->pt() << endl;
+          // cout << "Mu1_eta = " << iMuon1->eta() << endl;
+          // cout << "Mu1_phi = " << iMuon1->phi() << endl;
+          // cout << "Mu1_mass = " << mu_mass << endl;
+          // cout << "Mu1 chi2 = " << iMuon1->track()->chi2() << endl;
+
+          // cout << "before fit Mu2" << endl;
+          // cout << "Mu2_charge = " << iMuon2->charge() << endl;
+          // cout << "Mu2_pt = " << iMuon2->pt() << endl;
+          // cout << "Mu2_eta = " << iMuon2->eta() << endl;
+          // cout << "Mu2_phi = " << iMuon2->phi() << endl;
+          // cout << "Mu2_mass = " << mu_mass << endl;
+          // cout << "Mu2 chi2 = " << iMuon2->track()->chi2() << endl;
+
+          // cout << "after fit Mu1" << endl;
+          // cout << "fitMu1_charge = " << fitMu1->currentState().particleCharge() << endl;
+          // cout << "fitMu1_pt = " << fitMu1_pt << endl;
+          // cout << "fitMu1_eta = " << fitMu1_eta << endl;
+          // cout << "fitMu1_phi = " << fitMu1_phi << endl;
+          // cout << "fitMu1_mass = " << fitMu1_mass << endl;
+          // cout << "fitMu1 chi2 = " << fitMu1->currentState().kinematicParametersError().matrix()(6, 6) << endl;
+          // fitMu1->currentState()..kinematicParameters().chiSquared();
+
+          // // move to a child node
+          // child = ZTree->movePointerToTheNextChild();
+
+          // if (!child){
+          //   cout << "ZTree->movePointerToTheNextChild() failed" << endl;
+          //   continue;
+          // }
+
+          // cout << "after fit Mu2" << endl;
+          // RefCountedKinematicParticle fitMu2 = ZTree->currentParticle();
+          // float fitMu2_pt = fitMu2->currentState().kinematicParameters().momentum().perp();
+          // float fitMu2_eta = fitMu2->currentState().kinematicParameters().momentum().eta();
+          // float fitMu2_phi = fitMu2->currentState().kinematicParameters().momentum().phi();
+          // float fitMu2_mass = fitMu2->currentState().mass();
+
+          // cout << "fitMu2_charge = " << fitMu2->currentState().particleCharge() << endl;
+          // cout << "fitMu2_pt = " << fitMu2_pt << endl;
+          // cout << "fitMu2_eta = " << fitMu2_eta << endl;
+          // cout << "fitMu2_phi = " << fitMu2_phi << endl;
+          // cout << "fitMu2_mass = " << fitMu2_mass << endl;
+          // cout << "fitMu2 chi2 = " << fitMu2->currentState().kinematicParametersError().matrix()(6, 6) << endl;
+
+
+        }
 
         // Fill the tree
         Run->push_back(iEvent.id().run());
@@ -338,8 +536,7 @@ void MyAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         Z_Vtx_chi2->push_back(Z_candi.totalChiSquared());
         Z_Vtx_ndof->push_back(Z_candi.degreesOfFreedom());
         Z_Vtx_Prob->push_back(Z_Prob);
-        Z_Vtx_pull->push_back((Z_mom.Pt() - MM.Pt())/ Z_candi.totalChiSquared());
-
+        Z_Vtx_pull->push_back((Z_mom.Pt() - MM.Pt()) / Z_candi.totalChiSquared());
 
         tree_->Fill();
 

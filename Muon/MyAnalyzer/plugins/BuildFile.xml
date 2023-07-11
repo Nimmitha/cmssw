@@ -9,6 +9,8 @@
 <use name="TrackingTools/Records"/>
 <use name="TrackingTools/TransientTrack"/>
 <use name="RecoVertex/KalmanVertexFit"/>
+<use name="RecoVertex/KinematicFit"/>
+<use name="RecoVertex/KinematicFitPrimitives"/>
 <use name="clhep"/>
 <use name="boost"/>
 <use name="root"/>
