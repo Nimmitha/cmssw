@@ -11,6 +11,8 @@
 <use name="RecoVertex/KalmanVertexFit"/>
 <use name="RecoVertex/KinematicFit"/>
 <use name="RecoVertex/KinematicFitPrimitives"/>
+<use name="SimGeneral/HepPDTESSource"/>
+<use name="PhysicsTools/HepMCCandAlgos"/>
 <use name="clhep"/>
 <use name="boost"/>
 <use name="root"/>

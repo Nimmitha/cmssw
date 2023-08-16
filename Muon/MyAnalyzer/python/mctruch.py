@@ -1,3 +1,47 @@
+# import FWCore.ParameterSet.Config as cms
+
+# process = cms.Process("MyProducerDemo")
+
+# # Replace 'source' with your desired input source (e.g., input file)
+# process.source = cms.Source("PoolSource",
+#     fileNames = cms.untracked.vstring('file:/eos/home-n/nkarunar/2023Analysis/datasets/2018_MC/Zuu_2018_MINIAOD.root')
+# )
+
+# # Define your producer module and provide input parameters (e.g., prunedGenParticles)
+# process.myProducer = cms.EDProducer('MyProducer',
+#     prunedGenParticles = cms.InputTag('prunedGenParticles'),  # Adjust the input tag if necessary
+#     slimmedMuons = cms.InputTag('slimmedMuons')
+# )
+
+# # Output module to store the produced collection (if needed)
+# process.out = cms.OutputModule("PoolOutputModule",
+#     fileName = cms.untracked.string('output.root'),
+#     # outp
+# )
+
+# # Adjust the number of events to process as needed
+# process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+
+# # Adjust the frequency of printouts as needed
+# process.MessageLogger = cms.Service("MessageLogger",
+#     destinations = cms.untracked.vstring('cout'),
+#     cout = cms.untracked.PSet(threshold = cms.untracked.string('INFO')),
+# )
+
+# # Endpath to define the sequence of modules to run
+# process.myPath = cms.EndPath(process.myProducer * process.out)
+
+# # Uncomment this line if you want to write the output to a file
+# # process.e = cms.EndPath(process.out)
+
+# # Uncomment this line if you want to run the output to a file without producing any output
+# # process.p = cms.EndPath()
+
+
+
+
+
+
 import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("Demo")
@@ -23,7 +67,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.source = cms.Source("PoolSource",
                                 fileNames = cms.untracked.vstring(
             # 'file:/eos/home-n/nkarunar/2023Analysis/datasets/2022C/slimMiniAOD_data_MuEle.root'
-            'file:/eos/home-n/nkarunar/2023Analysis/datasets/2018_MC/Zuu_2018_MINIAOD.root'
+            # 'file:/eos/home-n/nkarunar/2023Analysis/datasets/2018_MC/Zuu_2018_MINIAOD.root'
+            'file:output.root'
                 )
                             )
 
@@ -31,8 +76,6 @@ process.demo = cms.EDAnalyzer('MyAnalyzer',
    muons      = cms.untracked.InputTag('slimmedMuons'),
    trigbits      = cms.untracked.InputTag('TriggerResults','','HLT'),
    tracks    = cms.untracked.InputTag('generalTracks'),
-   genParticles = cms.untracked.InputTag('prunedGenParticles'),
-   pfCands   = cms.untracked.InputTag('packedPFCandidates'),
    trackPtMin = cms.double(0.3)
                               )
 
@@ -56,12 +99,12 @@ process.TFileService = cms.Service("TFileService",
 #   status = cms.untracked.vint32( 3 )
 # )
 
-# process.selectedMuonsGenParticlesMatch = cms.EDProducer("MCTruthDeltaRMatcher",
-#   src = cms.InputTag("myProducer", "slimmedMuons"),
-#   matched = cms.InputTag("myProducer", "prunedGenParticles"),
-#   distMin = cms.double(0.15),
-#   matchPDGId = cms.vint32(13)
-# )
+process.selectedMuonsGenParticlesMatch = cms.EDProducer("MCTruthDeltaRMatcher",
+  src = cms.InputTag("myProducer", "slimmedMuons"),
+  matched = cms.InputTag("myProducer", "prunedGenParticles"),
+  distMin = cms.double(0.15),
+  matchPDGId = cms.vint32(13)
+)
 
 # process.allMuonsGenParticlesMatch = cms.EDFilter("MCTruthDeltaRMatcher",
 #      src = cms.InputTag("allMuons"),
@@ -74,10 +117,11 @@ process.TFileService = cms.Service("TFileService",
 # process.Tracer = cms.Service("Tracer")
 
 # Output module to store the produced collection (if needed)
-# process.out = cms.OutputModule("PoolOutputModule",
-#     fileName = cms.untracked.string('generic.root'),
-#     # outp
-# )
+process.out = cms.OutputModule("PoolOutputModule",
+    fileName = cms.untracked.string('final.root'),
+    # outp
+)
 
-process.p = cms.Path(process.demo)
-# process.e = cms.EndPath(process.out)
+# process.p = cms.Path(process.demo * process.selectedMuonsGenParticlesMatch)
+process.p = cms.Path(process.selectedMuonsGenParticlesMatch)
+process.e = cms.EndPath(process.out)
