@@ -120,6 +120,8 @@ private:
   float Kp_Px, Kp_Py, Kp_Pz, Kp_Pt, Kp_Eta, Kp_Phi, Kp_charge;
   float Km_Px, Km_Py, Km_Pz, Km_Pt, Km_Eta, Km_Phi, Km_charge;
   float Phi_mass, Phi_Px, Phi_Py, Phi_Pz, Phi_Pt, Phi_Eta, Phi_Phi;
+  float Phi_Vtx_Prob;
+  float ang_lab_Kp_Km, ang_lab_Kp_Phi, ang_lab_Km_Phi;
 
   TTree* tree_;
   float Run, LumiBlock, Event;
@@ -223,6 +225,10 @@ MyAnalyzer::MyAnalyzer(const edm::ParameterSet& iConfig)
       Phi_Pt(0),
       Phi_Eta(0),
       Phi_Phi(0),
+      Phi_Vtx_Prob(0),
+      ang_lab_Kp_Km(0),
+      ang_lab_Kp_Phi(0),
+      ang_lab_Km_Phi(0),
 
       // initialize the variables for the tree
       tree_(0),
@@ -517,9 +523,6 @@ void MyAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         if (cTrack2->pt() < 5 || fabs(cTrack2->eta()) > 2.4 || cTrack1->pdgId() != 211)
           continue;
 
-        // print track isolation information
-        // cout << "cTrack2->trackIso() = " << cTrack2->trackIso() << endl;
-
         // Set P as the positive Kaon and M as the negative Kaon
         TLorentzVector Kp_Lorentz, Km_Lorentz;
         TLorentzVector Phi;
@@ -535,6 +538,34 @@ void MyAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
         // Set KK as the diKaon 4-vector
         Phi = Kp_Lorentz + Km_Lorentz;
+
+        // if has no track details continue
+        if (!cTrack1->hasTrackDetails() || !cTrack2->hasTrackDetails()){
+          // cout << "cTrack1->hasTrackDetails() = " << cTrack1->hasTrackDetails() << endl;
+          // cout << "cTrack2->hasTrackDetails() = " << cTrack2->hasTrackDetails() << endl;
+          continue;
+        }
+        // Convert the packed candidates to TransientTracks
+        reco::TransientTrack cTrack1_TT = theB->build(cTrack1->pseudoTrack());
+        reco::TransientTrack cTrack2_TT = theB->build(cTrack2->pseudoTrack());
+
+        std::vector<reco::TransientTrack> kaon_tks;
+        KalmanVertexFitter kvf(true);
+
+        kaon_tks.clear();
+        kaon_tks.push_back(cTrack1_TT);
+        kaon_tks.push_back(cTrack2_TT);
+
+        TransientVertex Phi_candi = kvf.vertex(kaon_tks);
+
+        // if the vertex is not valid continue
+        if (!Phi_candi.isValid()){
+          cout << "Phi_candi is not valid" << endl;
+          continue;
+        }
+
+        // calculate the vertexing probablity
+        float Phi_Prob = TMath::Prob(Phi_candi.totalChiSquared(), Phi_candi.degreesOfFreedom());
 
         Event = iEvent.id().event();
         Kp_Px = Kp_Lorentz.Px();
@@ -560,7 +591,13 @@ void MyAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         Phi_Pt = Phi.Pt();
         Phi_Eta = Phi.Eta();
         Phi_Phi = Phi.Phi();
+        Phi_Vtx_Prob = Phi_Prob;
 
+        // compute the cosine of opening angles
+        ang_lab_Kp_Km = TMath::Cos(Kp_Lorentz.Angle(Km_Lorentz.Vect()));
+        ang_lab_Kp_Phi = TMath::Cos(Kp_Lorentz.Angle(Phi.Vect()));
+        ang_lab_Km_Phi = TMath::Cos(Km_Lorentz.Angle(Phi.Vect()));
+        
         trackTree_->Fill();
 
         // clear the variables
@@ -588,6 +625,11 @@ void MyAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         Phi_Pt = 0;
         Phi_Eta = 0;
         Phi_Phi = 0;
+        Phi_Vtx_Prob = 0;
+
+        ang_lab_Kp_Km = 0;
+        ang_lab_Kp_Phi = 0;
+        ang_lab_Km_Phi = 0;
       }
     }
 
@@ -725,13 +767,13 @@ void MyAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       // Set MM as the dimuon 4-vector
       MM = M_p + M_m;
 
+      // Transform Track to TransientTrack
       reco::TransientTrack glbTrackP_TT = theB->build(glbTrackP);
       reco::TransientTrack glbTrackM_TT = theB->build(glbTrackM);
 
       std::vector<reco::TransientTrack> mu_tks;
       KalmanVertexFitter kvf(true);
 
-      // Transform Track to TransientTrack
       mu_tks.clear();
       mu_tks.push_back(glbTrackP_TT);
       mu_tks.push_back(glbTrackM_TT);
@@ -1141,6 +1183,11 @@ void MyAnalyzer::beginJob() {
   trackTree_->Branch("Phi_Pt", &Phi_Pt);
   trackTree_->Branch("Phi_Eta", &Phi_Eta);
   trackTree_->Branch("Phi_Phi", &Phi_Phi);
+  trackTree_->Branch("Phi_Vtx_Prob", &Phi_Vtx_Prob);
+
+  trackTree_->Branch("ang_lab_Kp_Km", &ang_lab_Kp_Km);
+  trackTree_->Branch("ang_lab_Kp_Phi", &ang_lab_Kp_Phi);
+  trackTree_->Branch("ang_lab_Km_Phi", &ang_lab_Km_Phi);
 
   // data tree
   tree_ = new TTree("ntuple", "ntuple with info");
