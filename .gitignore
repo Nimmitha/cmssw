@@ -4,3 +4,7 @@ __init__.py
 .#*
 #*#
 *~
+
+singleMuonData/**/*.requestcache
+singleMuonData/**/crab.log
+singleMuonData/*/*/*/inputs/

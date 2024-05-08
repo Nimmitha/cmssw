@@ -1,7 +1,7 @@
 ---
 Language:        Cpp
 BasedOnStyle:  Google
-ColumnLimit:     120
+ColumnLimit:     200
 #didn't we want to change this?
 NamespaceIndentation: All
 SortIncludes:    false
@@ -16,4 +16,3 @@ BinPackParameters: false
 AlwaysBreakTemplateDeclarations: Yes
 ReflowComments: false
 BinPackArguments: false
-BinPackParameters: false
