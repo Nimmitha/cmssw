@@ -1,0 +1,181 @@
+#ifndef _miniAODmuons_h
+#define _miniAODmuons_h
+
+// system include files
+#include <memory>
+#include <map>
+// user include files
+
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Framework/interface/EventSetup.h"
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "DataFormats/Common/interface/Handle.h"
+
+#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
+
+#include "RecoVertex/KinematicFit/interface/KinematicParticleVertexFitter.h"
+#include "RecoVertex/KinematicFit/interface/KinematicParticleFitter.h"
+#include "RecoVertex/KinematicFit/interface/MassKinematicConstraint.h"
+#include "RecoVertex/KinematicFitPrimitives/interface/KinematicParticle.h"
+#include "RecoVertex/KinematicFitPrimitives/interface/RefCountedKinematicParticle.h"
+#include "RecoVertex/KinematicFitPrimitives/interface/TransientTrackKinematicParticle.h"
+#include "RecoVertex/KinematicFitPrimitives/interface/KinematicParticleFactoryFromTransientTrack.h"
+#include "RecoVertex/AdaptiveVertexFit/interface/AdaptiveVertexFitter.h"
+
+#include "TrackingTools/Records/interface/TrackingComponentsRecord.h"
+
+#include "TrackingTools/TransientTrack/interface/TransientTrackFromFTSFactory.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrack.h"
+#include "TrackingTools/PatternTools/interface/ClosestApproachInRPhi.h"
+
+#include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"  // muy importante para MiniAOD
+
+#include "DataFormats/Candidate/interface/Candidate.h"
+#include "DataFormats/Candidate/interface/CandidateFwd.h"
+#include "DataFormats/Candidate/interface/CompositeCandidate.h"
+#include "DataFormats/Candidate/interface/VertexCompositeCandidate.h"
+#include "DataFormats/V0Candidate/interface/V0Candidate.h"
+#include "DataFormats/RecoCandidate/interface/RecoChargedCandidate.h"
+
+#include "CondFormats/L1TObjects/interface/L1GtTriggerMenu.h"
+#include "CondFormats/DataRecord/interface/L1GtTriggerMenuRcd.h"
+#include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutSetupFwd.h"
+#include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerObjectMapRecord.h"
+#include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutSetup.h"
+#include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutRecord.h"
+
+#include "DataFormats/PatCandidates/interface/Muon.h"
+#include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/MuonReco/interface/Muon.h"
+#include "DataFormats/MuonReco/interface/MuonFwd.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/PatCandidates/interface/GenericParticle.h"
+
+#include "RecoVertex/VertexPrimitives/interface/BasicSingleVertexState.h"
+#include "RecoVertex/VertexPrimitives/interface/VertexState.h"
+
+#include "TFile.h"
+#include "TTree.h"
+
+//
+// class decleration
+//
+
+class miniAODmuons : public edm::EDAnalyzer {
+public:
+  explicit miniAODmuons(const edm::ParameterSet &);
+  ~miniAODmuons();
+
+private:
+  virtual void beginJob();
+  virtual void analyze(const edm::Event &, const edm::EventSetup &);
+  virtual void endJob();
+  void printout(const RefCountedKinematicVertex &myVertex) const;
+  void printout(const RefCountedKinematicParticle &myParticle) const;
+  void printout(const RefCountedKinematicTree &myTree) const;
+
+  // ----------member data ---------------------------
+
+  edm::EDGetTokenT<edm::View<pat::Muon>> dimuon_Label;
+  edm::EDGetTokenT<edm::View<pat::Electron>> dielectron_Label;
+  edm::EDGetTokenT<edm::View<pat::PackedCandidate>> trakCollection_label;
+  edm::EDGetTokenT<reco::VertexCollection> primaryVertices_Label;
+
+  //trigger------------
+  edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
+  edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
+  //edm::EDGetTokenT<reco::GenParticleCollection> GenCollection_;
+  edm::EDGetTokenT<edm::View<reco::GenParticle>> prunedGenToken_;
+
+  std::string MuonTriggerString;
+  std::string ElectronIDSring;
+  std::string DataTypeString;
+  bool isMC_;
+
+  TTree *tree_;
+
+  std::vector<float> *Y_GenMuonPt, *Y_GenMuonEta, *Y_GenMuonPhi;
+  std::vector<float> *Z_GenMuonPt, *Z_GenMuonEta, *Z_GenMuonPhi;
+
+  std::vector<float> *Run, *LumiBlock, *Event;
+  std::vector<float> *FourL_mass;
+  std::vector<float> *FourL_px, *FourL_py, *FourL_pz;
+  std::vector<float> *FourL_pt, *FourL_eta, *FourL_phi;
+  std::vector<float> *FourL_VtxProb;
+  std::vector<float> *FourL_PVx, *FourL_PVy, *FourL_PVz;
+  std::vector<float> *FourL_PVxError, *FourL_PVyError, *FourL_PVzError;
+
+  std::vector<float> *Y_dca;
+  std::vector<bool> *Y_TriggerPath, *Y_TriggerPath1;
+  std::vector<float> *Y_TriggerPt1, *Y_TriggerEta1, *Y_TriggerPhi1;
+  std::vector<float> *Y_TriggerPt2, *Y_TriggerEta2, *Y_TriggerPhi2;
+  std::vector<float> *Y_TriggerPt3, *Y_TriggerEta3, *Y_TriggerPhi3;
+  std::vector<float> *Y_TriggerPt4, *Y_TriggerEta4, *Y_TriggerPhi4;
+  std::vector<float> *Y_TriggerPt5, *Y_TriggerEta5, *Y_TriggerPhi5;
+  std::vector<float> *Y_Trigger32Pt1, *Y_Trigger32Eta1, *Y_Trigger32Phi1;
+  std::vector<float> *Y_Trigger32Pt2, *Y_Trigger32Eta2, *Y_Trigger32Phi2;
+  std::vector<float> *Y_Trigger32Pt3, *Y_Trigger32Eta3, *Y_Trigger32Phi3;
+  std::vector<float> *Y_Trigger32Pt4, *Y_Trigger32Eta4, *Y_Trigger32Phi4;
+  std::vector<float> *Y_Trigger32Pt5, *Y_Trigger32Eta5, *Y_Trigger32Phi5;
+  std::vector<float> *Y_mass, *Y_VtxProb, *Y_px, *Y_py, *Y_pz;
+  std::vector<float> *Y_pt, *Y_eta, *Y_phi, *Y_rapidity;
+  std::vector<float> *Y_VtxPx, *Y_VtxPy, *Y_VtxPz;
+  std::vector<float> *Y_VtxPt, *Y_VtxEta, *Y_VtxPhi, *Y_VtxRapidity, *Y_VtxMass;
+  std::vector<float> *Y_PVx, *Y_PVy, *Y_PVz;
+  std::vector<float> *Y_PVxError, *Y_PVyError, *Y_PVzError;
+
+  std::vector<float> *Y_px1, *Y_py1, *Y_pz1;
+  std::vector<float> *Y_pt1, *Y_eta1, *Y_SCeta1, *Y_phi1, *Y_energy1, *Y_energyCorr1;
+
+  std::vector<float> *Y_ecalIso1, *Y_hcalIso1, *Y_trackIso1, *Z_trackIso1;
+  std::vector<bool> *Y_looseCutBase1, *Y_loose90wp1, *Y_mvaIsoWP90_1, *Y_looseLoosewp1;
+  std::vector<float> *Y_mvaIsoWP80_1;
+  std::vector<bool> *Y_loose1;
+  std::vector<float> *Y_px2, *Y_py2, *Y_pz2;
+  std::vector<float> *Y_pt2, *Y_eta2, *Y_SCeta2, *Y_phi2, *Y_energy2, *Y_energyCorr2;
+  std::vector<float> *Y_ecalIso2, *Y_hcalIso2, *Y_trackIso2, *Z_trackIso2;
+  std::vector<bool> *Y_looseCutBase2, *Y_loose90wp2, *Y_mvaIsoWP90_2, *Y_looseLoosewp2;
+  std::vector<float> *Y_mvaIsoWP80_2;
+  std::vector<bool> *Y_loose2;
+  std::vector<int> *Y_charge1, *Y_charge2;
+  std::vector<float> *Y_dxy1, *Y_dxy2, *Y_dz1, *Y_dz2;
+
+  std::vector<float> *Z_lowPt;
+  std::vector<float> *Z_highPt;
+  std::vector<float> *Z_dca;
+
+  std::vector<float> *Z_mass, *Z_px, *Z_py, *Z_pz;
+  std::vector<float> *Z_pt, *Z_eta, *Z_phi, *Z_rapidity;
+  std::vector<float> *Z_VtxPx, *Z_VtxPy, *Z_VtxPz;
+  std::vector<float> *Z_VtxPt, *Z_VtxEta, *Z_VtxPhi, *Z_VtxRapidity, *Z_VtxMass;
+  std::vector<float> *Z_PVx, *Z_PVy, *Z_PVz;
+  std::vector<float> *Z_PVxError, *Z_PVyError, *Z_PVzError;
+
+  std::vector<float> *Z_px1, *Z_py1, *Z_pz1;
+  std::vector<float> *Z_pt1, *Z_eta1, *Z_phi1;
+  std::vector<bool> *Z_soft1, *Z_tight1, *Z_loose1;
+
+  std::vector<float> *Z_px2, *Z_py2, *Z_pz2;
+  std::vector<float> *Z_pt2, *Z_eta2, *Z_phi2;
+  std::vector<int> *Z_charge1, *Z_charge2;
+  std::vector<bool> *Z_soft2, *Z_tight2, *Z_loose2;
+  std::vector<float> *Z_VtxProb;
+  std::vector<float> *Z_xyP, *Z_xyM, *Z_zP, *Z_zM;
+
+  std::vector<float> *mumC2;
+  std::vector<int> *mumNHits, *mumNPHits;
+  std::vector<float> *mupC2;
+  std::vector<int> *mupNHits, *mupNPHits;
+
+  unsigned int nB;
+};
+#endif

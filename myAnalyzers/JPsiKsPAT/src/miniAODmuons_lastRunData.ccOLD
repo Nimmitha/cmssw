@@ -1,0 +1,1460 @@
+// -*- C++ -*-
+//
+// Package:    miniAODmuons
+// Class:      miniAODmuons
+//
+
+//=================================================
+// original author:  Jhovanny Andres Mejia        |
+//         created:  Monday Aug 28 (2017)         |
+//         <jhovanny.andres.mejia.guisao@cern.ch> |
+// updated by: Nimmitha Karunarathna              |
+//         on:  04/18/2024                        |
+//=================================================
+
+// system include files
+#include <memory>
+
+#include "myAnalyzers/JPsiKsPAT/src/miniAODmuons.h"
+
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
+
+#include "DataFormats/PatCandidates/interface/CompositeCandidate.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/Candidate/interface/Candidate.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
+#include "DataFormats/BeamSpot/interface/BeamSpot.h"
+#include "DataFormats/PatCandidates/interface/Muon.h"
+#include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/Common/interface/TriggerResults.h"
+
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrack.h"
+#include "MagneticField/Engine/interface/MagneticField.h"
+#include "CommonTools/Statistics/interface/ChiSquaredProbability.h"
+
+#include "RecoVertex/KinematicFit/interface/KinematicParticleVertexFitter.h"
+#include "RecoVertex/KinematicFitPrimitives/interface/KinematicParticleFactoryFromTransientTrack.h"
+#include "RecoVertex/KinematicFit/interface/MassKinematicConstraint.h"
+#include "RecoVertex/KinematicFit/interface/KinematicParticleFitter.h"
+#include "RecoVertex/KinematicFitPrimitives/interface/MultiTrackKinematicConstraint.h"
+#include "RecoVertex/KinematicFit/interface/KinematicConstrainedVertexFitter.h"
+#include "RecoVertex/KinematicFit/interface/TwoTrackMassKinematicConstraint.h"
+#include "RecoVertex/KinematicFitPrimitives/interface/KinematicParticle.h"
+#include "RecoVertex/KinematicFitPrimitives/interface/RefCountedKinematicParticle.h"
+#include "RecoVertex/KinematicFitPrimitives/interface/TransientTrackKinematicParticle.h"
+//kalman vertexing
+#include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
+//GenInfo
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/Candidate/interface/Candidate.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+//trigger
+#include "FWCore/Common/interface/TriggerNames.h"
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
+
+#include "FWCore/Common/interface/TriggerNames.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "TLorentzVector.h"
+#include "TTree.h"
+#include "TROOT.h"
+#include "TH2F.h"
+
+//
+// constants, enums and typedefs
+//
+Long64_t ncandiPreSelection(0);
+Long64_t nevPreSelection(0);
+Long64_t temp_eventPreSelection(0);
+Double_t Events = 0;
+
+typedef math::Error<3>::type CovarianceMatrix;
+
+//
+// static data member definitions
+//
+
+//
+// constructors and destructor
+//
+
+miniAODmuons::miniAODmuons(const edm::ParameterSet& iConfig)
+    : dimuon_Label(consumes<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("dimuons"))),
+      dielectron_Label(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("dielectron"))),
+      trakCollection_label(consumes<edm::View<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("Trak"))),
+      primaryVertices_Label(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("primaryVertices"))),
+      //trigger
+      triggerBits_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("bits"))),
+      triggerObjects_(consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("objects"))),
+      //GenLevel Info
+      prunedGenToken_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("pruned"))),
+      MuonTriggerString(iConfig.getParameter<std::string>("MuonTrigger")),
+      ElectronIDSring(iConfig.getParameter<std::string>("ElectronID")),
+      DataTypeString(iConfig.getParameter<std::string>("DataType")),
+      isMC_(iConfig.getParameter<bool>("isMC")),
+
+      tree_(0),
+      //Gen add
+      Y_GenMuonPt(0),
+      Y_GenMuonEta(0),
+      Y_GenMuonPhi(0),
+      Z_GenMuonPt(0),
+      Z_GenMuonEta(0),
+      Z_GenMuonPhi(0),
+
+      Run(0),
+      LumiBlock(0),
+      Event(0),
+      FourL_mass(0),
+      FourL_px(0),
+      FourL_py(0),
+      FourL_pz(0),
+      FourL_pt(0),
+      FourL_eta(0),
+      FourL_phi(0),
+
+      FourL_VtxProb(0),
+      FourL_PVx(0),
+      FourL_PVy(0),
+      FourL_PVz(0),
+      FourL_PVxError(0),
+      FourL_PVyError(0),
+      FourL_PVzError(0),
+
+      //Z
+      Y_TriggerPath(0),
+      Y_TriggerPath1(0),
+      Y_TriggerPt1(0),
+      Y_TriggerEta1(0),
+      Y_TriggerPhi1(0),
+      Y_TriggerPt2(0),
+      Y_TriggerEta2(0),
+      Y_TriggerPhi2(0),
+      Y_TriggerPt3(0),
+      Y_TriggerEta3(0),
+      Y_TriggerPhi3(0),
+      Y_TriggerPt4(0),
+      Y_TriggerEta4(0),
+      Y_TriggerPhi4(0),
+      Y_TriggerPt5(0),
+      Y_TriggerEta5(0),
+      Y_TriggerPhi5(0),
+
+      Y_Trigger32Pt1(0),
+      Y_Trigger32Eta1(0),
+      Y_Trigger32Phi1(0),
+      Y_Trigger32Pt2(0),
+      Y_Trigger32Eta2(0),
+      Y_Trigger32Phi2(0),
+      Y_Trigger32Pt3(0),
+      Y_Trigger32Eta3(0),
+      Y_Trigger32Phi3(0),
+      Y_Trigger32Pt4(0),
+      Y_Trigger32Eta4(0),
+      Y_Trigger32Phi4(0),
+      Y_Trigger32Pt5(0),
+      Y_Trigger32Eta5(0),
+      Y_Trigger32Phi5(0),
+
+      Y_mass(0),
+      Y_VtxProb(0),
+      Y_px(0),
+      Y_py(0),
+      Y_pz(0),
+      Y_pt(0),
+      Y_eta(0),
+      Y_phi(0),
+      Y_rapidity(0),
+      Y_VtxPx(0),
+      Y_VtxPy(0),
+      Y_VtxPz(0),
+      Y_VtxPt(0),
+      Y_VtxEta(0),
+      Y_VtxPhi(0),
+      Y_VtxRapidity(0),
+      Y_VtxMass(0),
+
+      Y_PVx(0),
+      Y_PVy(0),
+      Y_PVz(0),
+      Y_PVxError(0),
+      Y_PVyError(0),
+      Y_PVzError(0),
+      Y_px1(0),
+      Y_py1(0),
+      Y_pz1(0),
+      Y_pt1(0),
+      Y_eta1(0),
+      Y_SCeta1(0),
+      Y_phi1(0),
+      Y_energy1(0),
+      Y_energyCorr1(0),
+      Y_ecalIso1(0),
+      Y_hcalIso1(0),
+      Y_trackIso1(0),
+      Z_trackIso1(0),
+      Y_looseCutBase1(0),
+      Y_loose90wp1(0),
+      Y_mvaIsoWP90_1(0),
+      Y_looseLoosewp1(0),
+      Y_mvaIsoWP80_1(0),
+      Y_loose1(0),
+      Y_px2(0),
+      Y_py2(0),
+      Y_pz2(0),
+      Y_pt2(0),
+      Y_eta2(0),
+      Y_SCeta2(0),
+      Y_phi2(0),
+      Y_energy2(0),
+      Y_energyCorr2(0),
+      Y_ecalIso2(0),
+      Y_hcalIso2(0),
+      Y_trackIso2(0),
+      Z_trackIso2(0),
+      Y_looseCutBase2(0),
+      Y_loose90wp2(0),
+      Y_mvaIsoWP90_2(0),
+      Y_looseLoosewp2(0),  //Y_looseMva2(0),
+      Y_mvaIsoWP80_2(0),
+      Y_loose2(0),
+      Y_charge1(0),
+      Y_charge2(0),
+      Y_dxy1(0),
+      Y_dxy2(0),
+      Y_dz1(0),
+      Y_dz2(0),
+      Z_lowPt(0),
+      Z_highPt(0),
+      Z_dca(0),
+      Z_mass(0),
+      Z_px(0),
+      Z_py(0),
+      Z_pz(0),
+      Z_pt(0),
+      Z_eta(0),
+      Z_phi(0),
+      Z_rapidity(0),
+      Z_VtxPx(0),
+      Z_VtxPy(0),
+      Z_VtxPz(0),
+      Z_VtxPt(0),
+      Z_VtxEta(0),
+      Z_VtxPhi(0),
+      Z_VtxRapidity(0),
+      Z_VtxMass(0),
+      Z_PVx(0),
+      Z_PVy(0),
+      Z_PVz(0),
+      Z_PVxError(0),
+      Z_PVyError(0),
+      Z_PVzError(0),
+      Z_px1(0),
+      Z_py1(0),
+      Z_pz1(0),
+      Z_pt1(0),
+      Z_eta1(0),
+      Z_phi1(0),
+      Z_soft1(0),
+      Z_tight1(0),
+      Z_loose1(0),
+      Z_px2(0),
+      Z_py2(0),
+      Z_pz2(0),
+      Z_pt2(0),
+      Z_eta2(0),
+      Z_phi2(0),
+      Z_charge1(0),
+      Z_charge2(0),
+      Z_soft2(0),
+      Z_tight2(0),
+      Z_loose2(0),
+      Z_VtxProb(0),
+      Z_xyP(0),
+      Z_xyM(0),
+      Z_zP(0),
+      Z_zM(0),
+
+      mumC2(0),
+      mumNHits(0),
+      mumNPHits(0),
+      mupC2(0),
+      mupNHits(0),
+      mupNPHits(0),
+
+      nB(0)
+
+{
+  //now do what ever initialization is needed
+  //  Long64_t ncandiPreSelection(0);                                                                                                                                                                                    Long64_t nevPreSelection(0);                                                                                                                                                                                       Long64_t temp_eventPreSelection(0);                                                                                                                                                                                Double_t Events = 0;
+}
+
+miniAODmuons::~miniAODmuons() {}
+
+//
+// member functions
+//
+
+// ------------ method called to for each event  ------------
+void miniAODmuons::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+  using std::vector;
+  using namespace edm;
+  using namespace reco;
+  using namespace std;
+
+  //Long64_t ncandiPreSelection(0);                                                                                                                                                                                    Long64_t nevPreSelection(0);                                                                                                                                                                                       Long64_t temp_eventPreSelection(0);                                                                                                                                                                                 Double_t Events = 0;
+
+  //*********************************
+  // Get event content information
+  //*********************************
+
+  // Kinematic fit
+  edm::ESHandle<TransientTrackBuilder> theB;
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", theB);
+
+  edm::Handle<View<pat::PackedCandidate>> thePATTrackHandle;
+  iEvent.getByToken(trakCollection_label, thePATTrackHandle);
+
+  edm::Handle<View<pat::Muon>> thePATMuonHandle;
+  iEvent.getByToken(dimuon_Label, thePATMuonHandle);
+
+  edm::Handle<View<pat::Electron>> thePATElectronHandle;
+  iEvent.getByToken(dielectron_Label, thePATElectronHandle);
+
+  edm::Handle<edm::TriggerResults> triggerBits;
+  iEvent.getByToken(triggerBits_, triggerBits);
+
+  edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
+  iEvent.getByToken(triggerObjects_, triggerObjects);
+  //gen Particles
+  // Pruned particles are the one containing "important" stuff
+  edm::Handle<edm::View<reco::GenParticle>> pruned;
+  iEvent.getByToken(prunedGenToken_, pruned);
+  //some  cross checks
+
+  if (!theB.isValid()) {
+    edm::LogWarning("miniAODmuons") << "no Transient Track in event";
+    return;
+  }
+
+  if (!thePATElectronHandle.isValid()) {
+    edm::LogWarning("miniAODmuons") << "no pat::Electrons in event";
+    return;
+  }
+  if (!thePATMuonHandle.isValid()) {
+    edm::LogWarning("miniAODmuons") << "no pat::Muons in event";
+    return;
+  }
+  if (!triggerBits.isValid()) {
+    edm::LogWarning("miniAODmuons") << "no Trigger path in event";
+    return;
+  }
+  if (!triggerObjects.isValid()) {
+    edm::LogWarning("miniAODmuons") << "no Trigger Object in event";
+    return;
+  }
+
+  //Long64_t ncandiPreSelection(0);
+  //Long64_t nevPreSelection(0);
+  //Long64_t temp_eventPreSelection(0);
+  //Double_t Events = 0;
+
+  //Before Begining lets get Gen level Information
+  int h = 0;
+  int h1 = 0;
+  int pass = 0;
+  int passTrig = 0;
+  int pass1 = 0;
+  int passTrig1 = 0;
+  bool EET = false;
+  bool EET1 = false;
+  float EET_pt[5] = {-999, -999, -999, -999, -999};
+  float EET_eta[5] = {-999, -999, -999, -999, -999};
+  float EET_phi[5] = {-999, -999, -999, -999, -999};
+  float EET_pt1[5] = {-999, -999, -999, -999, -999};
+  float EET_eta1[5] = {-999, -999, -999, -999, -999};
+  float EET_phi1[5] = {-999, -999, -999, -999, -999};
+  int nG1 = 0;
+  int nG2 = 0;
+  bool GenInfo = true;
+  if (GenInfo == false) {
+    //Gen Level Info
+
+    float Z_GenMuon_pt = -999;
+    float Z_GenMuon_eta = -999;
+    float Z_GenMuon_phi = -999;
+    float Y_GenMuon_pt = -999;
+    float Y_GenMuon_eta = -999;
+    float Y_GenMuon_phi = -999;
+
+    //cout<<"Start Gen Work"<<endl;
+    //     Long64_t ncandiPreSelection(0);                                                                                                                                                                                    Long64_t nevPreSelection(0);                                                                                                                                                                                       Long64_t temp_eventPreSelection(0);                                                                                                                                                                                Double_t Events = 0;
+
+    for (size_t i = 0; i < pruned->size(); i++) {
+      //if( (*pruned)[i].isPromptFinalState()  && abs((*pruned)[i].pdgId() ==13) ){
+
+      if (abs((*pruned)[i].pdgId()) == 13) {
+        //cout<<"Found gen level muon"<<endl;
+        if ((*pruned)[i].mother()->pdgId() == 553) {
+          //cout<<"Found gen level muon from Jpsi "<<endl;
+          //if ( (*pruned)[i].->pdgId()==10443 ) {
+          //cout<<"Found gen level muon with number of mother"<<(*pruned)[i].numberOfMothers()<<endl;
+          Z_GenMuon_pt = (*pruned)[i].pt();
+          Z_GenMuon_eta = (*pruned)[i].eta();
+          Z_GenMuon_phi = (*pruned)[i].phi();
+          Z_GenMuonPt->push_back(Z_GenMuon_pt);
+          Z_GenMuonEta->push_back(Z_GenMuon_eta);
+          Z_GenMuonPhi->push_back(Z_GenMuon_phi);
+          nG1++;
+          //}
+        }
+      }
+      if (abs((*pruned)[i].pdgId()) == 11) {
+        //cout<<"Found gen level muon"<<endl;
+        if ((*pruned)[i].mother()->pdgId() == 23) {
+          //cout<<"Found gen level muon from Z"<<endl;
+          Y_GenMuon_pt = (*pruned)[i].pt();
+          Y_GenMuon_eta = (*pruned)[i].eta();
+          Y_GenMuon_phi = (*pruned)[i].phi();
+          Y_GenMuonPt->push_back(Y_GenMuon_pt);
+          Y_GenMuonEta->push_back(Y_GenMuon_eta);
+          Y_GenMuonPhi->push_back(Y_GenMuon_phi);
+          nG2++;
+        }
+      }
+    }
+    // cout<<"End Gen Work for this event"<<endl;
+  }
+
+  //First Work on Trigger Information//
+  //**********************************
+  const edm::TriggerNames& names = iEvent.triggerNames(*triggerBits);
+  //std::cout << "\n === TRIGGER PATHS === " <<  std::endl;
+
+  for (unsigned int i = 0, n = triggerBits->size(); i < n; ++i) {
+    bool acceptE = triggerBits->accept(i);
+
+    // std::cout << "MuonTriggerString " << MuonTriggerString << std::endl;
+    if (names.triggerName(i).find(MuonTriggerString.c_str()) != string::npos) {
+
+      //   if (names.triggerName(i).find("HLT_Ele27_WPTight_Gsf_v")!=string::npos)  {
+      if (triggerBits->accept(i)) {
+        //std::cout << "Trigger " << names.triggerName(i) <<
+        // ": " << (triggerBits->accept(i) ? "PASS" : "fail (or not run)")
+        // << std::endl;
+        pass = acceptE;
+        if (pass == 1) {
+          passTrig++;
+        }
+      }
+    }
+
+    // if (names.triggerName(i).find("HLT_Ele32_WPTight_Gsf_v")!=string::npos)  {
+    if (names.triggerName(i).find(ElectronIDSring.c_str()) != string::npos) {
+      if (triggerBits->accept(i)) {
+        //    std::cout << "Trigger " << names.triggerName(i) <<
+        //     ": " << (triggerBits->accept(i) ? "PASS" : "fail (or not run)")
+        //            << std::endl;
+        pass1 = acceptE;
+        if (pass1 == 1) {
+          passTrig1++;
+        }
+      }
+    }
+  }
+  //****************************************************
+  //***************Trigger Object***********************
+  //****************************************************
+  if (passTrig > 0) {
+    EET = true;
+  }
+  if (passTrig1 > 0) {
+    EET1 = true;
+  }
+  //float ElectronTriggerPt;
+  if ((EET + EET1) > 0) {
+    for (pat::TriggerObjectStandAlone obj : *triggerObjects) {  // note: not "const &" since we want to call unpackPathNames
+      obj.unpackPathNames(names);
+      //for (unsigned h = 0, n = pathNamesAll.size(); h < n; ++h) {
+      //bool isBoth = obj.hasPathName("HLT_Ele35_WPTight_Gsf_v*", true, true );
+      //bool isL3 = obj.hasFilterLabel("HLTEle32WPTightGsfSequence");
+      //cout<<"The L3 Filter is : "<<isL3<<endl;
+      //bool isL3   = obj.hasPathName( pathNamesAll[h], false, true );
+      //bool isL3   = obj.hasPathName( "HLT_Ele35_WPTight_Gsf_v*", false, true );
+      //bool isLF   = obj.hasPathName( "HLT_Ele35_WPTight_Gsf_v*", true, false );
+      //bool isNone = obj.hasPathName( "HLT_Ele35_WPTight_Gsf_v*", false, false );
+      //**************************************************************************************************//
+      //****************Definition of hasPathName*********************************************************//
+      //**************************************************************************************************//
+      //bool hasPathName(const std::string &pathName,
+      //               bool pathLastFilterAccepted = false,
+      //               bool pathL3FilterAccepted = true) const {
+      //return hasPathOrAlgorithm(pathName, pathLastFilterAccepted, pathL3FilterAccepted);
+      //};
+      //**************************************************************************************************//
+      //cout<< "obj.hasPathL3FilterAccepted() "<<obj.hasPathL3FilterAccepted()<<endl;
+      //std::cout << "   " << pathNamesAll[h];
+      if (EET > 0) {
+        if (obj.hasPathName(MuonTriggerString.c_str(), true, true) > 0) {
+          EET_pt[h] = obj.pt();
+          EET_eta[h] = obj.eta();
+          EET_phi[h] = obj.phi();
+          h++;
+        }
+      }
+      if (EET1 > 0) {
+        if (obj.hasPathName(ElectronIDSring.c_str(), true, true) > 0) {
+          //std::cout << "\tTrigger objectisBoth:  pt " << obj.pt() << ", eta " << obj.eta() << ", phi " << obj.phi() << std::endl;
+          //open from here
+          EET_pt1[h1] = obj.pt();
+          EET_eta1[h1] = obj.eta();
+          EET_phi1[h1] = obj.phi();
+          h1++;
+        }
+      }
+    }
+  }
+  //cout<<EET_pt1[0]<< EET_eta1[0]<< EET_phi1[0]<<endl;
+  //cout<<"Event Ele 35 Trigger "<<EET<<endl;
+  //cout<<"Event Ele 32 Trigger "<<EET1<<endl;
+
+  //*********************************
+  //Now we get the primary vertex
+  //*********************************
+
+  reco::Vertex bestVtx;
+  edm::Handle<reco::VertexCollection> primaryVertices_handle;
+  iEvent.getByToken(primaryVertices_Label, primaryVertices_handle);
+
+  bestVtx = *(primaryVertices_handle->begin());
+
+  //*****************************************
+
+  for (View<pat::Muon>::const_iterator iMuon1 = thePATMuonHandle->begin(); iMuon1 != thePATMuonHandle->end(); ++iMuon1) {
+    for (View<pat::Muon>::const_iterator iMuon2 = iMuon1 + 1; iMuon2 != thePATMuonHandle->end(); ++iMuon2) {
+      if (iMuon1 == iMuon2)
+        continue;
+
+      //opposite charge
+      if ((iMuon1->charge()) * (iMuon2->charge()) == 1)
+        continue;
+
+      for (View<pat::Electron>::const_iterator iEle1 = thePATElectronHandle->begin(); iEle1 != thePATElectronHandle->end(); ++iEle1) {
+        // cout<<"Begining of cut on Ele 1"<<endl;
+        for (View<pat::Electron>::const_iterator iEle2 = iEle1 + 1; iEle2 != thePATElectronHandle->end(); ++iEle2) {
+          ncandiPreSelection++;
+          Events = iEvent.id().event();
+          if (temp_eventPreSelection != Events) {
+            temp_eventPreSelection = Events;
+
+            nevPreSelection++;
+          }
+
+          if (iEle1 == iEle2)
+            continue;
+
+          if ((iEle1->charge()) * (iEle2->charge()) == 1)
+            continue;
+
+          TrackRef glbTrackP;
+          TrackRef glbTrackM;
+
+          if (iMuon1->charge() == 1) {
+            glbTrackP = iMuon1->track();
+          }
+          if (iMuon1->charge() == -1) {
+            glbTrackM = iMuon1->track();
+          }
+
+          if (iMuon2->charge() == 1) {
+            glbTrackP = iMuon2->track();
+          }
+          if (iMuon2->charge() == -1) {
+            glbTrackM = iMuon2->track();
+          }
+
+          if (glbTrackP.isNull() || glbTrackM.isNull()) {
+            continue;
+          }
+
+          reco::TrackRef kfTrackRefP;
+          reco::TrackRef kfTrackRefM;
+          // cout<<"Start Electron Analysis"<<endl;
+          if (!(abs(iEle1->charge()) == 1))
+            continue;
+          if (!(abs(iEle2->charge()) == 1))
+            continue;
+          // cout<<"charge equal to 1"<<endl;
+          //if (iEle->charge()==0) continue;
+          /*
+	      if(iEle1->charge() == 1){ kfTrackRefP = iEle1->closestCtfTrackRef();}
+	      if(iEle1->charge() == -1){ kfTrackRefM = iEle1->closestCtfTrackRef();}
+	     
+	      if(iEle2->charge() == 1){ kfTrackRefP = iEle2->closestCtfTrackRef();}
+	      if(iEle2->charge() == -1){ kfTrackRefM = iEle2->closestCtfTrackRef();}
+	      */
+
+          TLorentzVector M1, M2, E1, E2, MM, EE, EEMM;
+          float mu_mass = 0.1056583745;     //[PDG mass]
+          float ele_mass = 0.000510998928;  //PDG mass
+          M1.SetXYZM(iMuon1->track()->px(), iMuon1->track()->py(), iMuon1->track()->pz(), mu_mass);
+          M2.SetXYZM(iMuon2->track()->px(), iMuon2->track()->py(), iMuon2->track()->pz(), mu_mass);
+          //E1.SetXYZM(iEle1->gsfTrack()->px(),iEle1->gsfTrack()->py(),iEle1->gsfTrack()->pz(),ele_mass);
+          //E2.SetXYZM(iEle2->gsfTrack()->px(),iEle2->gsfTrack()->py(),iEle2->gsfTrack()->pz(),ele_mass);
+          // cout<<"iMuon1->track()->px(),iMuon1->track()->py(),iMuon1->track()->pz()"<<iMuon1->track()->px()<<","<<iMuon1->track()->py()<<","<<iMuon1->track()->pz()<<endl;
+          // cout<<"iMuon2->track()->px(),iMuon2->track()->py(),iMuon2->track()->pz()"<<iMuon2->track()->px()<<","<<iMuon2->track()->py()<<","<<iMuon2->track()->pz()<<endl;
+
+          // cout<<"iEle1->pt(),iEle1->eta(),iEle1->phi(),iEle1->energy()"<<iEle1->pt()<<","<<iEle1->eta()<<","<<iEle1->phi()<<","<<iEle1->energy()<<endl;
+          // cout<<"iEle2->pt(),iEle2->eta(),iEle2->phi(),iEle2->energy()"<<iEle2->pt()<<","<<iEle2->eta()<<","<<iEle2->phi()<<","<<iEle2->energy()<<endl;
+          E1.SetPtEtaPhiE(iEle1->pt(), iEle1->eta(), iEle1->phi(), iEle1->energy());  //
+          E2.SetPtEtaPhiE(iEle2->pt(), iEle2->eta(), iEle2->phi(), iEle2->energy());  //
+          //E1.SetPtEtaPhiE(iEle1->pt(),iEle1->eta(),iEle1->phi(),iEle1->userFloat("ecalTrkEnergyPostCorr"));//energy scale smeared
+          //E2.SetPtEtaPhiE(iEle2->pt(),iEle2->eta(),iEle2->phi(),iEle2->userFloat("ecalTrkEnergyPostCorr"));//
+          MM = M1 + M2;
+          EE = E1 + E2;
+          EEMM = MM + EE;
+          // cout<<"MM.M()="<<MM.M()<<endl;
+          // cout<<"EE.M()="<<EE.M()<<endl;
+
+          if (MM.M() < 70)
+            continue;
+          if (MM.M() > 110)
+            continue;
+          if (EE.M() < 2.8)
+            continue;
+          if (EE.M() > 12)
+            continue;
+          // cout<<"mass cuts made"<<endl;
+          int tkquality = 0;
+
+          if (iEle1->gsfTrack().isAvailable() && iEle1->gsfTrack().isNonnull()) {
+            if (iEle2->gsfTrack().isAvailable() && iEle2->gsfTrack().isNonnull()) {
+              tkquality++;
+            }
+          }
+
+          if (tkquality == 0)
+            continue;
+
+          if (iMuon1->track()->pt() < 2.0)
+            continue;
+          if (iMuon2->track()->pt() < 2.0)
+            continue;
+
+          //cout<<"Start looking muon track quality"<<endl;
+          if (!(glbTrackM->quality(reco::TrackBase::highPurity)))
+            continue;
+          if (!(glbTrackP->quality(reco::TrackBase::highPurity)))
+            continue;
+          //cout<<"Start Building Track"<<endl;
+
+          reco::TransientTrack muon1TT((*theB).build(glbTrackP));
+          reco::TransientTrack muon2TT((*theB).build(glbTrackM));
+          //reco::TransientTrack electron1TT((*theB).build(kfTrackRefP));//working
+          //reco::TransientTrack electron2TT((*theB).build(kfTrackRefM));//working
+          reco::TransientTrack electron1TT((*theB).build(iEle1->gsfTrack()));
+          reco::TransientTrack electron2TT((*theB).build(iEle2->gsfTrack()));
+
+          // *****  Trajectory states to calculate DCA for the 2 muons *********************
+          FreeTrajectoryState mu1State = muon1TT.impactPointTSCP().theState();
+          FreeTrajectoryState mu2State = muon2TT.impactPointTSCP().theState();
+          //FreeTrajectoryState electron1State = muon1TT.impactPointTSCP().theState();
+          //FreeTrajectoryState electron2State = muon2TT.impactPointTSCP().theState();
+          // cout<<"Start validating impact point"<<endl;
+          if (!muon1TT.impactPointTSCP().isValid() || !muon2TT.impactPointTSCP().isValid())
+            continue;
+          // cout<<"Validated  impact point for muon"<<endl;
+          if (!electron1TT.impactPointTSCP().isValid() || !electron2TT.impactPointTSCP().isValid())
+            continue;
+          // cout<<"Start validating impact point for electron"<<endl;
+          // Measure distance between tracks at their closest approach
+          ClosestApproachInRPhi cApp;
+          cApp.calculate(mu1State, mu2State);
+          if (!cApp.status())
+            continue;
+          float dca = fabs(cApp.distance());
+          //if (dca < 0. || dca > 0.5) continue;
+          //cout<<"dca"<<dca<<endl;
+          //cout<<" closest approach  "<<dca<<endl;
+          //ClosestApproachInRPhi cAppE;
+          //cApp.calculate(electron1State, electron2State);
+          //if( !cAppE.status() ) continue;
+          //float dcaE = fabs( cAppE.distance() );
+          //if (dcaE < 0. || dcaE > 0.5) continue;
+          //cout<<"dca E "<<dcaE<<endl;
+          // ******  Methods to check to which category of muon candidates a given pat::Muon object belongs ****
+          //Kalman Vtx----------------------//
+
+          vector<TransientTrack> ele_tks;
+          vector<TransientTrack> mu_tks;
+          vector<TransientTrack> mmee_tks;
+          KalmanVertexFitter kvf(true);
+          ele_tks.clear();
+          ele_tks.push_back(electron1TT);
+          ele_tks.push_back(electron2TT);
+
+          TransientVertex Y_candi = kvf.vertex(ele_tks);
+          reco::Vertex Y_Vtx = Y_candi;
+          const math::XYZTLorentzVectorD Y_mom = Y_Vtx.p4(ele_mass, 0.0);
+          if (!Y_candi.isValid()) {
+            //cout<<"Z candidate non validated by kalman fitter"<<endl;
+            continue;
+          }
+          float Protmp1 = TMath::Prob(Y_candi.totalChiSquared(), Y_candi.degreesOfFreedom());
+
+          KalmanVertexFitter kvfM(true);
+          mu_tks.clear();
+          mu_tks.push_back(muon1TT);
+          mu_tks.push_back(muon2TT);
+          TransientVertex Z_candi = kvfM.vertex(mu_tks);
+          if (!Z_candi.isValid()) {
+            //cout<<"J candidate non validated by kalman fitter"<<endl;
+            continue;
+          }
+          reco::Vertex Z_Vtx = Z_candi;
+          float Protmp = TMath::Prob(Z_candi.totalChiSquared(), Z_candi.degreesOfFreedom());
+          const math::XYZTLorentzVectorD Z_mom = Z_Vtx.p4(mu_mass, 0.0);
+
+          // const math::XYZTLorentzVectorD Z_mom = Z_vtx.p4(0.1056583,0.0);
+
+          KalmanVertexFitter kvfEM(true);
+          mmee_tks.clear();
+          mmee_tks.push_back(electron1TT);
+          mmee_tks.push_back(electron2TT);
+          mmee_tks.push_back(muon1TT);
+          mmee_tks.push_back(muon2TT);
+          TransientVertex FourL_candi = kvfEM.vertex(mmee_tks);
+          if (!FourL_candi.isValid()) {
+            //cout<<"J candidate non validated by kalman fitter"<<endl;
+            continue;
+          }
+          float Protmp4L = TMath::Prob(FourL_candi.totalChiSquared(), FourL_candi.degreesOfFreedom());
+          reco::Vertex FourL_Vtx = FourL_candi;
+          //cout<<"vertex 4l"<<endl;
+          if (Protmp4L < 0.001)
+            continue;
+
+          /*
+	      //if (iMuon1->isTrackerMuon() || iMuon2->isTrackerMuon())
+	      //if (muon::isHighPtMuon(*iMuon1,bestVtx) || muon::isHighPtMuon(*iMuon2,bestVtx))
+	      if (muon::isGoodMuon(*iMuon1,muon::TMLastStationAngTight) || muon::isGoodMuon(*iMuon2,muon::TMLastStationAngTight))
+	      {
+	      cout<<" is category muon  "<<endl;
+	      }
+	      else
+	      {
+	      cout<<" it is not category muon  "<<endl;
+	      }
+	      */
+
+          // ******   Let's check the vertex and mass ****
+
+          //The mass of a muon and the insignificant mass sigma
+          //to avoid singularities in the covariance matrix.
+
+          bool KinFit = false;
+
+          //cout<<"Start Kin Loop"<<endl;
+
+          if (KinFit == true) {
+            ParticleMass muon_mass = 0.10565837;  //pdg mass
+            float muon_sigma = muon_mass * 1.e-6;
+            vector<RefCountedKinematicParticle> muonParticles;
+            
+            //Creating a KinematicParticleFactory
+            KinematicParticleFactoryFromTransientTrack pFactory;
+
+            //initial chi2 and ndf before kinematic fits.
+            float chi = 0.;
+            float ndf = 0.;
+            //vector<RefCountedKinematicParticle> muonParticles;
+            try {
+              muonParticles.push_back(pFactory.particle(muon1TT, muon_mass, chi, ndf, muon_sigma));
+              muonParticles.push_back(pFactory.particle(muon2TT, muon_mass, chi, ndf, muon_sigma));
+            } catch (...) {
+              std::cout << " Exception caught ... continuing 1 " << std::endl;
+              continue;
+            }
+
+            KinematicParticleVertexFitter fitter;
+
+            RefCountedKinematicTree psiVertexFitTree;
+            try {
+              psiVertexFitTree = fitter.fit(muonParticles);
+            } catch (...) {
+              std::cout << " Exception caught ... continuing 2 " << std::endl;
+              continue;
+            }
+
+            if (!psiVertexFitTree->isValid()) {
+              //std::cout << "caught an exception in the psi vertex fit" << std::endl;
+              continue;
+            }
+
+            psiVertexFitTree->movePointerToTheTop();
+
+            RefCountedKinematicParticle psi_vFit_noMC = psiVertexFitTree->currentParticle();
+            RefCountedKinematicVertex psi_vFit_vertex_noMC = psiVertexFitTree->currentDecayVertex();
+
+            if (psi_vFit_vertex_noMC->chiSquared() < 0) {
+              std::cout << "negative chisq from psi fit" << endl;
+              continue;
+            }
+
+            //some loose cuts go here
+
+            // if(psi_vFit_vertex_noMC->chiSquared()>50.) continue;
+            // if(psi_vFit_noMC->currentState().mass()<2.9 || psi_vFit_noMC->currentState().mass()>12) continue;
+
+            //fill variables?iMuon1->track()->pt()
+
+            //Z_mass->push_back( psi_vFit_noMC->currentState().mass() );
+            //Z_px->push_back( psi_vFit_noMC->currentState().globalMomentum().x() );
+            //Z_py->push_back( psi_vFit_noMC->currentState().globalMomentum().y() );
+            //Z_pz->push_back( psi_vFit_noMC->currentState().globalMomentum().z() );
+          }
+          //cout<<Z_mom.mass()<<" : Is JPsi Vtx Mass "<<MM.M()<<"Is JPsi mass"<<endl;
+          //cout<<Y_mom.mass()<<" : Is Z Vtx Mass "<<EE.M()<<"Is Z mass"<<endl;
+          //Event Information
+          Run->push_back(iEvent.id().run());
+          LumiBlock->push_back(iEvent.luminosityBlock());
+          Event->push_back(iEvent.id().event());
+          //cout<<"iEle1 SC enrgy Trak = "<<iEle1->userFloat("ecalTrkEnergyPostCorr")<<" Normal E: "<<iEle1->energy() <<endl;
+          //cout<<"iEle1 SC enrgy = "<<iEle1->userFloat("ecalEnergyPostCorr")<<" Normal E: "<<iEle1->energy() <<endl;
+          //cout<<"iEle1 SC enrgy Trak = "<<iEle2->userFloat("ecalTrkEnergyPostCorr")<<" Normal E: "<<iEle2->energy() <<endl;
+          //cout<<"iEle1 SC enrgy = "<<iEle2->userFloat("ecalEnergyPostCorr")<<" Normal E: "<<iEle2->energy() <<endl;
+          //cout<<"iEle1 SC Eta "<< iEle1->superCluster()->eta()<< " & "<<iEle1->eta()<<endl;
+
+          //Four Muon Information
+
+          FourL_mass->push_back(EEMM.M());
+          FourL_px->push_back(EEMM.Px());
+          FourL_py->push_back(EEMM.Py());
+          FourL_pz->push_back(EEMM.Pz());
+          FourL_pt->push_back(EEMM.Pt());
+          FourL_eta->push_back(EEMM.Eta());
+          FourL_phi->push_back(EEMM.Phi());
+          FourL_VtxProb->push_back(Protmp4L);
+          FourL_PVx->push_back(FourL_Vtx.x());
+          FourL_PVy->push_back(FourL_Vtx.y());
+          FourL_PVz->push_back(FourL_Vtx.z());
+          FourL_PVxError->push_back(FourL_Vtx.xError());
+          FourL_PVyError->push_back(FourL_Vtx.yError());
+          FourL_PVzError->push_back(FourL_Vtx.zError());
+          //muonParticles.clear();//open for kinematicFit
+
+          //Y_dca->push_back(dcaM);
+          Y_TriggerPath->push_back(EET);
+          Y_TriggerPath1->push_back(EET1);
+
+          Y_TriggerPt1->push_back(EET_pt[0]);
+          Y_TriggerEta1->push_back(EET_eta[0]);
+          Y_TriggerPhi1->push_back(EET_phi[0]);
+          Y_TriggerPt2->push_back(EET_pt[1]);
+          Y_TriggerEta2->push_back(EET_eta[1]);
+          Y_TriggerPhi2->push_back(EET_phi[1]);
+          Y_TriggerPt3->push_back(EET_pt[2]);
+          Y_TriggerEta3->push_back(EET_eta[2]);
+          Y_TriggerPhi3->push_back(EET_phi[2]);
+          Y_TriggerPt4->push_back(EET_pt[3]);
+          Y_TriggerEta4->push_back(EET_eta[3]);
+          Y_TriggerPhi4->push_back(EET_phi[3]);
+          Y_TriggerPt5->push_back(EET_pt[4]);
+          Y_TriggerEta5->push_back(EET_eta[4]);
+          Y_TriggerPhi5->push_back(EET_phi[4]);
+
+          Y_Trigger32Pt1->push_back(EET_pt1[0]);
+          Y_Trigger32Eta1->push_back(EET_eta1[0]);
+          Y_Trigger32Phi1->push_back(EET_phi1[0]);
+          Y_Trigger32Pt2->push_back(EET_pt1[1]);
+          Y_Trigger32Eta2->push_back(EET_eta1[1]);
+          Y_Trigger32Phi2->push_back(EET_phi1[1]);
+          Y_Trigger32Pt3->push_back(EET_pt1[2]);
+          Y_Trigger32Eta3->push_back(EET_eta1[2]);
+          Y_Trigger32Phi3->push_back(EET_phi1[2]);
+          Y_Trigger32Pt4->push_back(EET_pt1[3]);
+          Y_Trigger32Eta4->push_back(EET_eta1[3]);
+          Y_Trigger32Phi4->push_back(EET_phi1[3]);
+          Y_Trigger32Pt5->push_back(EET_pt1[4]);
+          Y_Trigger32Eta5->push_back(EET_eta1[4]);
+          Y_Trigger32Phi5->push_back(EET_phi1[4]);
+
+          Y_mass->push_back(EE.M());
+          Y_VtxProb->push_back(Protmp1);
+
+          Y_px->push_back(EE.Px());
+          Y_py->push_back(EE.Py());
+          Y_pz->push_back(EE.Pz());
+          Y_pt->push_back(EE.Pt());
+          Y_eta->push_back(EE.Eta());
+          Y_phi->push_back(EE.Phi());
+          Y_rapidity->push_back(EE.Rapidity());
+          Y_VtxPx->push_back(Y_mom.Px());
+          Y_VtxPy->push_back(Y_mom.Py());
+          Y_VtxPz->push_back(Y_mom.Pz());
+          Y_VtxPt->push_back(Y_mom.Pt());
+          Y_VtxEta->push_back(Y_mom.Eta());
+          Y_VtxPhi->push_back(Y_mom.Phi());
+          Y_VtxRapidity->push_back(Y_mom.Rapidity());
+          Y_VtxMass->push_back(Y_mom.mass());
+
+          Y_PVx->push_back(Y_Vtx.x());
+          Y_PVy->push_back(Y_Vtx.y());
+          Y_PVz->push_back(Y_Vtx.z());
+          Y_PVxError->push_back(Y_Vtx.xError());
+          Y_PVyError->push_back(Y_Vtx.yError());
+          Y_PVzError->push_back(Y_Vtx.zError());
+
+          Y_px1->push_back(iEle1->px());
+          Y_py1->push_back(iEle1->py());
+          Y_pz1->push_back(iEle1->pz());
+          Y_pt1->push_back(iEle1->pt());
+          Y_eta1->push_back(iEle1->eta());
+          Y_SCeta1->push_back(iEle1->superCluster()->eta());
+          Y_phi1->push_back(iEle1->phi());
+          Y_energy1->push_back(iEle1->energy());
+          Y_energyCorr1->push_back(iEle1->userFloat("ecalTrkEnergyPostCorr"));
+
+          Y_ecalIso1->push_back(iEle1->ecalIso());
+          Y_hcalIso1->push_back(iEle1->hcalIso());
+          Y_trackIso1->push_back(iEle1->trackIso());
+          Z_trackIso1->push_back(iMuon1->trackIso());
+
+          // sms MVA electron-1 id 2018
+          // Y_mvaIsoWP80_1->push_back(iEle1->userFloat("mvaEleID-Fall17-iso-V2-wp80"));
+          Y_looseCutBase1->push_back(iEle1->electronID("cutBasedElectronID-Fall17-94X-V2-loose"));
+          //Y_looseCutBase1->push_back(iEle1->electronID("mvaEleID-Fall17-iso-V2-wpHZZ"));
+          // Y_looseHZZwp1->push_back(iEle1->electronID("mvaEleID-Summer18UL-ID-ISO-HZZ"));
+          //Y_looseHZZwp1->push_back(iEle1->electronID("ElectronMVAEstimatorRun2Autumn18IdIsoValues"));
+          Y_mvaIsoWP90_1->push_back(iEle1->electronID("mvaEleID-Fall17-iso-V2-wp90"));
+
+          Y_charge1->push_back(iEle1->charge());
+
+          Y_px2->push_back(iEle2->px());
+          Y_py2->push_back(iEle2->py());
+          Y_pz2->push_back(iEle2->pz());
+
+          Y_pt2->push_back(iEle2->pt());
+          Y_eta2->push_back(iEle2->eta());
+          Y_SCeta2->push_back(iEle2->superCluster()->eta());
+          Y_phi2->push_back(iEle2->phi());
+          Y_energy2->push_back(iEle2->energy());
+          Y_energyCorr2->push_back(iEle2->userFloat("ecalTrkEnergyPostCorr"));
+          Y_ecalIso2->push_back(iEle2->ecalIso());
+          Y_hcalIso2->push_back(iEle2->hcalIso());
+          Y_trackIso2->push_back(iEle2->trackIso());
+          Z_trackIso2->push_back(iMuon2->trackIso());
+
+          // sms MVA electron-2 id 2018
+
+          //Y_mvaIsoWP80_2->push_back(iEle2->userFloat("mvaEleID-Fall17-iso-V2-wp80"));
+          Y_looseCutBase2->push_back(iEle2->electronID("cutBasedElectronID-Fall17-94X-V2-loose"));
+          //Y_looseCutBase2->push_back(iEle2->electronID("mvaEleID-Fall17-iso-V2-wpHZZ"));
+          // Y_looseHZZwp2->push_back(iEle2->electronID("mvaEleID-Summer18UL-ID-ISO-HZZ"));
+          // Y_looseHZZwp2->push_back(iEle2->electronID("ElectronMVAEstimatorRun2Autumn18IdIsoValues"));
+
+          Y_mvaIsoWP90_2->push_back(iEle2->electronID("mvaEleID-Fall17-iso-V2-wp90"));
+
+          Y_charge2->push_back(iEle2->charge());
+          Y_dxy1->push_back(iEle1->gsfTrack()->dxy(bestVtx.position()));
+          Y_dz1->push_back(iEle1->gsfTrack()->dz(bestVtx.position()));
+          Y_dxy2->push_back(iEle2->gsfTrack()->dxy(bestVtx.position()));
+          Y_dz2->push_back(iEle2->gsfTrack()->dz(bestVtx.position()));
+
+          Z_dca->push_back(dca);
+          Z_mass->push_back(MM.M());
+          Z_px->push_back(MM.Px());
+          Z_py->push_back(MM.Py());
+          Z_pz->push_back(MM.Pz());
+
+          Z_pt->push_back(MM.Pt());
+          Z_eta->push_back(MM.Eta());
+          Z_phi->push_back(MM.Phi());
+          Z_rapidity->push_back(MM.Rapidity());
+
+          Z_VtxPx->push_back(Z_mom.Px());
+          Z_VtxPy->push_back(Z_mom.Py());
+          Z_VtxPz->push_back(Z_mom.Pz());
+          Z_VtxPt->push_back(Z_mom.Pt());
+          Z_VtxEta->push_back(Z_mom.Eta());
+          Z_VtxPhi->push_back(Z_mom.Phi());
+          Z_VtxRapidity->push_back(Z_mom.Rapidity());
+          Z_VtxMass->push_back(Z_mom.mass());
+          Z_PVx->push_back(Z_Vtx.x());
+          Z_PVy->push_back(Z_Vtx.y());
+          Z_PVz->push_back(Z_Vtx.z());
+          Z_PVxError->push_back(Z_Vtx.xError());
+          Z_PVyError->push_back(Z_Vtx.yError());
+          Z_PVzError->push_back(Z_Vtx.zError());
+
+          // separate the two muons by low and high pT
+          if (iMuon1->track()->pt() > iMuon2->track()->pt()) {
+            Z_lowPt->push_back(iMuon2->track()->pt());
+            Z_highPt->push_back(iMuon1->track()->pt());
+          } else {
+            Z_lowPt->push_back(iMuon1->track()->pt());
+            Z_highPt->push_back(iMuon2->track()->pt());
+          }
+
+          Z_px1->push_back(iMuon1->track()->px());
+          Z_py1->push_back(iMuon1->track()->py());
+          Z_pz1->push_back(iMuon1->track()->pz());
+          Z_pt1->push_back(iMuon1->track()->pt());
+          Z_eta1->push_back(iMuon1->track()->eta());
+          Z_phi1->push_back(iMuon1->track()->phi());
+          Z_charge1->push_back(iMuon1->charge());
+          Z_soft1->push_back(iMuon1->isSoftMuon(bestVtx));
+          Z_tight1->push_back(iMuon1->isTightMuon(bestVtx));
+          Z_loose1->push_back(muon::isLooseMuon(*iMuon1));
+
+          Z_px2->push_back(iMuon2->track()->px());
+          Z_py2->push_back(iMuon2->track()->py());
+          Z_pz2->push_back(iMuon2->track()->pz());
+          Z_pt2->push_back(iMuon2->track()->pt());
+          Z_eta2->push_back(iMuon2->track()->eta());
+          Z_phi2->push_back(iMuon2->track()->phi());
+          Z_charge2->push_back(iMuon2->charge());
+          Z_VtxProb->push_back(Protmp);
+          Z_soft2->push_back(iMuon2->isSoftMuon(bestVtx));
+          Z_tight2->push_back(iMuon2->isTightMuon(bestVtx));
+          Z_loose2->push_back(muon::isLooseMuon(*iMuon2));
+          Z_xyP->push_back(glbTrackP->dxy(bestVtx.position()));
+          Z_xyM->push_back(glbTrackM->dxy(bestVtx.position()));
+          Z_zP->push_back(glbTrackM->dz(bestVtx.position()));
+          Z_zM->push_back(glbTrackP->dz(bestVtx.position()));
+
+          //cout<<"End of all loop"<<endl;
+
+          // ************
+
+          mumC2->push_back(glbTrackP->normalizedChi2());
+          //mumAngT->push_back( muon::isGoodMuon(*iMuon1,muon::TMLastStationAngTight) ); //
+          mumNHits->push_back(glbTrackP->numberOfValidHits());
+          mumNPHits->push_back(glbTrackP->hitPattern().numberOfValidPixelHits());
+          mupC2->push_back(glbTrackM->normalizedChi2());
+          //mupAngT->push_back( muon::isGoodMuon(*iMuon2,muon::TMLastStationAngTight) );  //
+          mupNHits->push_back(glbTrackM->numberOfValidHits());
+          mupNPHits->push_back(glbTrackM->hitPattern().numberOfValidPixelHits());
+
+          nB++;
+          if (KinFit == true) {
+            //muonParticles.clear();
+          }
+        }
+      }
+    }
+  }
+
+  if ((nB + nG1 + nG2) > 0) {
+    tree_->Fill();
+  }
+
+  nB = 0;
+  //Gen Info Clear
+  Y_GenMuonPt->clear();
+  Y_GenMuonEta->clear();
+  Y_GenMuonPhi->clear();
+  Z_GenMuonPt->clear();
+  Z_GenMuonEta->clear();
+  Z_GenMuonPhi->clear();
+
+  Run->clear();
+  LumiBlock->clear();
+  Event->clear();
+  FourL_mass->clear();
+  FourL_px->clear();
+  FourL_py->clear();
+  FourL_pz->clear();
+  FourL_pt->clear();
+  FourL_eta->clear();
+  FourL_phi->clear();
+  FourL_VtxProb->clear();
+  FourL_PVx->clear();
+  FourL_PVy->clear();
+  FourL_PVz->clear();
+  FourL_PVxError->clear();
+  FourL_PVyError->clear();
+  FourL_PVzError->clear();
+
+  //Y_dca->clear();
+  Y_TriggerPath->clear();
+  Y_TriggerPath1->clear();
+  Y_TriggerPt1->clear();
+  Y_TriggerEta1->clear();
+  Y_TriggerPhi1->clear();
+  Y_TriggerPt2->clear();
+  Y_TriggerEta2->clear();
+  Y_TriggerPhi2->clear();
+  Y_TriggerPt3->clear();
+  Y_TriggerEta3->clear();
+  Y_TriggerPhi3->clear();
+  Y_TriggerPt4->clear();
+  Y_TriggerEta4->clear();
+  Y_TriggerPhi4->clear();
+  Y_TriggerPt5->clear();
+  Y_TriggerEta5->clear();
+  Y_TriggerPhi5->clear();
+
+  Y_Trigger32Pt1->clear();
+  Y_Trigger32Eta1->clear();
+  Y_Trigger32Phi1->clear();
+  Y_Trigger32Pt2->clear();
+  Y_Trigger32Eta2->clear();
+  Y_Trigger32Phi2->clear();
+  Y_Trigger32Pt3->clear();
+  Y_Trigger32Eta3->clear();
+  Y_Trigger32Phi3->clear();
+  Y_Trigger32Pt4->clear();
+  Y_Trigger32Eta4->clear();
+  Y_Trigger32Phi4->clear();
+  Y_Trigger32Pt5->clear();
+  Y_Trigger32Eta5->clear();
+  Y_Trigger32Phi5->clear();
+
+  Y_mass->clear();
+  Y_VtxProb->clear();
+  Y_px->clear();
+  Y_py->clear();
+  Y_pz->clear();
+  Y_pt->clear();
+  Y_eta->clear();
+  Y_phi->clear();
+  Y_rapidity->clear();
+  Y_VtxPx->clear();
+  Y_VtxPy->clear();
+  Y_VtxPz->clear();
+  Y_VtxPt->clear();
+  Y_VtxEta->clear();
+  Y_VtxPhi->clear();
+  Y_VtxMass->clear();
+  Y_PVx->clear();
+  Y_PVy->clear();
+  Y_PVz->clear();
+  Y_PVxError->clear();
+  Y_PVyError->clear();
+  Y_PVzError->clear();
+  Y_VtxRapidity->clear();
+  Y_px1->clear();
+  Y_py1->clear();
+  Y_pz1->clear();
+  Y_charge1->clear();
+  Y_pt1->clear();
+  Y_eta1->clear();
+  Y_SCeta1->clear();
+  Y_phi1->clear();
+  Y_energy1->clear();
+  Y_energyCorr1->clear();
+  Y_ecalIso1->clear();
+  Y_hcalIso1->clear();
+  Y_trackIso1->clear();
+  Z_trackIso1->clear();
+  Y_looseCutBase1->clear();
+  Y_loose90wp1->clear();
+  Y_mvaIsoWP90_1->clear();
+  Y_looseLoosewp1->clear();
+  Y_mvaIsoWP80_1->clear();
+  Y_loose1->clear();
+  Y_px2->clear();
+  Y_py2->clear();
+  Y_pz2->clear();
+  Y_charge2->clear();
+  Y_pt2->clear();
+  Y_eta2->clear();
+  Y_SCeta2->clear();
+  Y_phi2->clear();
+  Y_energy2->clear();
+  Y_energyCorr2->clear();
+  Y_ecalIso2->clear();
+  Y_hcalIso2->clear();
+  Y_trackIso2->clear();
+  Z_trackIso2->clear();
+  Y_looseCutBase2->clear();
+  Y_loose90wp2->clear();
+  Y_mvaIsoWP90_2->clear();
+  Y_looseLoosewp2->clear();
+  Y_mvaIsoWP80_2->clear();
+  Y_loose2->clear();
+  Y_dxy1->clear();
+  Y_dxy2->clear();
+  Y_dz1->clear();
+  Y_dz2->clear();
+
+  Z_lowPt->clear();
+  Z_highPt->clear();
+  Z_dca->clear();
+  Z_mass->clear();
+  Z_px->clear();
+  Z_py->clear();
+  Z_pz->clear();
+  Z_pt->clear();
+  Z_eta->clear();
+  Z_phi->clear();
+  Z_rapidity->clear();
+  Z_VtxPx->clear();
+  Z_VtxPy->clear();
+  Z_VtxPz->clear();
+  Z_VtxPt->clear();
+  Z_VtxEta->clear();
+  Z_VtxPhi->clear();
+  Z_VtxMass->clear();
+  Z_PVx->clear();
+  Z_PVy->clear();
+  Z_PVz->clear();
+  Z_PVxError->clear();
+  Z_PVyError->clear();
+  Z_PVzError->clear();
+  Z_px1->clear();
+  Z_py1->clear();
+  Z_pz1->clear();
+  Z_charge1->clear();
+  Z_pt1->clear();
+  Z_eta1->clear();
+  Z_phi1->clear();
+  Z_soft1->clear();
+  Z_tight1->clear();
+  Z_loose1->clear();
+  Z_px2->clear();
+  Z_py2->clear();
+  Z_pz2->clear();
+  Z_charge2->clear();
+  Z_pt2->clear();
+  Z_eta2->clear();
+  Z_phi2->clear();
+  Z_VtxProb->clear();
+  Z_soft2->clear();
+  Z_tight2->clear();
+  Z_loose2->clear();
+  Z_xyP->clear();
+  Z_xyM->clear();
+  Z_zP->clear();
+  Z_zM->clear();
+
+  mumC2->clear();
+  mumNHits->clear();
+  mumNPHits->clear();
+  mupC2->clear();
+  mupNHits->clear();
+  mupNPHits->clear();
+}
+
+// ------------ method called once each job just before starting event loop  ------------
+
+void miniAODmuons::beginJob() {
+  std::cout << "Beginning analyzer job with value of isMC= " << isMC_ << std::endl;
+
+  std::string title = DataTypeString + " with " + MuonTriggerString + " " + ElectronIDSring;
+
+  // tree title should have the MuonTriggerLabel
+  tree_ = new TTree("ntuple", title.c_str());
+
+  tree_->Branch("nB", &nB, "nB/i");
+  //gen branches
+  tree_->Branch("Y_GenMuonPt", &Y_GenMuonPt);
+  tree_->Branch("Y_GenMuonEta", &Y_GenMuonEta);
+  tree_->Branch("Y_GenMuonPhi", &Y_GenMuonPhi);
+  tree_->Branch("Z_GenMuonPt", &Z_GenMuonPt);
+  tree_->Branch("Z_GenMuonEta", &Z_GenMuonEta);
+  tree_->Branch("Z_GenMuonPhi", &Z_GenMuonPhi);
+  //electron channels
+  tree_->Branch("Run", &Run);
+  tree_->Branch("LumiBlock", &LumiBlock);
+  tree_->Branch("Event", &Event);
+  tree_->Branch("FourL_mass", &FourL_mass);
+  tree_->Branch("FourL_px", &FourL_px);
+  tree_->Branch("FourL_py", &FourL_py);
+  tree_->Branch("FourL_pz", &FourL_pz);
+  tree_->Branch("FourL_pt", &FourL_pt);
+  tree_->Branch("FourL_eta", &FourL_eta);
+  tree_->Branch("FourL_phi", &FourL_phi);
+  tree_->Branch("FourL_VtxProb", &FourL_VtxProb);
+  tree_->Branch("FourL_PVx", &FourL_PVx);
+  tree_->Branch("FourL_PVy", &FourL_PVy);
+  tree_->Branch("FourL_PVz", &FourL_PVz);
+  tree_->Branch("FourL_PVxError", &FourL_PVxError);
+  tree_->Branch("FourL_PVyError", &FourL_PVyError);
+  tree_->Branch("FourL_PVzError", &FourL_PVzError);
+
+  //tree_->Branch("Y_dca", &Y_dca);
+  tree_->Branch("Y_TriggerPath", &Y_TriggerPath);
+  tree_->Branch("Y_TriggerPath1", &Y_TriggerPath1);
+  tree_->Branch("Y_TriggerPt1", &Y_TriggerPt1);
+  tree_->Branch("Y_TriggerEta1", &Y_TriggerEta1);
+  tree_->Branch("Y_TriggerPhi1", &Y_TriggerPhi1);
+  tree_->Branch("Y_TriggerPt2", &Y_TriggerPt2);
+  tree_->Branch("Y_TriggerEta2", &Y_TriggerEta2);
+  tree_->Branch("Y_TriggerPhi2", &Y_TriggerPhi2);
+  tree_->Branch("Y_TriggerPt3", &Y_TriggerPt3);
+  tree_->Branch("Y_TriggerEta3", &Y_TriggerEta3);
+  tree_->Branch("Y_TriggerPhi3", &Y_TriggerPhi3);
+  tree_->Branch("Y_TriggerPt4", &Y_TriggerPt4);
+  tree_->Branch("Y_TriggerEta4", &Y_TriggerEta4);
+  tree_->Branch("Y_TriggerPhi4", &Y_TriggerPhi4);
+  tree_->Branch("Y_TriggerPt5", &Y_TriggerPt5);
+  tree_->Branch("Y_TriggerEta5", &Y_TriggerEta5);
+  tree_->Branch("Y_TriggerPhi5", &Y_TriggerPhi5);
+
+  tree_->Branch("Y_Trigger32Pt1", &Y_Trigger32Pt1);
+  tree_->Branch("Y_Trigger32Eta1", &Y_Trigger32Eta1);
+  tree_->Branch("Y_Trigger32Phi1", &Y_Trigger32Phi1);
+  tree_->Branch("Y_Trigger32Pt2", &Y_Trigger32Pt2);
+  tree_->Branch("Y_Trigger32Eta2", &Y_Trigger32Eta2);
+  tree_->Branch("Y_Trigger32Phi2", &Y_Trigger32Phi2);
+  tree_->Branch("Y_Trigger32Pt3", &Y_Trigger32Pt3);
+  tree_->Branch("Y_Trigger32Eta3", &Y_Trigger32Eta3);
+  tree_->Branch("Y_Trigger32Phi3", &Y_Trigger32Phi3);
+  tree_->Branch("Y_Trigger32Pt4", &Y_Trigger32Pt4);
+  tree_->Branch("Y_Trigger32Eta4", &Y_Trigger32Eta4);
+  tree_->Branch("Y_Trigger32Phi4", &Y_Trigger32Phi4);
+  tree_->Branch("Y_Trigger32Pt5", &Y_Trigger32Pt5);
+  tree_->Branch("Y_Trigger32Eta5", &Y_Trigger32Eta5);
+  tree_->Branch("Y_Trigger32Phi5", &Y_Trigger32Phi5);
+
+  tree_->Branch("Y_mass", &Y_mass);
+  tree_->Branch("Y_VtxProb", &Y_VtxProb);
+
+  tree_->Branch("Y_px", &Y_px);
+  tree_->Branch("Y_py", &Y_py);
+  tree_->Branch("Y_pz", &Y_pz);
+  tree_->Branch("Y_pt", &Y_pt);
+  tree_->Branch("Y_eta", &Y_eta);
+  tree_->Branch("Y_phi", &Y_phi);
+  tree_->Branch("Y_rapidity", &Y_rapidity);
+  tree_->Branch("Y_VtxPx", &Y_VtxPx);
+  tree_->Branch("Y_VtxPy", &Y_VtxPy);
+  tree_->Branch("Y_VtxPz", &Y_VtxPz);
+  tree_->Branch("Y_VtxPt", &Y_VtxPt);
+  tree_->Branch("Y_VtxEta", &Y_VtxEta);
+  tree_->Branch("Y_VtxPhi", &Y_VtxPhi);
+  tree_->Branch("Y_VtxRapidity", &Y_VtxRapidity);
+  tree_->Branch("Y_VtxMass", &Y_VtxMass);
+
+  tree_->Branch("Y_PVx", &Y_PVx);
+  tree_->Branch("Y_PVy", &Y_PVy);
+  tree_->Branch("Y_PVz", &Y_PVz);
+  tree_->Branch("Y_PVxError", &Y_PVxError);
+  tree_->Branch("Y_PVyError", &Y_PVyError);
+  tree_->Branch("Y_PVzError", &Y_PVzError);
+
+  tree_->Branch("Y_px1", &Y_px1);
+  tree_->Branch("Y_py1", &Y_py1);
+  tree_->Branch("Y_pz1", &Y_pz1);
+  tree_->Branch("Y_pt1", &Y_pt1);
+  tree_->Branch("Y_eta1", &Y_eta1);
+  tree_->Branch("Y_SCeta1", &Y_SCeta1);
+  tree_->Branch("Y_phi1", &Y_phi1);
+  tree_->Branch("Y_energy1", &Y_energy1);
+  tree_->Branch("Y_energyCorr1", &Y_energyCorr1);
+  tree_->Branch("Y_ecalIso1", &Y_ecalIso1);
+  tree_->Branch("Y_hcalIso1", &Y_hcalIso1);
+  tree_->Branch("Y_trackIso1", &Y_trackIso1);
+  tree_->Branch("Z_trackIso1", &Z_trackIso1);
+  tree_->Branch("Y_looseCutBase1", &Y_looseCutBase1);
+  tree_->Branch("Y_loose90wp1", &Y_loose90wp1);
+  tree_->Branch("Y_mvaIsoWP90_1", &Y_mvaIsoWP90_1);
+  tree_->Branch("Y_looseLoosewp1", &Y_looseLoosewp1);
+  tree_->Branch("Y_mvaIsoWP80_1", &Y_mvaIsoWP80_1);
+  tree_->Branch("Y_loose1", &Y_loose1);
+  tree_->Branch("Y_charge1", &Y_charge1);
+  tree_->Branch("Y_px2", &Y_px2);
+  tree_->Branch("Y_py2", &Y_py2);
+  tree_->Branch("Y_pz2", &Y_pz2);
+  tree_->Branch("Y_pt2", &Y_pt2);
+  tree_->Branch("Y_eta2", &Y_eta2);
+  tree_->Branch("Y_SCeta2", &Y_SCeta2);
+  tree_->Branch("Y_phi2", &Y_phi2);
+  tree_->Branch("Y_energy2", &Y_energy2);
+  tree_->Branch("Y_energyCorr2", &Y_energyCorr2);
+  tree_->Branch("Y_ecalIso2", &Y_ecalIso2);
+  tree_->Branch("Y_hcalIso2", &Y_hcalIso2);
+  tree_->Branch("Y_trackIso2", &Y_trackIso2);
+  tree_->Branch("Z_trackIso2", &Z_trackIso2);
+  tree_->Branch("Y_looseCutBase2", &Y_looseCutBase2);
+  tree_->Branch("Y_loose90wp2", &Y_loose90wp2);
+  tree_->Branch("Y_mvaIsoWP90_2", &Y_mvaIsoWP90_2);
+  tree_->Branch("Y_looseLoosewp2", &Y_looseLoosewp2);
+  tree_->Branch("Y_mvaIsoWP80_2", &Y_mvaIsoWP80_2);
+  tree_->Branch("Y_loose2", &Y_loose2);
+  tree_->Branch("Y_charge2", &Y_charge2);
+  tree_->Branch("Y_dxy1", &Y_dxy1);
+  tree_->Branch("Y_dxy2", &Y_dxy2);
+  tree_->Branch("Y_dz1", &Y_dz1);
+  tree_->Branch("Y_dz2", &Y_dz2);
+
+  tree_->Branch("Z_lowPt", &Z_lowPt);
+  tree_->Branch("Z_highPt", &Z_highPt);
+
+  tree_->Branch("Z_dca", &Z_dca);
+  tree_->Branch("Z_mass", &Z_mass);
+  tree_->Branch("Z_px", &Z_px);
+  tree_->Branch("Z_py", &Z_py);
+  tree_->Branch("Z_pz", &Z_pz);
+  tree_->Branch("Z_pt", &Z_pt);
+  tree_->Branch("Z_eta", &Z_eta);
+  tree_->Branch("Z_phi", &Z_phi);
+  tree_->Branch("Z_rapidity", &Z_rapidity);
+  tree_->Branch("Z_VtxPx", &Z_VtxPx);
+  tree_->Branch("Z_VtxPy", &Z_VtxPy);
+  tree_->Branch("Z_VtxPz", &Z_VtxPz);
+  tree_->Branch("Z_VtxPt", &Z_VtxPt);
+  tree_->Branch("Z_VtxEta", &Z_VtxEta);
+  tree_->Branch("Z_VtxPhi", &Z_VtxPhi);
+  tree_->Branch("Z_VtxRapidity", &Z_VtxRapidity);
+  tree_->Branch("Z_VtxMass", &Z_VtxMass);
+  tree_->Branch("Z_PVx", &Z_PVx);
+  tree_->Branch("Z_PVy", &Z_PVy);
+  tree_->Branch("Z_PVz", &Z_PVz);
+  tree_->Branch("Z_PVxError", &Z_PVxError);
+  tree_->Branch("Z_PVyError", &Z_PVyError);
+  tree_->Branch("Z_PVzError", &Z_PVzError);
+
+  tree_->Branch("Z_px1", &Z_px1);
+  tree_->Branch("Z_py1", &Z_py1);
+  tree_->Branch("Z_pz1", &Z_pz1);
+  tree_->Branch("Z_pt1", &Z_pt1);
+  tree_->Branch("Z_eta1", &Z_eta1);
+  tree_->Branch("Z_phi1", &Z_phi1);
+  tree_->Branch("Z_charge1", &Z_charge1);
+  tree_->Branch("Z_soft1", &Z_soft1);
+  tree_->Branch("Z_tight1", &Z_tight1);
+  tree_->Branch("Z_loose1", &Z_loose1);
+
+  tree_->Branch("Z_px2", &Z_px2);
+  tree_->Branch("Z_py2", &Z_py2);
+  tree_->Branch("Z_pz2", &Z_pz2);
+  tree_->Branch("Z_pt2", &Z_pt2);
+  tree_->Branch("Z_eta2", &Z_eta2);
+  tree_->Branch("Z_phi2", &Z_phi2);
+  tree_->Branch("Z_charge2", &Z_charge2);
+  tree_->Branch("Z_soft2", &Z_soft2);
+  tree_->Branch("Z_tight2", &Z_tight2);
+  tree_->Branch("Z_loose2", &Z_loose2);
+  tree_->Branch("Z_VtxProb", &Z_VtxProb);
+  tree_->Branch("Z_xyP", &Z_xyP);
+  tree_->Branch("Z_xyM", &Z_xyM);
+  tree_->Branch("Z_zP", &Z_zP);
+  tree_->Branch("Z_zM", &Z_zM);
+
+  tree_->Branch("mumC2", &mumC2);
+  tree_->Branch("mumNHits", &mumNHits);
+  tree_->Branch("mumNPHits", &mumNPHits);
+  tree_->Branch("mupC2", &mupC2);
+  tree_->Branch("mupNHits", &mupNHits);
+  tree_->Branch("mupNPHits", &mupNPHits);
+}
+
+// ------------ method called once each job just after ending the event loop  ------------
+void miniAODmuons::endJob() {
+  tree_->GetDirectory()->cd();
+  tree_->Write();
+}
+
+//define this as a plug-in
+DEFINE_FWK_MODULE(miniAODmuons);
