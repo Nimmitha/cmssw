@@ -185,6 +185,57 @@ def fit_unbinned_gauss_with_background(data, Z_mass, nbins):
 
     return frame
 
+
+def fit_unbinned_gauss_with_background_J(data, Z_mass, nbins):
+    # Define the mean, sigma, and background parameters
+    mean = ROOT.RooRealVar("mean", "Mean", 3, 1, 5)
+    sigma = ROOT.RooRealVar("sigma", "Sigma", 0.01, 0.001, 0.15)
+
+    # create a polynomial of degree 2 for the background
+    a0 = ROOT.RooRealVar("a0", "a0", 0.1, -10, 10)
+    a1 = ROOT.RooRealVar("a1", "a1", 0.1, -10, 10)
+    a2 = ROOT.RooRealVar("a2", "a2", 0.1, -10, 10)
+
+    # Create the Gaussian and background models
+    gaussian = ROOT.RooGaussian("gaussian", "Gaussian", Z_mass, mean, sigma)
+    # background = ROOT.RooChebychev("background", "Background", Z_mass, ROOT.RooArgList(a0, a1, a2))
+    background = ROOT.RooPolynomial("background", "Background", Z_mass, ROOT.RooArgList(a0, a1, a2))
+
+    # Sum the composite signal and background models
+    nbkg = ROOT.RooRealVar("nbkg", "number of background events", 10000, 0, 25000)
+    nsig = ROOT.RooRealVar("nsig", "number of signal events", 15000, 0, 25000)
+
+    # Combine the models
+    model = ROOT.RooAddPdf("model", "g1 + chebychev", ROOT.RooArgList(background, gaussian), ROOT.RooArgList(nbkg, nsig))
+
+    # Perform the fit to the data
+    model.fitTo(data, ROOT.RooFit.Save())
+
+    # Plot data
+    frame = Z_mass.frame(ROOT.RooFit.Title(""))
+    data.plotOn(frame, ROOT.RooFit.Name('dataset'), ROOT.RooFit.Binning(nbins))
+
+    # Plot the total fit
+    model.plotOn(frame, ROOT.RooFit.Name('model'))
+
+    # Plot the background fit
+    model.plotOn(frame, ROOT.RooFit.Components("background"), ROOT.RooFit.LineStyle(ROOT.kDashed), ROOT.RooFit.LineColor(ROOT.kGreen))
+
+    # Plot the signal fit
+    model.plotOn(frame, ROOT.RooFit.Components("gaussian"), ROOT.RooFit.LineStyle(ROOT.kDashed), ROOT.RooFit.LineColor(ROOT.kRed))
+
+    # Calculate chi2
+    chi2 = frame.chiSquare("model", "dataset", 7)
+
+    # Stat box
+    model.paramOn(frame, ROOT.RooFit.Layout(0.6, 0.9, 0.9))
+    frame.getAttText().SetTextSize(0.03)
+    pt = frame.findObject("model_paramBox")
+    pt.AddText(ROOT.Form(f"Chi2/ndof =  {chi2:.2f}"))
+    pt.AddText(ROOT.Form("Entries =  {0:.0f}".format(data.numEntries())))
+
+    return frame
+
     
 def fit_unbinned_gauss(data, Z_mass):
     # Define the mean, sigma, and background parameters
