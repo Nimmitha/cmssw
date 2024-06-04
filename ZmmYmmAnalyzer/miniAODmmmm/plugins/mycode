@@ -1,0 +1,118 @@
+ /*
+    // Before Begining lets get Gen level Information
+    int h = 0;
+    int h1 = 0;
+
+    float EET_pt[5] = {-999, -999, -999, -999, -999};
+    float EET_eta[5] = {-999, -999, -999, -999, -999};
+    float EET_phi[5] = {-999, -999, -999, -999, -999};
+    // float EET_pt1[5] = {-999, -999, -999, -999, -999};
+    // float EET_eta1[5] = {-999, -999, -999, -999, -999};
+    // float EET_phi1[5] = {-999, -999, -999, -999, -999};
+    int nG1 = 0;
+    int nG2 = 0;
+
+    bool firedMuTrigger = false;
+    bool firedEleTrig = false;
+
+    bool GenInfo = false;
+    if (GenInfo)
+    {
+      // Gen Level Info
+
+      float Z_GenMuon_pt = -999;
+      float Z_GenMuon_eta = -999;
+      float Z_GenMuon_phi = -999;
+      float Y_GenMuon_pt = -999;
+      float Y_GenMuon_eta = -999;
+      float Y_GenMuon_phi = -999;
+
+      for (size_t i = 0; i < pruned->size(); i++)
+      {
+        if ((*pruned)[i].isPromptFinalState() && abs((*pruned)[i].pdgId() == 13))
+        {
+          Y_GenMuon_pt = (*pruned)[i].pt();
+          Y_GenMuon_eta = (*pruned)[i].eta();
+          Y_GenMuon_phi = (*pruned)[i].phi();
+          Y_GenMuonPt->push_back(Y_GenMuon_pt);
+          Y_GenMuonEta->push_back(Y_GenMuon_eta);
+          Y_GenMuonPhi->push_back(Y_GenMuon_phi);
+          nG1++;
+        }
+
+        if (abs((*pruned)[i].pdgId()) == 13)
+        {
+          // cout<<"Found gen level muon"<<endl;
+          if ((*pruned)[i].mother()->pdgId() == 23)
+          {
+            // cout<<"Found gen level muon from Z"<<endl;
+            Z_GenMuonPhi->push_back(Z_GenMuon_phi);
+            Z_GenMuon_pt = (*pruned)[i].pt();
+            Z_GenMuon_eta = (*pruned)[i].eta();
+            Z_GenMuon_phi = (*pruned)[i].phi();
+            Z_GenMuonPt->push_back(Z_GenMuon_pt);
+            Z_GenMuonEta->push_back(Z_GenMuon_eta);
+            nG2++;
+          }
+
+          // cout<<"End Gen Work for this event"<<endl;
+        }
+      }
+    }
+
+    // First Work on Trigger Information//
+
+    //****************************************************
+    //***************Trigger Path************************
+    //****************************************************
+    const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
+
+    // Loop though the trigger bits
+    for (unsigned int i = 0, n = triggerBits->size(); i < n; ++i)
+    {
+      // until we find a fired Muon and Electron triggers
+      if (!firedMuTrigger || !firedEleTrig)
+      {
+        if (names.triggerName(i).find(MuonTriggerString.c_str()) != std::string::npos || names.triggerName(i).find("HLT_IsoTkMu24_v") != std::string::npos)
+        {
+          if (triggerBits->accept(i))
+            firedMuTrigger = true; // Muon trigger was fired
+        }
+      }
+    }
+
+    //****************************************************
+    //***************Trigger Object***********************
+    //****************************************************
+
+    // if any of the triggers fired, check the trigger objects
+    if (firedMuTrigger)
+    {
+      for (pat::TriggerObjectStandAlone obj : *triggerObjects)
+      { // note: not "const &" since we want to call unpackPathNames
+        obj.unpackPathNames(names);
+
+        // if (firedMuTrigger > 0)
+        // {
+        if (obj.hasPathName(MuonTriggerString.c_str(), true, true) > 0 || obj.hasPathName("HLT_IsoTkMu24_v", true, true) > 0)
+        {
+          EET_pt[h] = obj.pt();
+          EET_eta[h] = obj.eta();
+          EET_phi[h] = obj.phi();
+          h++;
+        }
+        // }
+
+        // if (firedEleTrig > 0)
+        // {
+        //   if (obj.hasPathName(ElectronTriggerString.c_str(), true, true) > 0)
+        //   {
+        //     EET_pt1[h1] = obj.pt();
+        //     EET_eta1[h1] = obj.eta();
+        //     EET_phi1[h1] = obj.phi();
+        //     h1++;
+        //   }
+        // }
+      }
+    }
+   */
