@@ -10,3 +10,4 @@ singleMuonData/**/crab.log
 singleMuonData/*/*/*/inputs/
 output
 scripts/to_delete
+scripts/plots
