@@ -13,3 +13,8 @@ __init__.py
 # ignore files under the top level $CMSSW_BASE/src directory, but not its subdirectories
 /*
 !/*/
+
+
+# ignore the following directories
+ZmmYmmAnalyzer/singleMuonData/crab_TTree_13TeV_fourmuon_2022B
+ZmmYmmAnalyzer/outputs
