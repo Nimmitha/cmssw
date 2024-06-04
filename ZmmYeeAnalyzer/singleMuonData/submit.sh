@@ -12,5 +12,6 @@ year=$1
 for dir in "$year"/*/; do
     echo "Processing directory: $dir"
     # Change into the directory and execute the command
-    (cd "$dir" && crab submit -c crabConfig_TTree.py)
+    # (cd "$dir" && crab submit -c crabConfig_TTree.py)
+    (cd "$dir" && crab report -d crab_TTree_13TeV_fourmuon_201??)
 done
