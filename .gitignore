@@ -5,9 +5,9 @@ __init__.py
 #*#
 *~
 
-singleMuonData/**/*.requestcache
-singleMuonData/**/crab.log
-singleMuonData/*/*/*/inputs/
-output
-scripts/to_delete
-scripts/plots
+ZmmYeeAnalyzer/singleMuonData/**/*.requestcache
+ZmmYeeAnalyzer/singleMuonData/**/crab.log
+ZmmYeeAnalyzer/singleMuonData/*/*/*/inputs/
+ZmmYeeAnalyzer/output
+ZmmYeeAnalyzer/scripts/to_delete
+ZmmYeeAnalyzer/scripts/plots
