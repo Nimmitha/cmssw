@@ -4,3 +4,7 @@ __init__.py
 .#*
 #*#
 *~
+
+
+ZmmYmmAnalyzer_Jesse/outputs
+ZmmYmmAnalyzer_Jesse/singleMuonData/**/crab_TTree_13TeV_*
