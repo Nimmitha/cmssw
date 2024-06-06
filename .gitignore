@@ -16,5 +16,6 @@ __init__.py
 
 
 # ignore the following directories
-ZmmYmmAnalyzer/singleMuonData/crab_TTree_13TeV_fourmuon_2022B
+ZmmYmmAnalyzer/singleMuonData/**/crab_TTree_13TeV*
+ZmmYmmAnalyzer/singleMuonData/**/crab.log
 ZmmYmmAnalyzer/outputs
