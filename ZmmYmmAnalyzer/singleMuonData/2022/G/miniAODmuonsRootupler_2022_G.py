@@ -19,7 +19,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '124X_dataRun3_v15')
+process.GlobalTag = GlobalTag(process.GlobalTag, '124X_dataRun3_Prompt_v4')
 # process.GlobalTag = GlobalTag(process.GlobalTag, '130X_dataRun3_v2')
 # process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run3_data')
 
@@ -48,9 +48,8 @@ process.rootuple = cms.EDAnalyzer('miniAODmmmm',
                           )
 
 process.TFileService = cms.Service("TFileService",
-  fileName = cms.string('SingleMuon_Run2022B_v1_Data.root'),
+  fileName = cms.string('Muon_Run2022G_PromptReco_v1_Data.root'),
 )
 
-#process.p = cms.Path(process.egammaPostRecoSeq+process.rootuple)
 process.p = cms.Path(process.rootuple)
 

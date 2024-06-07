@@ -48,9 +48,8 @@ process.rootuple = cms.EDAnalyzer('miniAODmmmm',
                           )
 
 process.TFileService = cms.Service("TFileService",
-  fileName = cms.string('SingleMuon_Run2022B_v1_Data.root'),
+  fileName = cms.string('Muon_Run2022E_v1_Data.root'),
 )
 
-#process.p = cms.Path(process.egammaPostRecoSeq+process.rootuple)
 process.p = cms.Path(process.rootuple)
 
