@@ -4,3 +4,11 @@ __init__.py
 .#*
 #*#
 *~
+
+*.tar.gz
+*.log
+*.requestcache
+
+# ignore the following directories
+ZmmYeeAnalyzer/singleMuonData/**/crab_TTree_13TeV*/inputs/
+ZmmYeeAnalyzer/outputs
