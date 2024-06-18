@@ -13,3 +13,9 @@ __init__.py
 # ignore files under the top level $CMSSW_BASE/src directory, but not its subdirectories
 /*
 !/*/
+
+trigFireRateAnalyzer/outputs
+trigFireRateAnalyzer/singleMuonData/**/crab_TTree_13TeV*/inputs
+trigFireRateAnalyzer/singleMuonData/**/crab_TTree_13TeV*/results/*.gz
+trigFireRateAnalyzer/singleMuonData/**/.requestcache
+trigFireRateAnalyzer/singleMuonData/**/crab.log
