@@ -13,3 +13,9 @@ __init__.py
 # ignore files under the top level $CMSSW_BASE/src directory, but not its subdirectories
 /*
 !/*/
+
+# ignore the following directories
+ZeeYmmAnalyzer/dataSubmit/**/crab_TTree_13TeV*/inputs/
+ZeeYmmAnalyzer/dataSubmit/**/crab.log
+ZeeYmmAnalyzer/dataSubmit/**/.requestcache
+ZeeYmmAnalyzer/outputs
