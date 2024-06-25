@@ -139,8 +139,7 @@ private:
   ;
 
   std::vector<float> *B_Z_ecalIso1, *B_Z_hcalIso1, *B_Z_trackIso1;
-  std::vector<bool> *B_Z_looseCutBase1, *B_Z_mediumCutBase1, *B_Z_mediumCutBase2, *B_Z_loose90wp1, *B_Z_mvaIsoWP90_1,
-      *B_Z_looseLoosewp1;
+  std::vector<bool> *B_Z_looseCutBase1, *B_Z_mediumCutBase1, *B_Z_mediumCutBase2, *B_Z_loose90wp1, *B_Z_mvaIsoWP90_1, *B_Z_looseLoosewp1;
   std::vector<float> *B_Z_mvaIsoWP80_1;
   std::vector<bool> *B_Z_loose1;
   std::vector<float> *B_Z_px2, *B_Z_py2, *B_Z_pz2;
@@ -582,13 +581,13 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     if (nG3 >= 2 && nG1 >= 2) {
       nttee = nttee + 1;
     }
-    cout << "End Gen Work for this event number: " << nevent << " number of ZeeZuu: " << neeuu
-         << " number of ZuuZuu: " << nuuuu << " number of ZeeZee: " << neeee << " number of ZttZuu: " << nttuu
-         << " number of ZttZtt: " << ntttt << " number of ZttZee: " << nttee << endl;
+    cout << "End Gen Work for this event number: " << nevent << " number of ZeeZuu: " << neeuu << " number of ZuuZuu: " << nuuuu
+         << " number of ZeeZee: " << neeee << " number of ZttZuu: " << nttuu << " number of ZttZtt: " << ntttt << " number of ZttZee: " << nttee
+         << endl;
     cout << endl;
   }
 
-  std::cout << "First work on Trigger " << std::endl;
+  // std::cout << "First work on Trigger " << std::endl;
   //First Work on Trigger Information//
   //**********************************
   const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
@@ -597,7 +596,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
   for (unsigned int i = 0, n = triggerBits->size(); i < n; ++i) {
     bool acceptE = triggerBits->accept(i);
     //cout<<acceptE<<endl;
-    if (names.triggerName(i).find("HLT_Ele35_WPTight_Gsf_v") != string::npos) {
+    if (names.triggerName(i).find("HLT_Ele30_WPTight_Gsf_v") != string::npos) {
       //   if (names.triggerName(i).find("HLT_Ele27_WPTight_Gsf_v")!=string::npos)  {
       if (triggerBits->accept(i)) {
         //std::cout << "Trigger " << names.triggerName(i) <<
@@ -611,7 +610,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     }
 
     // if (names.triggerName(i).find("HLT_Ele32_WPTight_Gsf_v")!=string::npos)  {
-    if (names.triggerName(i).find("HLT_Ele27_WPTight_Gsf_v") != string::npos) {
+    if (names.triggerName(i).find("HLT_Ele32_WPTight_Gsf_v") != string::npos) {
       if (triggerBits->accept(i)) {
         //    std::cout << "Trigger " << names.triggerName(i) <<
         //     ": " << (triggerBits->accept(i) ? "PASS" : "fail (or not run)")
@@ -634,8 +633,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
   }
   //float ElectronTriggerPt;
   if ((EET + EET1) > 0) {
-    for (pat::TriggerObjectStandAlone obj :
-         *triggerObjects) {  // note: not "const &" since we want to call unpackPathNames
+    for (pat::TriggerObjectStandAlone obj : *triggerObjects) {  // note: not "const &" since we want to call unpackPathNames
       obj.unpackPathNames(names);
       //for (unsigned h = 0, n = pathNamesAll.size(); h < n; ++h) {
       //bool isBoth = obj.hasPathName("HLT_Ele35_WPTight_Gsf_v*", true, true );
@@ -657,7 +655,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       //cout<< "obj.hasPathL3FilterAccepted() "<<obj.hasPathL3FilterAccepted()<<endl;
       //std::cout << "   " << pathNamesAll[h];
       if (EET > 0) {
-        if (obj.hasPathName("HLT_Ele35_WPTight_Gsf_v*", true, true) > 0) {
+        if (obj.hasPathName("HLT_Ele30_WPTight_Gsf_v*", true, true) > 0) {
           //  if (obj.hasPathName("HLT_Ele27_WPTight_Gsf_v*", true, true )>0) {
           EET_pt[h] = obj.pt();
           EET_eta[h] = obj.eta();
@@ -667,7 +665,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       }
       if (EET1 > 0) {
         //if (obj.hasPathName("HLT_Ele32_WPTight_Gsf_v*", true, true )>0) {
-        if (obj.hasPathName("HLT_Ele27_WPTight_Gsf_v*", true, true) > 0) {
+        if (obj.hasPathName("HLT_Ele32_WPTight_Gsf_v*", true, true) > 0) {
           //std::cout << "\tTrigger objectisBoth:  pt " << obj.pt() << ", eta " << obj.eta() << ", phi " << obj.phi() << std::endl;
           //open from here
           EET_pt1[h1] = obj.pt();
@@ -704,8 +702,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
   //Long64_t temp_eventPreSelection(0);
   //Double_t Events = 0;
 
-  for (View<pat::Muon>::const_iterator iMuon1 = thePATMuonHandle->begin(); iMuon1 != thePATMuonHandle->end();
-       ++iMuon1) {
+  for (View<pat::Muon>::const_iterator iMuon1 = thePATMuonHandle->begin(); iMuon1 != thePATMuonHandle->end(); ++iMuon1) {
     for (View<pat::Muon>::const_iterator iMuon2 = iMuon1 + 1; iMuon2 != thePATMuonHandle->end(); ++iMuon2) {
       if (iMuon1 == iMuon2)
         continue;
@@ -714,11 +711,9 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       if ((iMuon1->charge()) * (iMuon2->charge()) == 1)
         continue;
 
-      for (View<pat::Electron>::const_iterator iEle1 = thePATElectronHandle->begin();
-           iEle1 != thePATElectronHandle->end();
-           ++iEle1) {
-        // cout<<"Begining of cut on Ele 1"<<endl;
+      for (View<pat::Electron>::const_iterator iEle1 = thePATElectronHandle->begin(); iEle1 != thePATElectronHandle->end(); ++iEle1) {
         for (View<pat::Electron>::const_iterator iEle2 = iEle1 + 1; iEle2 != thePATElectronHandle->end(); ++iEle2) {
+          cout<<"Begining Electron cuts"<<endl;
           ncandiPreSelection++;
           Events = iEvent.id().event();
 
@@ -752,7 +747,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           }
 
           if (glbTrackP.isNull() || glbTrackM.isNull()) {
-            //  std::cout << "continue due to no track ref" << endl;
+             std::cout << "continue due to no track ref" << endl;
             continue;
           }
 
@@ -803,7 +798,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
             continue;
           if (EE.M() > 110)
             continue;
-          // cout<<"mass cuts made"<<endl;
+          cout<<"mass cuts made"<<endl;
           int tkquality = 0;
           /*	      
 	      if (kfTrackRefP.isAvailable() && kfTrackRefP.isNonnull()) {
@@ -822,7 +817,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           // cout<<"tkquality="<<tkquality<<endl;
           if (tkquality == 0)
             continue;
-          // cout<<"CTF track quality "<<tkquality<<endl;
+          cout<<"CTF track quality "<<tkquality<<endl;
           //if (tkquality<1)continue;
           // cout<<"CTF track quality "<<tkquality<<endl;
           if (iMuon1->track()->pt() < 2.0)
@@ -830,12 +825,12 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           if (iMuon2->track()->pt() < 2.0)
             continue;
 
-          //cout<<"Start looking muon track quality"<<endl;
+          cout<<"Start looking muon track quality"<<endl;
           if (!(glbTrackM->quality(reco::TrackBase::highPurity)))
             continue;
           if (!(glbTrackP->quality(reco::TrackBase::highPurity)))
             continue;
-          //cout<<"Start Building Track"<<endl;
+          cout<<"Start Building Track"<<endl;
 
           reco::TransientTrack muon1TT;
           reco::TransientTrack muon2TT;
@@ -855,32 +850,32 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           // reco::TransientTrack electron2TT((*theB).build(iEle2->gsfTrack()));
 
           // *****  Trajectory states to calculate DCA for the 2 muons *********************
-          FreeTrajectoryState mu1State = muon1TT.impactPointTSCP().theState();
-          FreeTrajectoryState mu2State = muon2TT.impactPointTSCP().theState();
-          //FreeTrajectoryState electron1State = muon1TT.impactPointTSCP().theState();
-          //FreeTrajectoryState electron2State = muon2TT.impactPointTSCP().theState();
-          // cout<<"Start validating impact point"<<endl;
-          if (!muon1TT.impactPointTSCP().isValid() || !muon2TT.impactPointTSCP().isValid())
-            continue;
-          // cout<<"Validated  impact point for muon"<<endl;
-          if (!electron1TT.impactPointTSCP().isValid() || !electron2TT.impactPointTSCP().isValid())
-            continue;
-          // cout<<"Start validating impact point for electron"<<endl;
-          // Measure distance between tracks at their closest approach
-          ClosestApproachInRPhi cApp;
-          cApp.calculate(mu1State, mu2State);
-          if (!cApp.status())
-            continue;
-          float dca = fabs(cApp.distance());
-          //if (dca < 0. || dca > 0.5) continue;
-          //cout<<"dca"<<dca<<endl;
-          //cout<<" closest approach  "<<dca<<endl;
-          //ClosestApproachInRPhi cAppE;
-          //cApp.calculate(electron1State, electron2State);
-          //if( !cAppE.status() ) continue;
-          //float dcaE = fabs( cAppE.distance() );
-          //if (dcaE < 0. || dcaE > 0.5) continue;
-          //cout<<"dca E "<<dcaE<<endl;
+          // FreeTrajectoryState mu1State = muon1TT.impactPointTSCP().theState();
+          // FreeTrajectoryState mu2State = muon2TT.impactPointTSCP().theState();
+          // //FreeTrajectoryState electron1State = muon1TT.impactPointTSCP().theState();
+          // //FreeTrajectoryState electron2State = muon2TT.impactPointTSCP().theState();
+          // // cout<<"Start validating impact point"<<endl;
+          // if (!muon1TT.impactPointTSCP().isValid() || !muon2TT.impactPointTSCP().isValid())
+          //   continue;
+          // // cout<<"Validated  impact point for muon"<<endl;
+          // if (!electron1TT.impactPointTSCP().isValid() || !electron2TT.impactPointTSCP().isValid())
+          //   continue;
+          // // cout<<"Start validating impact point for electron"<<endl;
+          // // Measure distance between tracks at their closest approach
+          // ClosestApproachInRPhi cApp;
+          // cApp.calculate(mu1State, mu2State);
+          // if (!cApp.status())
+          //   continue;
+          // float dca = fabs(cApp.distance());
+          // //if (dca < 0. || dca > 0.5) continue;
+          // //cout<<"dca"<<dca<<endl;
+          // //cout<<" closest approach  "<<dca<<endl;
+          // //ClosestApproachInRPhi cAppE;
+          // //cApp.calculate(electron1State, electron2State);
+          // //if( !cAppE.status() ) continue;
+          // //float dcaE = fabs( cAppE.distance() );
+          // //if (dcaE < 0. || dcaE > 0.5) continue;
+          // //cout<<"dca E "<<dcaE<<endl;
           // ******  Methods to check to which category of muon candidates a given pat::Muon object belongs ****
           //Kalman Vtx----------------------//
 
@@ -896,12 +891,12 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           reco::Vertex Z_Vtx = Z_candi;
           const math::XYZTLorentzVectorD Z_mom = Z_Vtx.p4(ele_mass, 0.0);
           if (!Z_candi.isValid()) {
-            //cout<<"Z candidate non validated by kalman fitter"<<endl;
+            cout<<"Z candidate non validated by kalman fitter"<<endl;
             continue;
           }
           float B_Prob_tmp1 = TMath::Prob(Z_candi.totalChiSquared(), Z_candi.degreesOfFreedom());
           cout << "vertex" << endl;
-          //if (B_Prob_tmp1 < 0.001) continue;
+          // if (B_Prob_tmp1 < 0.001) continue;
 
           KalmanVertexFitter kvfM(true);
           mu_tks.clear();
@@ -909,7 +904,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           mu_tks.push_back(muon2TT);
           TransientVertex J_candi = kvfM.vertex(mu_tks);
           if (!J_candi.isValid()) {
-            //cout<<"J candidate non validated by kalman fitter"<<endl;
+            cout<<"J candidate non validated by kalman fitter"<<endl;
             continue;
           }
           reco::Vertex JPsi_Vtx = J_candi;
@@ -927,14 +922,16 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           mmee_tks.push_back(muon2TT);
           TransientVertex FourL_candi = kvfEM.vertex(mmee_tks);
           if (!FourL_candi.isValid()) {
-            //cout<<"J candidate non validated by kalman fitter"<<endl;
+            cout<<"J candidate non validated by kalman fitter"<<endl;
             continue;
           }
           float B_Prob_tmp4L = TMath::Prob(FourL_candi.totalChiSquared(), FourL_candi.degreesOfFreedom());
           reco::Vertex FourL_Vtx = FourL_candi;
-          //cout<<"vertex 4l"<<endl;
+          cout<<"vertex 4l"<<endl;
           if (B_Prob_tmp4L < 0.001)
             continue;
+
+          cout << "FOUND A J/PSI" << endl;
 
           /*
 	      //if (iMuon1->isTrackerMuon() || iMuon2->isTrackerMuon())
@@ -1131,12 +1128,12 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 
           // sms MVA electron-1 id 2018
           // B_Z_mvaIsoWP80_1->push_back(iEle1->userFloat("mvaEleID-Fall17-iso-V2-wp80"));
-          B_Z_looseCutBase1->push_back(iEle1->electronID("cutBasedElectronID-Fall17-94X-V2-loose"));
-          B_Z_mediumCutBase1->push_back(iEle1->electronID("cutBasedElectronID-Fall17-94X-V2-medium"));
+          B_Z_looseCutBase1->push_back(iEle1->electronID("cutBasedElectronID-RunIIIWinter22-V1-loose"));
+          B_Z_mediumCutBase1->push_back(iEle1->electronID("cutBasedElectronID-RunIIIWinter22-V1-medium"));
           //B_Z_looseCutBase1->push_back(iEle1->electronID("mvaEleID-Fall17-iso-V2-wpHZZ"));
           // B_Z_looseHZZwp1->push_back(iEle1->electronID("mvaEleID-Summer18UL-ID-ISO-HZZ"));
           //B_Z_looseHZZwp1->push_back(iEle1->electronID("ElectronMVAEstimatorRun2Autumn18IdIsoValues"));
-          B_Z_mvaIsoWP90_1->push_back(iEle1->electronID("mvaEleID-Fall17-iso-V2-wp90"));
+          B_Z_mvaIsoWP90_1->push_back(iEle1->electronID("mvaEleID-RunIIIWinter22-iso-V1-wp90"));
 
           B_Z_charge1->push_back(iEle1->charge());
 
@@ -1157,13 +1154,13 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           // sms MVA electron-2 id 2018
 
           //B_Z_mvaIsoWP80_2->push_back(iEle2->userFloat("mvaEleID-Fall17-iso-V2-wp80"));
-          B_Z_looseCutBase2->push_back(iEle2->electronID("cutBasedElectronID-Fall17-94X-V2-loose"));
-          B_Z_mediumCutBase2->push_back(iEle2->electronID("cutBasedElectronID-Fall17-94X-V2-medium"));
+          B_Z_looseCutBase2->push_back(iEle2->electronID("cutBasedElectronID-RunIIIWinter22-V1-loose"));
+          B_Z_mediumCutBase2->push_back(iEle2->electronID("cutBasedElectronID-RunIIIWinter22-V1-medium"));
           //B_Z_looseCutBase2->push_back(iEle2->electronID("mvaEleID-Fall17-iso-V2-wpHZZ"));
           // B_Z_looseHZZwp2->push_back(iEle2->electronID("mvaEleID-Summer18UL-ID-ISO-HZZ"));
           // B_Z_looseHZZwp2->push_back(iEle2->electronID("ElectronMVAEstimatorRun2Autumn18IdIsoValues"));
 
-          B_Z_mvaIsoWP90_2->push_back(iEle2->electronID("mvaEleID-Fall17-iso-V2-wp90"));
+          B_Z_mvaIsoWP90_2->push_back(iEle2->electronID("mvaEleID-RunIIIWinter22-iso-V1-wp90"));
 
           B_Z_charge2->push_back(iEle2->charge());
           B_Z_dxy1->push_back(iEle1->gsfTrack()->dxy(bestVtx.position()));
@@ -1171,7 +1168,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           B_Z_dxy2->push_back(iEle2->gsfTrack()->dxy(bestVtx.position()));
           B_Z_dz2->push_back(iEle2->gsfTrack()->dz(bestVtx.position()));
 
-          B_J_dca->push_back(dca);
+          // B_J_dca->push_back(dca);
           B_J_mass->push_back(MM.M());
           B_J_px->push_back(MM.Px());
           B_J_py->push_back(MM.Py());
