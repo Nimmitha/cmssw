@@ -7,6 +7,7 @@ usage() {
     echo "  submit   - Run 'crab submit -c crabConfig_TTree.py'"
     echo "  status   - Run 'crab status -d crab_TTree_13TeV*'"
     echo "  resubmit - Run 'crab resubmit -d crab_TTree_13TeV*'"
+    echo "  kill     - Run 'crab kill -d crab_TTree_13TeV*'"
     echo "  report   - Run 'crab report -d crab_TTree_13TeV*'"
     echo "  lumi     - Run 'brilcalc lumi -i processedLumis.json > onlinelumi.csv'"
     exit 1
@@ -47,6 +48,9 @@ for dir in "$year"/*/; do
             ;;
         report)
             (cd "$dir" && crab report -d $CRAB_DIR_PATTERN)
+            ;;
+        kill)
+            (cd "$dir" && crab kill -d $CRAB_DIR_PATTERN)
             ;;
         lumi)
             found_subdir=false
