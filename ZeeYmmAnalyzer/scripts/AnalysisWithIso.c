@@ -335,7 +335,6 @@ void AnalysisWithIso::Loop() {
 
       ncandiPreSelection++;
       Events = Event->at(i);
-      cout << "Event " << Event->at(i) << endl;
 
       if (temp_eventPreSelection != Event->at(i)) {
         temp_eventPreSelection = Event->at(i);
