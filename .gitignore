@@ -17,5 +17,6 @@ __init__.py
 # ignore the following directories
 ZeeYmmAnalyzer/dataSubmit/**/crab_TTree_13TeV*/inputs/
 ZeeYmmAnalyzer/dataSubmit/**/crab.log
+ZeeYmmAnalyzer/dataSubmit/**/*.gz
 ZeeYmmAnalyzer/dataSubmit/**/.requestcache
 ZeeYmmAnalyzer/outputs
