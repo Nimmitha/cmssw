@@ -2,7 +2,7 @@ import pandas as pd
 import awkward as ak
 
 def get_count(data):
-    array = data.Y_mass
+    array = data.B_J_mass
     
     nevents = len(array[ak.num(array, axis=1) > 0])
     ncandidates = ak.sum(ak.num(array, axis=1))
