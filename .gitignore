@@ -20,3 +20,5 @@ ZeeYmmAnalyzer/dataSubmit/**/crab.log
 ZeeYmmAnalyzer/dataSubmit/**/*.gz
 ZeeYmmAnalyzer/dataSubmit/**/.requestcache
 ZeeYmmAnalyzer/outputs
+ZeeYmmAnalyzer/inputFiles
+ZeeYmmAnalyzer/scripts/plots

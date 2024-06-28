@@ -381,7 +381,7 @@ void AnalysisWithIso::Loop() {
         nevSoft++;
       }
 
-      if (B_J_pt1->at(i) < 27.0 || B_J_pt2->at(i) < 5.0 || B_Z_pt1->at(i) < 3.0 || B_Z_pt2->at(i) < 3.0)
+      if (B_J_pt1->at(i) < 3.0 || B_J_pt2->at(i) < 3.0 || B_Z_pt1->at(i) < 27.0 || B_Z_pt2->at(i) < 5.0)
         continue;
       if (abs(B_J_eta1->at(i)) > 2.4 || abs(B_J_eta2->at(i)) > 2.4 || abs(B_Z_eta1->at(i)) > 2.5 || abs(B_Z_eta2->at(i)) > 2.5)
         continue;
