@@ -19,3 +19,4 @@ __init__.py
 ZmmYmmAnalyzer/singleMuonData/**/crab_TTree_13TeV*
 ZmmYmmAnalyzer/singleMuonData/**/crab.log
 ZmmYmmAnalyzer/outputs
+ZmmYmmAnalyzer/inputFiles
