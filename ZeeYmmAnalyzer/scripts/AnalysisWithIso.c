@@ -689,23 +689,21 @@ if ( (B_Mu_IsoTrackCorr1/B_Mu1_pt->at(i) ) >0.50) continue;
 
         //continue;
       } else {
-        continue;
-        //doublecount++;
-        //myfile<<doublecount<<" double Event number detected # "<<Event->at(i)<<endl;
-        //myfile<<" Event number of previous"<<Event->at(i-1)<<endl;
-        //myfile<<Event->at(i)<<endl;
+        // continue;
+        doublecount++;
+        myfile << doublecount << " double Event number detected # " << Event->at(i) << endl;
+        myfile << " Event number of previous" << Event->at(i - 1) << endl;
+        myfile << Event->at(i) << endl;
 
         cout << "Event no for multiple Candidate " << Event->at(i) << endl;
         myfile1 << Event->at(i) << endl;
 
-        //myfile<<"Four muon vertex prob "<<FourL_VtxProb->at(i)<<endl;
-        // myfile<<"Previous Four muon vertex prob "<<FourL_VtxProb->at(i-1)<<endl<<endl;
+        myfile << "Four muon vertex prob " << FourL_VtxProb->at(i) << endl;
+        myfile << "Previous Four muon vertex prob " << FourL_VtxProb->at(i - 1) << endl << endl;
 
-        /*
-      if (FourL_VtxProb->at(i)>FourL_VtxProb->at(i-1)){
-      cout<<"thrown away the better"<<endl;
-       }
-       */
+        if (FourL_VtxProb->at(i) > FourL_VtxProb->at(i - 1)) {
+          cout << "thrown away the better" << endl;
+        }
       }
 
       myfile << Event->at(i) << " " << Ups1_mass << " " << Ups2_mass << " " << FourL_mass->at(i) << " " << FourL_VtxProb->at(i) << endl;
