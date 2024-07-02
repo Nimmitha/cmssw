@@ -292,16 +292,14 @@ void AnalysisWithIso::Loop() {
   fTree->Branch("B_J_zM2", &B_J_zM2_b);
 
   Long64_t nentries = fChain->GetEntriesFast();
-  Long64_t ncandiPreSelection(0), nevPreSelection(0), ncandiTrigger(0), nevTrigger(0), ncandiSoft(0), nevSoft(0),
-      ncandiDetector(0), nevDetector(0), ncandiLite4Vertex(0), nevLite4Vertex(0), ncandiCombine(0), nevCombine(0),
-      ncandiIsolation1(0), nevIsolation1(0), ncandiIsolation2(0), nevIsolation2(0), ncandiIsolation3(0),
-      nevIsolation3(0), ncandiIsolation4(0), nevIsolation4(0), ncandiMuonPtGreaterThan(0), nevMuonPtGreaterThan(0),
-      ncandiYZVertexing(0), nevYZVertexing(0), ncandiYZPt(0), nevYZPt(0), ncandiYZMass(0), nevYZMass(0),
-      ncandi4Vertex(0), nev4Vertex(0), ncandi4Pt(0), nev4Pt(0), ncandi4Mass(0), nev4Mass(0);
-  Long64_t temp_eventPreSelection(0), temp_eventTrigger(0), temp_eventSoft(0), temp_eventDetector(0),
-      temp_eventLite4Vertex(0), temp_eventCombine(0), temp_eventIsolation1(0), temp_eventIsolation2(0),
-      temp_eventIsolation3(0), temp_eventIsolation4(0), temp_eventMuonPtGreaterThan(0), temp_eventYZVertexing(0),
-      temp_eventYZPt(0), temp_eventYZMass(0), temp_event4Vertex(0), temp_event4Pt(0), temp_event4Mass(0);
+  Long64_t ncandiPreSelection(0), nevPreSelection(0), ncandiTrigger(0), nevTrigger(0), ncandiSoft(0), nevSoft(0), ncandiDetector(0), nevDetector(0),
+      ncandiLite4Vertex(0), nevLite4Vertex(0), ncandiCombine(0), nevCombine(0), ncandiIsolation1(0), nevIsolation1(0), ncandiIsolation2(0),
+      nevIsolation2(0), ncandiIsolation3(0), nevIsolation3(0), ncandiIsolation4(0), nevIsolation4(0), ncandiMuonPtGreaterThan(0),
+      nevMuonPtGreaterThan(0), ncandiYZVertexing(0), nevYZVertexing(0), ncandiYZPt(0), nevYZPt(0), ncandiYZMass(0), nevYZMass(0), ncandi4Vertex(0),
+      nev4Vertex(0), ncandi4Pt(0), nev4Pt(0), ncandi4Mass(0), nev4Mass(0);
+  Long64_t temp_eventPreSelection(0), temp_eventTrigger(0), temp_eventSoft(0), temp_eventDetector(0), temp_eventLite4Vertex(0), temp_eventCombine(0),
+      temp_eventIsolation1(0), temp_eventIsolation2(0), temp_eventIsolation3(0), temp_eventIsolation4(0), temp_eventMuonPtGreaterThan(0),
+      temp_eventYZVertexing(0), temp_eventYZPt(0), temp_eventYZMass(0), temp_event4Vertex(0), temp_event4Pt(0), temp_event4Mass(0);
   Long64_t nbytes = 0, nb = 0;
   Double_t Events = 0;
   int doublecount = 0;
@@ -352,8 +350,7 @@ void AnalysisWithIso::Loop() {
       //if ( ( B_Mu1_tight->at(i) + B_Mu2_tight->at(i) + B_Mu3_tight->at(i) + B_Mu4_tight->at(i) ) < 3) continue;
       if (B_Mu1_pt->at(i) < 3.0 || B_Mu2_pt->at(i) < 3.0 || B_Mu3_pt->at(i) < 3.0 || B_Mu4_pt->at(i) < 3.0)
         continue;
-      if (abs(B_Mu1_eta->at(i)) > 2.4 || abs(B_Mu2_eta->at(i)) > 2.4 || abs(B_Mu3_eta->at(i)) > 2.4 ||
-          abs(B_Mu4_eta->at(i)) > 2.4)
+      if (abs(B_Mu1_eta->at(i)) > 2.4 || abs(B_Mu2_eta->at(i)) > 2.4 || abs(B_Mu3_eta->at(i)) > 2.4 || abs(B_Mu4_eta->at(i)) > 2.4)
         continue;
 
       ncandiDetector++;
@@ -389,15 +386,13 @@ void AnalysisWithIso::Loop() {
       int check1, check2, UpsMass;
       UpsMass = check1 = check2 = 0;
       if ((B_J1_mass->at(i) > 9.0 && B_J1_mass->at(i) < 9.7) || (B_J1_mass->at(i) > 85.0 && B_J1_mass->at(i) < 110.0)) {
-        if ((B_J2_mass->at(i) > 9.0 && B_J2_mass->at(i) < 9.7) ||
-            (B_J2_mass->at(i) > 85.0 && B_J2_mass->at(i) < 110.0)) {
+        if ((B_J2_mass->at(i) > 9.0 && B_J2_mass->at(i) < 9.7) || (B_J2_mass->at(i) > 85.0 && B_J2_mass->at(i) < 110.0)) {
           UpsMass++;
           check1++;
         }
       }
       if ((B_J3_mass->at(i) > 9.0 && B_J3_mass->at(i) < 9.7) || (B_J3_mass->at(i) > 85.0 && B_J3_mass->at(i) < 110.0)) {
-        if ((B_J4_mass->at(i) > 9.0 && B_J4_mass->at(i) < 9.7) ||
-            (B_J4_mass->at(i) > 85.0 && B_J4_mass->at(i) < 110.0)) {
+        if ((B_J4_mass->at(i) > 9.0 && B_J4_mass->at(i) < 9.7) || (B_J4_mass->at(i) > 85.0 && B_J4_mass->at(i) < 110.0)) {
           UpsMass++;
           check2++;
         }
@@ -770,27 +765,24 @@ void AnalysisWithIso::Loop() {
 
         //continue;
       } else {
-        continue;
-        //doublecount++;
-        //myfile<<doublecount<<" double Event number detected # "<<Event->at(i)<<endl;
-        //myfile<<" Event number of previous"<<Event->at(i-1)<<endl;
-        //myfile<<Event->at(i)<<endl;
+        // continue;
+        doublecount++;
+        myfile << doublecount << " double Event number detected # " << Event->at(i) << endl;
+        myfile << " Event number of previous" << Event->at(i - 1) << endl;
+        myfile << Event->at(i) << endl;
 
         cout << "Event no for multiple Candidate " << Event->at(i) << endl;
         myfile1 << Event->at(i) << endl;
 
-        //myfile<<"Four muon vertex prob "<<FourL_VtxProb->at(i)<<endl;
-        // myfile<<"Previous Four muon vertex prob "<<FourL_VtxProb->at(i-1)<<endl<<endl;
+        myfile << "Four muon vertex prob " << FourL_VtxProb->at(i) << endl;
+        myfile << "Previous Four muon vertex prob " << FourL_VtxProb->at(i - 1) << endl << endl;
 
-        /*
-      if (FourL_VtxProb->at(i)>FourL_VtxProb->at(i-1)){
-      cout<<"thrown away the better"<<endl;
-       }
-       */
+        if (FourL_VtxProb->at(i) > FourL_VtxProb->at(i - 1)) {
+          cout << "thrown away the better" << endl;
+        }
       }
 
-      myfile << Event->at(i) << " " << Ups1_mass << " " << Ups2_mass << " " << FourL_mass->at(i) << " "
-             << FourL_VtxProb->at(i) << endl;
+      myfile << Event->at(i) << " " << Ups1_mass << " " << Ups2_mass << " " << FourL_mass->at(i) << " " << FourL_VtxProb->at(i) << endl;
 
       //myfile<<Ups1_mass<<endl;
 
@@ -919,9 +911,8 @@ void AnalysisWithIso::Loop() {
   cout << "Number of event 4Mass=" << nev4Mass << endl;
   cout << "Number of Candidate 4Mass=" << ncandi4Mass << endl;
 
-  if (ncandiPreSelection > 0 || ncandiTrigger > 0 || ncandiSoft > 0 || ncandiDetector > 0 || ncandiLite4Vertex > 0 ||
-      ncandiCombine > 0 || ncandiMuonPtGreaterThan > 0 || ncandiYZVertexing > 0 || ncandiYZPt > 0 || ncandiYZMass > 0 ||
-      ncandi4Vertex > 0 || ncandi4Mass > 0) {
+  if (ncandiPreSelection > 0 || ncandiTrigger > 0 || ncandiSoft > 0 || ncandiDetector > 0 || ncandiLite4Vertex > 0 || ncandiCombine > 0 ||
+      ncandiMuonPtGreaterThan > 0 || ncandiYZVertexing > 0 || ncandiYZPt > 0 || ncandiYZMass > 0 || ncandi4Vertex > 0 || ncandi4Mass > 0) {
     fTree->Fill();
   }
 
