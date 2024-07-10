@@ -414,6 +414,7 @@ void AnalysisWithIso::Loop() {
 
       //Now Find
       //if we find 4 Upsilon i.e
+      
       if (UpsMass == 2) {
         //choose the upsilon having best vertex probability
         //cout<<"Are more than 2 upsilon in a event"<<endl;
@@ -468,7 +469,7 @@ void AnalysisWithIso::Loop() {
         }
       }
       //if have only one pairs of upsislon
-      if (UpsMass == 1) {
+      else if (UpsMass == 1) {
         if (check1 > 0) {
           if (B_J1_mass->at(i) > 9.0 && B_J1_mass->at(i) < 9.7) {
             Ups1_mass = B_J1_mass->at(i);
@@ -519,6 +520,10 @@ void AnalysisWithIso::Loop() {
           }
           //else continue;
         }
+      }
+      //if have no upsilon
+      else {
+        continue;
       }
 
       float Mu_mass = 0.1056583745;
