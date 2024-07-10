@@ -82,8 +82,7 @@
 // from  edm::one::EDAnalyzer<>
 // This will improve performance in multithreaded jobs.
 
-class miniAODmmmm : public edm::one::EDAnalyzer<edm::one::SharedResources>
-{
+class miniAODmmmm : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
   explicit miniAODmmmm(const edm::ParameterSet &);
   ~miniAODmmmm() override;
@@ -257,114 +256,274 @@ miniAODmmmm::miniAODmmmm(const edm::ParameterSet &iConfig)
       isMC_(iConfig.getParameter<bool>("isMC")),
 
       tree_(0),
-      Run(0), LumiBlock(0), Event(0),
+      Run(0),
+      LumiBlock(0),
+      Event(0),
       FourL_mass(0),
-      FourL_px(0), FourL_py(0), FourL_pz(0),
-      FourL_pt(0), FourL_eta(0), FourL_phi(0),
+      FourL_px(0),
+      FourL_py(0),
+      FourL_pz(0),
+      FourL_pt(0),
+      FourL_eta(0),
+      FourL_phi(0),
       FourL_VtxProb(0),
-      FourL_PVx(0), FourL_PVy(0), FourL_PVz(0),
-      FourL_PVxError(0), FourL_PVyError(0), FourL_PVzError(0),
+      FourL_PVx(0),
+      FourL_PVy(0),
+      FourL_PVz(0),
+      FourL_PVxError(0),
+      FourL_PVyError(0),
+      FourL_PVzError(0),
 
       // Z
       B_U_TriggerPath(0),
-      B_U_TriggerPt1(0), B_U_TriggerEta1(0), B_U_TriggerPhi1(0),
-      B_U_TriggerPt2(0), B_U_TriggerEta2(0), B_U_TriggerPhi2(0),
-      B_U_TriggerPt3(0), B_U_TriggerEta3(0), B_U_TriggerPhi3(0),
-      B_U_TriggerPt4(0), B_U_TriggerEta4(0), B_U_TriggerPhi4(0),
-      B_U_TriggerPt5(0), B_U_TriggerEta5(0), B_U_TriggerPhi5(0),
+      B_U_TriggerPt1(0),
+      B_U_TriggerEta1(0),
+      B_U_TriggerPhi1(0),
+      B_U_TriggerPt2(0),
+      B_U_TriggerEta2(0),
+      B_U_TriggerPhi2(0),
+      B_U_TriggerPt3(0),
+      B_U_TriggerEta3(0),
+      B_U_TriggerPhi3(0),
+      B_U_TriggerPt4(0),
+      B_U_TriggerEta4(0),
+      B_U_TriggerPhi4(0),
+      B_U_TriggerPt5(0),
+      B_U_TriggerEta5(0),
+      B_U_TriggerPhi5(0),
 
-      B_J1_mass(0), B_J1_px(0), B_J1_py(0), B_J1_pz(0),
-      B_J1_pt(0), B_J1_eta(0), B_J1_phi(0),
+      B_J1_mass(0),
+      B_J1_px(0),
+      B_J1_py(0),
+      B_J1_pz(0),
+      B_J1_pt(0),
+      B_J1_eta(0),
+      B_J1_phi(0),
       B_J1_rapidity(0),
-      B_J2_mass(0), B_J2_px(0), B_J2_py(0), B_J2_pz(0),
-      B_J2_pt(0), B_J2_eta(0), B_J2_phi(0),
+      B_J2_mass(0),
+      B_J2_px(0),
+      B_J2_py(0),
+      B_J2_pz(0),
+      B_J2_pt(0),
+      B_J2_eta(0),
+      B_J2_phi(0),
       B_J2_rapidity(0),
-      B_J3_mass(0), B_J3_px(0), B_J3_py(0), B_J3_pz(0),
-      B_J3_pt(0), B_J3_eta(0), B_J3_phi(0),
+      B_J3_mass(0),
+      B_J3_px(0),
+      B_J3_py(0),
+      B_J3_pz(0),
+      B_J3_pt(0),
+      B_J3_eta(0),
+      B_J3_phi(0),
       B_J3_rapidity(0),
-      B_J4_mass(0), B_J4_px(0), B_J4_py(0), B_J4_pz(0),
-      B_J4_pt(0), B_J4_eta(0), B_J4_phi(0),
+      B_J4_mass(0),
+      B_J4_px(0),
+      B_J4_py(0),
+      B_J4_pz(0),
+      B_J4_pt(0),
+      B_J4_eta(0),
+      B_J4_phi(0),
       B_J4_rapidity(0),
 
-      B_J1_VtxPx(0), B_J1_VtxPy(0), B_J1_VtxPz(0),
-      B_J1_VtxPt(0), B_J1_VtxEta(0), B_J1_VtxPhi(0), B_J1_VtxRapidity(0), B_J1_VtxMass(0),
-      B_J1_PVx(0), B_J1_PVy(0), B_J1_PVz(0),
-      B_J1_PVxError(0), B_J1_PVyError(0), B_J1_PVzError(0),
-      B_J2_VtxPx(0), B_J2_VtxPy(0), B_J2_VtxPz(0),
-      B_J2_VtxPt(0), B_J2_VtxEta(0), B_J2_VtxPhi(0), B_J2_VtxRapidity(0), B_J2_VtxMass(0),
-      B_J2_PVx(0), B_J2_PVy(0), B_J2_PVz(0),
-      B_J2_PVxError(0), B_J2_PVyError(0), B_J2_PVzError(0),
-      B_J3_VtxPx(0), B_J3_VtxPy(0), B_J3_VtxPz(0),
-      B_J3_VtxPt(0), B_J3_VtxEta(0), B_J3_VtxPhi(0), B_J3_VtxRapidity(0), B_J3_VtxMass(0),
-      B_J3_PVx(0), B_J3_PVy(0), B_J3_PVz(0),
-      B_J3_PVxError(0), B_J3_PVyError(0), B_J3_PVzError(0),
-      B_J4_VtxPx(0), B_J4_VtxPy(0), B_J4_VtxPz(0),
-      B_J4_VtxPt(0), B_J4_VtxEta(0), B_J4_VtxPhi(0), B_J4_VtxRapidity(0), B_J4_VtxMass(0),
-      B_J4_PVx(0), B_J4_PVy(0), B_J4_PVz(0),
-      B_J4_PVxError(0), B_J4_PVyError(0), B_J4_PVzError(0),
+      B_J1_VtxPx(0),
+      B_J1_VtxPy(0),
+      B_J1_VtxPz(0),
+      B_J1_VtxPt(0),
+      B_J1_VtxEta(0),
+      B_J1_VtxPhi(0),
+      B_J1_VtxRapidity(0),
+      B_J1_VtxMass(0),
+      B_J1_PVx(0),
+      B_J1_PVy(0),
+      B_J1_PVz(0),
+      B_J1_PVxError(0),
+      B_J1_PVyError(0),
+      B_J1_PVzError(0),
+      B_J2_VtxPx(0),
+      B_J2_VtxPy(0),
+      B_J2_VtxPz(0),
+      B_J2_VtxPt(0),
+      B_J2_VtxEta(0),
+      B_J2_VtxPhi(0),
+      B_J2_VtxRapidity(0),
+      B_J2_VtxMass(0),
+      B_J2_PVx(0),
+      B_J2_PVy(0),
+      B_J2_PVz(0),
+      B_J2_PVxError(0),
+      B_J2_PVyError(0),
+      B_J2_PVzError(0),
+      B_J3_VtxPx(0),
+      B_J3_VtxPy(0),
+      B_J3_VtxPz(0),
+      B_J3_VtxPt(0),
+      B_J3_VtxEta(0),
+      B_J3_VtxPhi(0),
+      B_J3_VtxRapidity(0),
+      B_J3_VtxMass(0),
+      B_J3_PVx(0),
+      B_J3_PVy(0),
+      B_J3_PVz(0),
+      B_J3_PVxError(0),
+      B_J3_PVyError(0),
+      B_J3_PVzError(0),
+      B_J4_VtxPx(0),
+      B_J4_VtxPy(0),
+      B_J4_VtxPz(0),
+      B_J4_VtxPt(0),
+      B_J4_VtxEta(0),
+      B_J4_VtxPhi(0),
+      B_J4_VtxRapidity(0),
+      B_J4_VtxMass(0),
+      B_J4_PVx(0),
+      B_J4_PVy(0),
+      B_J4_PVz(0),
+      B_J4_PVxError(0),
+      B_J4_PVyError(0),
+      B_J4_PVzError(0),
 
-      B_Mu1_px(0), B_Mu1_py(0), B_Mu1_pz(0),
-      B_Mu1_pt(0), B_Mu1_eta(0), B_Mu1_phi(0),
-      B_Mu1_soft(0), B_Mu1_tight(0), B_Mu1_loose(0),
-      B_Mu1_IsoTrack(0), B_Mu1_IsoHcal(0), B_Mu1_IsoEcal(0), B_Mu1_IsoCalo(0),
+      B_Mu1_px(0),
+      B_Mu1_py(0),
+      B_Mu1_pz(0),
+      B_Mu1_pt(0),
+      B_Mu1_eta(0),
+      B_Mu1_phi(0),
+      B_Mu1_soft(0),
+      B_Mu1_tight(0),
+      B_Mu1_loose(0),
+      B_Mu1_IsoTrack(0),
+      B_Mu1_IsoHcal(0),
+      B_Mu1_IsoEcal(0),
+      B_Mu1_IsoCalo(0),
 
-      B_Mu1_PaperIsoTrackRF04(0), B_Mu1_PaperIsoTrackRF03(0), B_Mu1_Paper3DIP(0),
+      B_Mu1_PaperIsoTrackRF04(0),
+      B_Mu1_PaperIsoTrackRF03(0),
+      B_Mu1_Paper3DIP(0),
 
-      B_Mu2_px(0), B_Mu2_py(0), B_Mu2_pz(0),
-      B_Mu2_pt(0), B_Mu2_eta(0), B_Mu2_phi(0),
-      B_Mu1_charge(0), B_Mu2_charge(0),
-      B_Mu2_soft(0), B_Mu2_tight(0), B_Mu2_loose(0),
-      B_Mu2_IsoTrack(0), B_Mu2_IsoHcal(0), B_Mu2_IsoEcal(0), B_Mu2_IsoCalo(0),
+      B_Mu2_px(0),
+      B_Mu2_py(0),
+      B_Mu2_pz(0),
+      B_Mu2_pt(0),
+      B_Mu2_eta(0),
+      B_Mu2_phi(0),
+      B_Mu1_charge(0),
+      B_Mu2_charge(0),
+      B_Mu2_soft(0),
+      B_Mu2_tight(0),
+      B_Mu2_loose(0),
+      B_Mu2_IsoTrack(0),
+      B_Mu2_IsoHcal(0),
+      B_Mu2_IsoEcal(0),
+      B_Mu2_IsoCalo(0),
 
-      B_Mu2_PaperIsoTrackRF04(0), B_Mu2_PaperIsoTrackRF03(0), B_Mu2_Paper3DIP(0),
+      B_Mu2_PaperIsoTrackRF04(0),
+      B_Mu2_PaperIsoTrackRF03(0),
+      B_Mu2_Paper3DIP(0),
 
-      B_Mu3_px(0), B_Mu3_py(0), B_Mu3_pz(0),
-      B_Mu3_pt(0), B_Mu3_eta(0), B_Mu3_phi(0),
-      B_Mu3_soft(0), B_Mu3_tight(0), B_Mu3_loose(0),
+      B_Mu3_px(0),
+      B_Mu3_py(0),
+      B_Mu3_pz(0),
+      B_Mu3_pt(0),
+      B_Mu3_eta(0),
+      B_Mu3_phi(0),
+      B_Mu3_soft(0),
+      B_Mu3_tight(0),
+      B_Mu3_loose(0),
       B_Mu3_charge(0),
-      B_Mu3_IsoTrack(0), B_Mu3_IsoHcal(0), B_Mu3_IsoEcal(0), B_Mu3_IsoCalo(0),
+      B_Mu3_IsoTrack(0),
+      B_Mu3_IsoHcal(0),
+      B_Mu3_IsoEcal(0),
+      B_Mu3_IsoCalo(0),
 
-      B_Mu3_PaperIsoTrackRF04(0), B_Mu3_PaperIsoTrackRF03(0), B_Mu3_Paper3DIP(0),
+      B_Mu3_PaperIsoTrackRF04(0),
+      B_Mu3_PaperIsoTrackRF03(0),
+      B_Mu3_Paper3DIP(0),
 
-      B_Mu4_px(0), B_Mu4_py(0), B_Mu4_pz(0),
-      B_Mu4_pt(0), B_Mu4_eta(0), B_Mu4_phi(0),
-      B_Mu4_soft(0), B_Mu4_tight(0), B_Mu4_loose(0),
+      B_Mu4_px(0),
+      B_Mu4_py(0),
+      B_Mu4_pz(0),
+      B_Mu4_pt(0),
+      B_Mu4_eta(0),
+      B_Mu4_phi(0),
+      B_Mu4_soft(0),
+      B_Mu4_tight(0),
+      B_Mu4_loose(0),
       B_Mu4_charge(0),
-      B_Mu4_IsoTrack(0), B_Mu4_IsoHcal(0), B_Mu4_IsoEcal(0), B_Mu4_IsoCalo(0),
+      B_Mu4_IsoTrack(0),
+      B_Mu4_IsoHcal(0),
+      B_Mu4_IsoEcal(0),
+      B_Mu4_IsoCalo(0),
 
-      B_Mu4_PaperIsoTrackRF04(0), B_Mu4_PaperIsoTrackRF03(0), B_Mu4_Paper3DIP(0),
+      B_Mu4_PaperIsoTrackRF04(0),
+      B_Mu4_PaperIsoTrackRF03(0),
+      B_Mu4_Paper3DIP(0),
 
-      B_J1_VtxProb(0), B_J2_VtxProb(0), B_J3_VtxProb(0), B_J4_VtxProb(0),
-      B_J_xyP1(0), B_J_xyM1(0), B_J_zP1(0), B_J_zM1(0),
-      B_J_xyP2(0), B_J_xyM2(0), B_J_zP2(0), B_J_zM2(0),
+      B_J1_VtxProb(0),
+      B_J2_VtxProb(0),
+      B_J3_VtxProb(0),
+      B_J4_VtxProb(0),
+      B_J_xyP1(0),
+      B_J_xyM1(0),
+      B_J_zP1(0),
+      B_J_zM1(0),
+      B_J_xyP2(0),
+      B_J_xyM2(0),
+      B_J_zP2(0),
+      B_J_zM2(0),
 
-      mu1mC2(0), mu1mNHits(0), mu1mNPHits(0),
-      mu1pC2(0), mu1pNHits(0), mu1pNPHits(0),
+      mu1mC2(0),
+      mu1mNHits(0),
+      mu1mNPHits(0),
+      mu1pC2(0),
+      mu1pNHits(0),
+      mu1pNPHits(0),
 
-      mu2mC2(0), mu2mNHits(0), mu2mNPHits(0),
-      mu2pC2(0), mu2pNHits(0), mu2pNPHits(0),
+      mu2mC2(0),
+      mu2mNHits(0),
+      mu2mNPHits(0),
+      mu2pC2(0),
+      mu2pNHits(0),
+      mu2pNPHits(0),
 
-      B_M1_pt(0), B_M1_eta(0), B_M1_phi(0),
-      B_M1_px(0), B_M1_py(0), B_M1_pz(0),
-      B_M2_pt(0), B_M2_eta(0), B_M2_phi(0),
-      B_M2_px(0), B_M2_py(0), B_M2_pz(0),
-      B_M3_pt(0), B_M3_eta(0), B_M3_phi(0),
-      B_M3_px(0), B_M3_py(0), B_M3_pz(0),
-      B_M4_pt(0), B_M4_eta(0), B_M4_phi(0),
-      B_M4_px(0), B_M4_py(0), B_M4_pz(0),
-      B_J_GenMuonPt(0), B_J_GenMuonEta(0), B_J_GenMuonPhi(0),
-      B_Z_GenMuonPt(0), B_Z_GenMuonEta(0), B_Z_GenMuonPhi(0),
+      B_M1_pt(0),
+      B_M1_eta(0),
+      B_M1_phi(0),
+      B_M1_px(0),
+      B_M1_py(0),
+      B_M1_pz(0),
+      B_M2_pt(0),
+      B_M2_eta(0),
+      B_M2_phi(0),
+      B_M2_px(0),
+      B_M2_py(0),
+      B_M2_pz(0),
+      B_M3_pt(0),
+      B_M3_eta(0),
+      B_M3_phi(0),
+      B_M3_px(0),
+      B_M3_py(0),
+      B_M3_pz(0),
+      B_M4_pt(0),
+      B_M4_eta(0),
+      B_M4_phi(0),
+      B_M4_px(0),
+      B_M4_py(0),
+      B_M4_pz(0),
+      B_J_GenMuonPt(0),
+      B_J_GenMuonEta(0),
+      B_J_GenMuonPhi(0),
+      B_Z_GenMuonPt(0),
+      B_Z_GenMuonEta(0),
+      B_Z_GenMuonPhi(0),
 
-      nB(0)
-{
+      nB(0) {
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   setupDataToken_ = esConsumes<SetupData, SetupRecord>();
 #endif
   // now do what ever initialization is needed
 }
 
-miniAODmmmm::~miniAODmmmm()
-{
+miniAODmmmm::~miniAODmmmm() {
   // do anything here that needs to be done at desctruction time
   // (e.g. close files, deallocate resources etc.)
   //
@@ -376,8 +535,7 @@ miniAODmmmm::~miniAODmmmm()
 //
 
 // ------------ method called for each event  ------------
-void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetup)
-{
+void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetup) {
   using namespace edm;
 
   const auto &theB = iSetup.getData(estoken_TTB);
@@ -403,20 +561,17 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
   //   return;
   // }
 
-  if (!thePATMuonHandle.isValid())
-  {
+  if (!thePATMuonHandle.isValid()) {
     edm::LogWarning("miniAODmmmm") << "No pat::Muon found on Event!";
     return;
   }
 
-  if (!triggerBits.isValid())
-  {
+  if (!triggerBits.isValid()) {
     edm::LogWarning("miniAODmmmm") << "No TriggerResults found on Event!";
     return;
   }
 
-  if (!triggerObjects.isValid())
-  {
+  if (!triggerObjects.isValid()) {
     edm::LogWarning("miniAODmmmm") << "No TriggerObjectStandAlone found on Event!";
     return;
   }
@@ -432,8 +587,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
   int nG1 = 0;
   int nG2 = 0;
   bool GenInfo = false;
-  if (GenInfo == true)
-  {
+  if (GenInfo == true) {
     // Gen Level Info
 
     float B_J_GenMuon_pt = -999;
@@ -444,10 +598,8 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     // float B_Z_GenMuon_phi=-999;
 
     // cout<<"Start Gen Work"<<endl;
-    for (size_t i = 0; i < pruned->size(); i++)
-    {
-      if ((*pruned)[i].isPromptFinalState() && abs((*pruned)[i].pdgId()) == 13)
-      {
+    for (size_t i = 0; i < pruned->size(); i++) {
+      if ((*pruned)[i].isPromptFinalState() && abs((*pruned)[i].pdgId()) == 13) {
         // if( abs((*pruned)[i].pdgId()) ==13 ){
         // cout<<"Found gen level muon"<<endl;
         // if ( (*pruned)[i].mother()->pdgId()==553 ) {
@@ -462,11 +614,9 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
         nG1++;
         //}
       }
-      if (abs((*pruned)[i].pdgId()) == 13)
-      {
+      if (abs((*pruned)[i].pdgId()) == 13) {
         // cout<<"Found gen level muon"<<endl;
-        if ((*pruned)[i].mother()->pdgId() == 23)
-        {
+        if ((*pruned)[i].mother()->pdgId() == 23) {
           B_Z_GenMuon_pt = (*pruned)[i].pt();
           B_Z_GenMuon_eta = (*pruned)[i].eta();
           // B_Z_GenMuon_phi = (*pruned)[i].phi();
@@ -479,8 +629,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     }
     // cout<<"End Gen Work"<<endl;
     isZuuZuu = 0;
-    if (nG2 == 4)
-    {
+    if (nG2 == 4) {
       isZuuZuu = 1;
       nuuuu++;
     }
@@ -492,19 +641,15 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
   const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
   // std::cout << "\n === TRIGGER PATHS === " << std::endl;
 
-  for (unsigned int i = 0, n = triggerBits->size(); i < n; ++i)
-  {
+  for (unsigned int i = 0, n = triggerBits->size(); i < n; ++i) {
     bool acceptE = triggerBits->accept(i);
-    if (names.triggerName(i).find("HLT_IsoMu24_v") != string::npos || names.triggerName(i).find("HLT_IsoTkMu24_v") != string::npos)
-    {
-      if (triggerBits->accept(i))
-      {
+    if (names.triggerName(i).find("HLT_IsoMu24_v") != string::npos || names.triggerName(i).find("HLT_IsoTkMu24_v") != string::npos) {
+      if (triggerBits->accept(i)) {
         // std::cout << "Trigger " << names.triggerName(i) <<
         //  ": " << (triggerBits->accept(i) ? "PASS" : "fail (or not run)")
         //         << std::endl;
         pass = acceptE;
-        if (pass == 1)
-        {
+        if (pass == 1) {
           passTrig++;
         }
       }
@@ -528,16 +673,13 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
   //****************************************************
   //***************Trigger Object***********************
   //****************************************************
-  if (passTrig == 0)
-  {
+  if (passTrig == 0) {
     //    cout<<"trigger didnt work "<<endl;
   }
-  if (passTrig > 0)
-  {
+  if (passTrig > 0) {
     EET = true;
     // float ElectronTriggerPt;
-    for (pat::TriggerObjectStandAlone obj : *triggerObjects)
-    { // note: not "const &" since we want to call unpackPathNames
+    for (pat::TriggerObjectStandAlone obj : *triggerObjects) {  // note: not "const &" since we want to call unpackPathNames
       obj.unpackPathNames(names);
       // for (unsigned h = 0, n = pathNamesAll.size(); h < n; ++h) {
       // bool isBoth = obj.hasPathName("HLT_Ele35_WPTight_Gsf_v*", true, true );
@@ -560,9 +702,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       // std::cout << "   " << pathNamesAll[h];
 
       // if (obj.hasPathName("HLT_IsoMu27_vfake", true, true )>0||obj.hasPathName("HLT_IsoMu24_vfake", true, true )>0||obj.hasPathName("HLT_IsoMu22_vfake", true, true )>0||obj.hasPathName("HLT_IsoMu20_vfake", true, true )>0||obj.hasPathName("HLT_Mu55_vfake", true, true )>0||obj.hasPathName("HLT_Mu50_vfake", true, true )>0) {
-      if (obj.hasPathName("HLT_IsoMu24_v", true, true) > 0 || obj.hasPathName("HLT_IsoTkMu24_v", true, true) > 0)
-      {
-
+      if (obj.hasPathName("HLT_IsoMu24_v", true, true) > 0 || obj.hasPathName("HLT_IsoTkMu24_v", true, true) > 0) {
         // std::cout << "\tTrigger objectisBoth:  pt " << obj.pt() << ", eta " << obj.eta() << ", phi " << obj.phi() << std::endl;
         // open from here
         EET_pt[h] = obj.pt();
@@ -598,14 +738,10 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 
   // Sort the muons by their transverse momentum
 
-  for (pat::MuonCollection::const_iterator iMuon1 = thePATMuonHandle->begin(); iMuon1 != thePATMuonHandle->end(); ++iMuon1)
-  {
-    for (pat::MuonCollection::const_iterator iMuon2 = iMuon1 + 1; iMuon2 != thePATMuonHandle->end(); ++iMuon2)
-    {
-      for (pat::MuonCollection::const_iterator iMuon3 = iMuon2 + 1; iMuon3 != thePATMuonHandle->end(); ++iMuon3)
-      {
-        for (pat::MuonCollection::const_iterator iMuon4 = iMuon3 + 1; iMuon4 != thePATMuonHandle->end(); ++iMuon4)
-        {
+  for (pat::MuonCollection::const_iterator iMuon1 = thePATMuonHandle->begin(); iMuon1 != thePATMuonHandle->end(); ++iMuon1) {
+    for (pat::MuonCollection::const_iterator iMuon2 = iMuon1 + 1; iMuon2 != thePATMuonHandle->end(); ++iMuon2) {
+      for (pat::MuonCollection::const_iterator iMuon3 = iMuon2 + 1; iMuon3 != thePATMuonHandle->end(); ++iMuon3) {
+        for (pat::MuonCollection::const_iterator iMuon4 = iMuon3 + 1; iMuon4 != thePATMuonHandle->end(); ++iMuon4) {
           // cout << "Start of 4 muon loop" << endl;
 
           // make sure all muons are diferent
@@ -654,132 +790,98 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           TrackRef glbTrackM1;
           TrackRef glbTrackM2;
 
-          if (iMuon1->charge() == 1)
-          {
+          if (iMuon1->charge() == 1) {
             glbTrackP1 = iMuon1->track();
-            if (iMuon2->charge() == 1)
-            {
+            if (iMuon2->charge() == 1) {
               glbTrackP2 = iMuon2->track();
               glbTrackM1 = iMuon3->track();
               glbTrackM2 = iMuon4->track();
-            }
-            else if (iMuon3->charge() == 1)
-            {
+            } else if (iMuon3->charge() == 1) {
               glbTrackP2 = iMuon3->track();
               glbTrackM1 = iMuon2->track();
               glbTrackM2 = iMuon4->track();
-            }
-            else if (iMuon4->charge() == 1)
-            {
+            } else if (iMuon4->charge() == 1) {
               glbTrackP2 = iMuon4->track();
               glbTrackM1 = iMuon2->track();
               glbTrackM2 = iMuon3->track();
-            }
-            else
-            {
+            } else {
               cout << "Something is wrong while making +1 glb track ref" << endl;
             }
           }
 
-          if (iMuon1->charge() == -1)
-          {
+          if (iMuon1->charge() == -1) {
             glbTrackM1 = iMuon1->track();
-            if (iMuon2->charge() == -1)
-            {
+            if (iMuon2->charge() == -1) {
               glbTrackM2 = iMuon2->track();
               glbTrackP1 = iMuon3->track();
               glbTrackP2 = iMuon4->track();
-            }
-            else if (iMuon3->charge() == -1)
-            {
+            } else if (iMuon3->charge() == -1) {
               glbTrackM2 = iMuon3->track();
               glbTrackP1 = iMuon2->track();
               glbTrackP2 = iMuon4->track();
-            }
-            else if (iMuon4->charge() == -1)
-            {
+            } else if (iMuon4->charge() == -1) {
               glbTrackM2 = iMuon4->track();
               glbTrackP1 = iMuon2->track();
               glbTrackP2 = iMuon3->track();
-            }
-            else
-            {
+            } else {
               cout << "Something is wrong while making -1 glb track ref" << endl;
             }
           }
 
-          if (glbTrackP1.isNull() || glbTrackM1.isNull() || glbTrackP2.isNull() || glbTrackM2.isNull())
-          {
+          if (glbTrackP1.isNull() || glbTrackM1.isNull() || glbTrackP2.isNull() || glbTrackM2.isNull()) {
             // std::cout << "continue due to no track ref" << endl;
             continue;
           }
 
           TLorentzVector M1, M2, M3, M4, MM1, MM2, MM3, MM4, MMMM;
           // initialize 4 lepton mass
-          float mu_mass = 0.1056583745; //[PDG mass]
+          float mu_mass = 0.1056583745;  //[PDG mass]
           // float ele_mass =  0.000510998928;//PDG mass
 
           // make muon 4 vectors
 
-          if (iMuon1->charge() == 1)
-          {
-            if (iMuon2->charge() == 1)
-            {
+          if (iMuon1->charge() == 1) {
+            if (iMuon2->charge() == 1) {
               // P1->Mu1;P2->Mu2;M1->Mu3;M2->Mu4
               M1.SetXYZM(iMuon1->px(), iMuon1->py(), iMuon1->pz(), mu_mass);
               M3.SetXYZM(iMuon2->px(), iMuon2->py(), iMuon2->pz(), mu_mass);
               M2.SetXYZM(iMuon3->px(), iMuon3->py(), iMuon3->pz(), mu_mass);
               M4.SetXYZM(iMuon4->px(), iMuon4->py(), iMuon4->pz(), mu_mass);
-            }
-            else if (iMuon3->charge() == 1)
-            {
+            } else if (iMuon3->charge() == 1) {
               // P1->Mu1;P2->Mu3;M1->Mu2;M2->Mu4
               M1.SetXYZM(iMuon1->px(), iMuon1->py(), iMuon1->pz(), mu_mass);
               M2.SetXYZM(iMuon2->px(), iMuon2->py(), iMuon2->pz(), mu_mass);
               M3.SetXYZM(iMuon3->px(), iMuon3->py(), iMuon3->pz(), mu_mass);
               M4.SetXYZM(iMuon4->px(), iMuon4->py(), iMuon4->pz(), mu_mass);
-            }
-            else if (iMuon4->charge() == 1)
-            {
+            } else if (iMuon4->charge() == 1) {
               // P1->Mu1;P2->Mu4;M1->Mu2;M2->Mu3
               M1.SetXYZM(iMuon1->px(), iMuon1->py(), iMuon1->pz(), mu_mass);
               M2.SetXYZM(iMuon2->px(), iMuon2->py(), iMuon2->pz(), mu_mass);
               M4.SetXYZM(iMuon3->px(), iMuon3->py(), iMuon3->pz(), mu_mass);
               M3.SetXYZM(iMuon4->px(), iMuon4->py(), iMuon4->pz(), mu_mass);
-            }
-            else
-            {
+            } else {
               cout << "Something is wrong while making +1 charge lorentz vector" << endl;
             }
-          }
-          else if (iMuon1->charge() == -1)
-          {
-            if (iMuon2->charge() == -1)
-            {
+          } else if (iMuon1->charge() == -1) {
+            if (iMuon2->charge() == -1) {
               // P1->Mu3;P2->Mu4;M1->Mu1;M2->Mu2
               M3.SetXYZM(iMuon1->px(), iMuon1->py(), iMuon1->pz(), mu_mass);
               M1.SetXYZM(iMuon2->px(), iMuon2->py(), iMuon2->pz(), mu_mass);
               M4.SetXYZM(iMuon3->px(), iMuon3->py(), iMuon3->pz(), mu_mass);
               M2.SetXYZM(iMuon4->px(), iMuon4->py(), iMuon4->pz(), mu_mass);
-            }
-            else if (iMuon3->charge() == -1)
-            {
+            } else if (iMuon3->charge() == -1) {
               // P1->Mu2;P2->Mu4;M1->Mu1;M2->Mu3
               M2.SetXYZM(iMuon1->px(), iMuon1->py(), iMuon1->pz(), mu_mass);
               M1.SetXYZM(iMuon2->px(), iMuon2->py(), iMuon2->pz(), mu_mass);
               M4.SetXYZM(iMuon3->px(), iMuon3->py(), iMuon3->pz(), mu_mass);
               M3.SetXYZM(iMuon4->px(), iMuon4->py(), iMuon4->pz(), mu_mass);
-            }
-            else if (iMuon4->charge() == -1)
-            {
+            } else if (iMuon4->charge() == -1) {
               // P1->Mu2;P2->Mu3;M1->Mu1;M2->Mu4
               M2.SetXYZM(iMuon1->px(), iMuon1->py(), iMuon1->pz(), mu_mass);
               M1.SetXYZM(iMuon2->px(), iMuon2->py(), iMuon2->pz(), mu_mass);
               M3.SetXYZM(iMuon3->px(), iMuon3->py(), iMuon3->pz(), mu_mass);
               M4.SetXYZM(iMuon4->px(), iMuon4->py(), iMuon4->pz(), mu_mass);
-            }
-            else
-            {
+            } else {
               cout << "Something is wrong while making -1 charge lorentz vector" << endl;
             }
           }
@@ -876,26 +978,21 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 
           int psi_candi = 0;
 
-          if (J_candi1.isValid())
-          {
+          if (J_candi1.isValid()) {
             // cout<<"J candidate non validated by kalman fitter"<<endl;
-            if (J_candi2.isValid())
-            {
+            if (J_candi2.isValid()) {
               // cout<<"J candidate non validated by kalman fitter"<<endl;
               psi_candi++;
             }
           }
-          if (J_candi3.isValid())
-          {
+          if (J_candi3.isValid()) {
             // cout<<"J candidate non validated by kalman fitter"<<endl;
-            if (J_candi4.isValid())
-            {
+            if (J_candi4.isValid()) {
               // cout<<"J candidate non validated by kalman fitter"<<endl;
               psi_candi++;
             }
           }
-          if (psi_candi < 1)
-          {
+          if (psi_candi < 1) {
             cout << "continue because no more than 2 vertexed dimuon" << endl;
             continue;
           }
@@ -915,17 +1012,13 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           const math::XYZTLorentzVectorD JPsi_mom4 = JPsi_Vtx4.p4(mu_mass, 0.0);
 
           int DimuonVtx = 0;
-          if (B_Prob_tmp1 > 0.001)
-          {
-            if (B_Prob_tmp2 > 0.001)
-            {
+          if (B_Prob_tmp1 > 0.001) {
+            if (B_Prob_tmp2 > 0.001) {
               DimuonVtx++;
             }
           }
-          if (B_Prob_tmp3 > 0.001)
-          {
-            if (B_Prob_tmp4 < 0.001)
-            {
+          if (B_Prob_tmp3 > 0.001) {
+            if (B_Prob_tmp4 < 0.001) {
               DimuonVtx++;
             }
           }
@@ -940,16 +1033,14 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           mmmm_tks.push_back(muon4TT);
 
           TransientVertex FourL_candi = kvf4M.vertex(mmmm_tks);
-          if (!FourL_candi.isValid())
-          {
+          if (!FourL_candi.isValid()) {
             cout << "4 mu candidate non validated by kalman fitter" << endl;
             continue;
           }
           float B_Prob_tmp4L = TMath::Prob(FourL_candi.totalChiSquared(), FourL_candi.degreesOfFreedom());
           reco::Vertex FourL_Vtx = FourL_candi;
 
-          if (B_Prob_tmp4L < 0.001)
-          {
+          if (B_Prob_tmp4L < 0.001) {
             // cout<<"4l vertexing failed"<<endl;
             continue;
           }
@@ -958,42 +1049,21 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           //  edit ** oldmuon cut 8.0-12.0 ** Jesse Harris
           //  edit ** widemuon cut 2.8-110 ** Jesse Harris
           int UpsNumber = 0;
-          if ((MM1.M() > 2.8 && MM1.M() < 12) || (MM1.M() > 70 && MM1.M() < 110))
-          {
-            if ((MM2.M() > 2.8 && MM2.M() < 12) || (MM2.M() > 70 && MM1.M() < 110))
-            {
-              if ((MM1.M() > 2.8 && MM1.M() < 12) && (MM2.M() > 1 && MM2.M() < 12))
-              {
-              }
-              else
-              {
+          if ((MM1.M() > 0.0 && MM1.M() < 12) || (MM1.M() > 70 && MM1.M() < 110)) {
+            if ((MM2.M() > 0.0 && MM2.M() < 12) || (MM2.M() > 70 && MM1.M() < 110)) {
+              if ((MM1.M() > 0.0 && MM1.M() < 12) && (MM2.M() > 70 && MM2.M() < 110)) {
                 UpsNumber++;
-              }
-              if ((MM1.M() > 70 && MM1.M() < 110) && (MM2.M() > 70 && MM2.M() < 110))
-              {
-              }
-              else
-              {
+              } else if ((MM1.M() > 70 && MM1.M() < 110) && (MM2.M() > 0 && MM2.M() < 12)) {
                 UpsNumber++;
               }
             }
           }
-          if ((MM3.M() > 2.8 && MM3.M() < 12) || (MM3.M() > 70 && MM3.M() < 110))
-          {
-            if ((MM4.M() > 2.8 && MM4.M() < 12) || (MM4.M() > 70 && MM4.M() < 110))
-            {
-              if ((MM3.M() > 2.8 && MM3.M() < 12) && (MM4.M() > 1 && MM4.M() < 12))
-              {
-              }
-              else
-              {
+          if ((MM3.M() > 0.0 && MM3.M() < 12) || (MM3.M() > 70 && MM3.M() < 110)) {
+            if ((MM4.M() > 0.0 && MM4.M() < 12) || (MM4.M() > 70 && MM4.M() < 110)) {
+              if ((MM3.M() > 0.0 && MM3.M() < 12) && (MM4.M() > 70 && MM4.M() < 110)) {
                 UpsNumber++;
               }
-              if ((MM3.M() > 70 && MM3.M() < 110) && (MM4.M() > 70 && MM4.M() < 110))
-              {
-              }
-              else
-              {
+              else if ((MM3.M() > 70 && MM3.M() < 110) && (MM4.M() > 0 && MM4.M() < 12)) {
                 UpsNumber++;
               }
             }
@@ -1012,9 +1082,8 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 
           // cout<<"Start Kin Loop"<<endl;
 
-          if (KinFit == true)
-          {
-            ParticleMass muon_mass = 0.10565837; // pdg mass
+          if (KinFit == true) {
+            ParticleMass muon_mass = 0.10565837;  // pdg mass
             // ParticleMass psi_mass = 3.096916;
             float muon_sigma = muon_mass * 1.e-6;
             // float psi_sigma = psi_mass*1.e-6;
@@ -1026,13 +1095,10 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
             float chi = 0.;
             float ndf = 0.;
             // vector<RefCountedKinematicParticle> muonParticles;
-            try
-            {
+            try {
               muonParticles.push_back(pFactory.particle(muon1TT, muon_mass, chi, ndf, muon_sigma));
               muonParticles.push_back(pFactory.particle(muon2TT, muon_mass, chi, ndf, muon_sigma));
-            }
-            catch (...)
-            {
+            } catch (...) {
               std::cout << " Exception caught ... continuing 1 " << std::endl;
               continue;
             }
@@ -1040,18 +1106,14 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
             KinematicParticleVertexFitter fitter;
 
             RefCountedKinematicTree psiVertexFitTree;
-            try
-            {
+            try {
               psiVertexFitTree = fitter.fit(muonParticles);
-            }
-            catch (...)
-            {
+            } catch (...) {
               std::cout << " Exception caught ... continuing 2 " << std::endl;
               continue;
             }
 
-            if (!psiVertexFitTree->isValid())
-            {
+            if (!psiVertexFitTree->isValid()) {
               // std::cout << "caught an exception in the psi vertex fit" << std::endl;
               continue;
             }
@@ -1061,8 +1123,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
             RefCountedKinematicParticle psi_vFit_noMC = psiVertexFitTree->currentParticle();
             RefCountedKinematicVertex psi_vFit_vertex_noMC = psiVertexFitTree->currentDecayVertex();
 
-            if (psi_vFit_vertex_noMC->chiSquared() < 0)
-            {
+            if (psi_vFit_vertex_noMC->chiSquared() < 0) {
               // std::cout << "negative chisq from psi fit" << endl;
               continue;
             }
@@ -1233,8 +1294,16 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           B_Mu1_IsoHcal->push_back(iMuon1->hcalIso());
           B_Mu1_IsoCalo->push_back(iMuon1->caloIso());
 
-          B_Mu1_PaperIsoTrackRF04->push_back((iMuon1->pfIsolationR04().sumChargedHadronPt + std::max(0., iMuon1->pfIsolationR04().sumNeutralHadronEt + iMuon1->pfIsolationR04().sumPhotonEt - iMuon1->pfIsolationR04().sumPUPt * 0.5)) / iMuon1->pt());
-          B_Mu1_PaperIsoTrackRF03->push_back((iMuon1->pfIsolationR03().sumChargedHadronPt + std::max(0., iMuon1->pfIsolationR03().sumNeutralHadronEt + iMuon1->pfIsolationR03().sumPhotonEt - iMuon1->pfIsolationR03().sumPUPt * 0.5)) / iMuon1->pt());
+          B_Mu1_PaperIsoTrackRF04->push_back(
+              (iMuon1->pfIsolationR04().sumChargedHadronPt +
+               std::max(
+                   0., iMuon1->pfIsolationR04().sumNeutralHadronEt + iMuon1->pfIsolationR04().sumPhotonEt - iMuon1->pfIsolationR04().sumPUPt * 0.5)) /
+              iMuon1->pt());
+          B_Mu1_PaperIsoTrackRF03->push_back(
+              (iMuon1->pfIsolationR03().sumChargedHadronPt +
+               std::max(
+                   0., iMuon1->pfIsolationR03().sumNeutralHadronEt + iMuon1->pfIsolationR03().sumPhotonEt - iMuon1->pfIsolationR03().sumPUPt * 0.5)) /
+              iMuon1->pt());
 
           B_Mu1_Paper3DIP->push_back(iMuon1->dB(pat::Muon::PV3D) / iMuon1->edB(pat::Muon::PV3D));
           // cout<<"Tracker Isolation work"<<iMuon1->trackIso()<<endl;
@@ -1256,8 +1325,16 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           B_Mu2_IsoHcal->push_back(iMuon2->hcalIso());
           B_Mu2_IsoCalo->push_back(iMuon2->caloIso());
 
-          B_Mu2_PaperIsoTrackRF04->push_back((iMuon2->pfIsolationR04().sumChargedHadronPt + std::max(0., iMuon2->pfIsolationR04().sumNeutralHadronEt + iMuon2->pfIsolationR04().sumPhotonEt - iMuon2->pfIsolationR04().sumPUPt * 0.5)) / iMuon2->pt());
-          B_Mu2_PaperIsoTrackRF03->push_back((iMuon2->pfIsolationR03().sumChargedHadronPt + std::max(0., iMuon2->pfIsolationR03().sumNeutralHadronEt + iMuon2->pfIsolationR03().sumPhotonEt - iMuon2->pfIsolationR03().sumPUPt * 0.5)) / iMuon2->pt());
+          B_Mu2_PaperIsoTrackRF04->push_back(
+              (iMuon2->pfIsolationR04().sumChargedHadronPt +
+               std::max(
+                   0., iMuon2->pfIsolationR04().sumNeutralHadronEt + iMuon2->pfIsolationR04().sumPhotonEt - iMuon2->pfIsolationR04().sumPUPt * 0.5)) /
+              iMuon2->pt());
+          B_Mu2_PaperIsoTrackRF03->push_back(
+              (iMuon2->pfIsolationR03().sumChargedHadronPt +
+               std::max(
+                   0., iMuon2->pfIsolationR03().sumNeutralHadronEt + iMuon2->pfIsolationR03().sumPhotonEt - iMuon2->pfIsolationR03().sumPUPt * 0.5)) /
+              iMuon2->pt());
 
           B_Mu2_Paper3DIP->push_back(iMuon2->dB(pat::Muon::PV3D) / iMuon2->edB(pat::Muon::PV3D));
 
@@ -1276,8 +1353,16 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           B_Mu3_IsoHcal->push_back(iMuon3->hcalIso());
           B_Mu3_IsoCalo->push_back(iMuon3->caloIso());
 
-          B_Mu3_PaperIsoTrackRF04->push_back((iMuon3->pfIsolationR04().sumChargedHadronPt + std::max(0., iMuon3->pfIsolationR04().sumNeutralHadronEt + iMuon3->pfIsolationR04().sumPhotonEt - iMuon3->pfIsolationR04().sumPUPt * 0.5)) / iMuon3->pt());
-          B_Mu3_PaperIsoTrackRF03->push_back((iMuon3->pfIsolationR03().sumChargedHadronPt + std::max(0., iMuon3->pfIsolationR03().sumNeutralHadronEt + iMuon3->pfIsolationR03().sumPhotonEt - iMuon3->pfIsolationR03().sumPUPt * 0.5)) / iMuon3->pt());
+          B_Mu3_PaperIsoTrackRF04->push_back(
+              (iMuon3->pfIsolationR04().sumChargedHadronPt +
+               std::max(
+                   0., iMuon3->pfIsolationR04().sumNeutralHadronEt + iMuon3->pfIsolationR04().sumPhotonEt - iMuon3->pfIsolationR04().sumPUPt * 0.5)) /
+              iMuon3->pt());
+          B_Mu3_PaperIsoTrackRF03->push_back(
+              (iMuon3->pfIsolationR03().sumChargedHadronPt +
+               std::max(
+                   0., iMuon3->pfIsolationR03().sumNeutralHadronEt + iMuon3->pfIsolationR03().sumPhotonEt - iMuon3->pfIsolationR03().sumPUPt * 0.5)) /
+              iMuon3->pt());
 
           B_Mu3_Paper3DIP->push_back(iMuon3->dB(pat::Muon::PV3D) / iMuon3->edB(pat::Muon::PV3D));
 
@@ -1296,8 +1381,16 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           B_Mu4_IsoHcal->push_back(iMuon4->hcalIso());
           B_Mu4_IsoCalo->push_back(iMuon4->caloIso());
 
-          B_Mu4_PaperIsoTrackRF04->push_back((iMuon4->pfIsolationR04().sumChargedHadronPt + std::max(0., iMuon4->pfIsolationR04().sumNeutralHadronEt + iMuon4->pfIsolationR04().sumPhotonEt - iMuon4->pfIsolationR04().sumPUPt * 0.5)) / iMuon4->pt());
-          B_Mu4_PaperIsoTrackRF03->push_back((iMuon4->pfIsolationR03().sumChargedHadronPt + std::max(0., iMuon4->pfIsolationR03().sumNeutralHadronEt + iMuon4->pfIsolationR03().sumPhotonEt - iMuon4->pfIsolationR03().sumPUPt * 0.5)) / iMuon4->pt());
+          B_Mu4_PaperIsoTrackRF04->push_back(
+              (iMuon4->pfIsolationR04().sumChargedHadronPt +
+               std::max(
+                   0., iMuon4->pfIsolationR04().sumNeutralHadronEt + iMuon4->pfIsolationR04().sumPhotonEt - iMuon4->pfIsolationR04().sumPUPt * 0.5)) /
+              iMuon4->pt());
+          B_Mu4_PaperIsoTrackRF03->push_back(
+              (iMuon4->pfIsolationR03().sumChargedHadronPt +
+               std::max(
+                   0., iMuon4->pfIsolationR03().sumNeutralHadronEt + iMuon4->pfIsolationR03().sumPhotonEt - iMuon4->pfIsolationR03().sumPUPt * 0.5)) /
+              iMuon4->pt());
 
           B_Mu4_Paper3DIP->push_back(iMuon4->dB(pat::Muon::PV3D) / iMuon4->edB(pat::Muon::PV3D));
 
@@ -1357,8 +1450,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           B_M4_py->push_back(M4.Py());
           B_M4_pz->push_back(M4.Pz());
           nB++;
-          if (KinFit == true)
-          {
+          if (KinFit == true) {
             // muonParticles.clear();
           }
         }
@@ -1366,8 +1458,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     }
   }
 
-  if (nB > 0)
-  {
+  if (nB > 0) {
     // std::cout << "filling tree" << endl;
     tree_->Fill();
   }
@@ -1636,8 +1727,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 }
 
 // ------------ method called once each job just before starting event loop  ------------
-void miniAODmmmm::beginJob()
-{
+void miniAODmmmm::beginJob() {
   // please remove this method if not needed
 
   std::cout << "Beginning analyzer job with value of isMC= " << isMC_ << std::endl;
@@ -1925,16 +2015,14 @@ void miniAODmmmm::beginJob()
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
-void miniAODmmmm::endJob()
-{
+void miniAODmmmm::endJob() {
   // please remove this method if not needed
   tree_->GetDirectory()->cd();
   tree_->Write();
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
-void miniAODmmmm::fillDescriptions(edm::ConfigurationDescriptions &descriptions)
-{
+void miniAODmmmm::fillDescriptions(edm::ConfigurationDescriptions &descriptions) {
   // The following says we do not know what parameters are allowed so do no validation
   //  Please change this to state exactly what you do use, even if it is no parameters
   edm::ParameterSetDescription desc;
