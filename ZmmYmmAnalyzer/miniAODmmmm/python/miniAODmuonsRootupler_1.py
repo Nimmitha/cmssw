@@ -19,8 +19,9 @@ process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '124X_dataRun3_v15')
-process.GlobalTag = GlobalTag(process.GlobalTag, '130X_dataRun3_PromptAnalysis_v1')
+# process.GlobalTag = GlobalTag(process.GlobalTag, '124X_dataRun3_v15') # 2022 check?
+# process.GlobalTag = GlobalTag(process.GlobalTag, '130X_dataRun3_PromptAnalysis_v1') # 2023 check?
+process.GlobalTag = GlobalTag(process.GlobalTag, '124X_mcRun3_2022_realistic_v12') # used to generate 2022 MC
 # process.GlobalTag = GlobalTag(process.GlobalTag, '130X_dataRun3_v2')
 # process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run3_data')
 
@@ -37,7 +38,9 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(       
 #  '/store/data/Run2022B/SingleMuon/MINIAOD/22Sep2023-v1/50000/2ad62630-b826-4686-a441-2099de25476a.root'
- '/store/data/Run2023D/Muon0/MINIAOD/22Sep2023_v1-v1/2530000/0fa55ced-a7cc-4a8a-a0e5-0381c3ac8e37.root'
+#  '/store/data/Run2023D/Muon0/MINIAOD/22Sep2023_v1-v1/2530000/0fa55ced-a7cc-4a8a-a0e5-0381c3ac8e37.root'
+# 'file:/uscms/home/wkarunar/nobackup/datasets/mc/zmmymm_run3/mmmm_v1/MiniAOD/MiniAOD_10.root'
+'file:/uscms/home/wkarunar/nobackup/datasets/mc/run3_zmmJpsimm/ZmmJpsimm/MiniAOD/MiniAOD_10.root'
 #'file:../../../../datasets/ZmmYee/Y1S/MiniAOD/MiniAOD_1.root' 
  )
 )
@@ -51,11 +54,11 @@ process.rootuple = cms.EDAnalyzer('miniAODmmmm',
                           objects = cms.InputTag("slimmedPatTrigger"),
                           pruned = cms.InputTag("prunedGenParticles"),
                           MuonTrigger = cms.string("HLT_IsoMu24_v"),
-                          isMC = cms.bool(False),
+                          isMC = cms.bool(True),
                           )
 
 process.TFileService = cms.Service("TFileService",
-  fileName = cms.string('testData2023_M0_v1.root'),
+  fileName = cms.string('inputFiles/mc_zmmjpsimm_v1/mc_zmmjpsimm_v1_10.root'),
 )
 
 #process.p = cms.Path(process.egammaPostRecoSeq+process.rootuple)
