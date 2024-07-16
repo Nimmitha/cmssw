@@ -12,7 +12,8 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '106X_dataRun2_v32', '')
+# process.GlobalTag = GlobalTag(process.GlobalTag, '106X_dataRun2_v32', '') # data
+process.GlobalTag = GlobalTag(process.GlobalTag, '106X_upgrade2018_realistic_v15_L1v1', '') # MC
 
 
 from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
@@ -48,7 +49,7 @@ process.rootuple = cms.EDAnalyzer('miniAODmuons',
                           objects = cms.InputTag("slimmedPatTrigger"),
                           pruned = cms.InputTag("prunedGenParticles"),
                           MuonTrigger = cms.string("HLT_IsoMu24_v"),
-                          isMC = cms.bool(False),
+                          isMC = cms.bool(True),
                           )
 
 process.TFileService = cms.Service("TFileService",
