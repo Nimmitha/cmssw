@@ -385,14 +385,14 @@ void AnalysisWithIso_Jpsi::Loop() {
 
       int check1, check2, UpsMass;
       UpsMass = check1 = check2 = 0;
-      if ((B_J1_mass->at(i) > 0.0 && B_J1_mass->at(i) < 4.0) || (B_J1_mass->at(i) > 85.0 && B_J1_mass->at(i) < 110.0)) {
-        if ((B_J2_mass->at(i) > 0.0 && B_J2_mass->at(i) < 4.0) || (B_J2_mass->at(i) > 85.0 && B_J2_mass->at(i) < 110.0)) {
+      if ((B_J1_mass->at(i) > 3.0 && B_J1_mass->at(i) < 3.2) || (B_J1_mass->at(i) > 80 && B_J1_mass->at(i) < 110.0)) {
+        if ((B_J2_mass->at(i) > 3.0 && B_J2_mass->at(i) < 3.2) || (B_J2_mass->at(i) > 80 && B_J2_mass->at(i) < 110.0)) {
           UpsMass++;
           check1++;
         }
       }
-      if ((B_J3_mass->at(i) > 0.0 && B_J3_mass->at(i) < 4.0) || (B_J3_mass->at(i) > 85.0 && B_J3_mass->at(i) < 110.0)) {
-        if ((B_J4_mass->at(i) > 0.0 && B_J4_mass->at(i) < 4.0) || (B_J4_mass->at(i) > 85.0 && B_J4_mass->at(i) < 110.0)) {
+      if ((B_J3_mass->at(i) > 3.0 && B_J3_mass->at(i) < 3.2) || (B_J3_mass->at(i) > 80 && B_J3_mass->at(i) < 110.0)) {
+        if ((B_J4_mass->at(i) > 3.0 && B_J4_mass->at(i) < 3.2) || (B_J4_mass->at(i) > 80 && B_J4_mass->at(i) < 110.0)) {
           UpsMass++;
           check2++;
         }
@@ -419,7 +419,7 @@ void AnalysisWithIso_Jpsi::Loop() {
         //choose the upsilon having best vertex probability
         //cout<<"Are more than 2 upsilon in a event"<<endl;
         if ((B_J1_VtxProb->at(i) + B_J2_VtxProb->at(i)) > (B_J3_VtxProb->at(i) + B_J4_VtxProb->at(i))) {
-          if ((B_J1_mass->at(i) > 0.0 && B_J1_mass->at(i) < 4.0)) {
+          if ((B_J1_mass->at(i) > 3.0 && B_J1_mass->at(i) < 3.2)) {
             Ups1_mass = B_J1_mass->at(i);
             Ups_VtxProb1 = B_J1_VtxProb->at(i);
             Ups_Pt1 = B_J1_pt->at(i);
@@ -443,7 +443,7 @@ void AnalysisWithIso_Jpsi::Loop() {
             Ups_Phi2 = B_J1_phi->at(i);
           }
         } else {
-          if ((B_J3_mass->at(i) > 0.0 && B_J3_mass->at(i) < 4.0)) {
+          if ((B_J3_mass->at(i) > 3.0 && B_J3_mass->at(i) < 3.2)) {
             Ups1_mass = B_J3_mass->at(i);
             Ups_VtxProb1 = B_J3_VtxProb->at(i);
             Ups_Pt1 = B_J3_pt->at(i);
@@ -471,7 +471,7 @@ void AnalysisWithIso_Jpsi::Loop() {
       //if have only one pairs of upsislon
       else if (UpsMass == 1) {
         if (check1 > 0) {
-          if (B_J1_mass->at(i) > 0.0 && B_J1_mass->at(i) < 4.0) {
+          if (B_J1_mass->at(i) > 3.0 && B_J1_mass->at(i) < 3.2) {
             Ups1_mass = B_J1_mass->at(i);
             Ups_VtxProb1 = B_J1_VtxProb->at(i);
             Ups_Pt1 = B_J1_pt->at(i);
@@ -482,7 +482,7 @@ void AnalysisWithIso_Jpsi::Loop() {
             Ups_Pt2 = B_J2_pt->at(i);
             Ups_Rapidity2 = B_J2_rapidity->at(i);
             Ups_Phi2 = B_J2_phi->at(i);
-          } else if (B_J2_mass->at(i) > 0.0 && B_J2_mass->at(i) < 4.0) {
+          } else if (B_J2_mass->at(i) > 3.0 && B_J2_mass->at(i) < 3.2) {
             Ups1_mass = B_J2_mass->at(i);
             Ups_VtxProb1 = B_J2_VtxProb->at(i);
             Ups_Pt1 = B_J2_pt->at(i);
@@ -495,7 +495,7 @@ void AnalysisWithIso_Jpsi::Loop() {
             Ups_Phi2 = B_J1_phi->at(i);
           }
         } else if (check2 > 0) {
-          if (B_J3_mass->at(i) > 0.0 && B_J3_mass->at(i) < 4.0) {
+          if (B_J3_mass->at(i) > 3.0 && B_J3_mass->at(i) < 3.2) {
             Ups1_mass = B_J3_mass->at(i);
             Ups_VtxProb1 = B_J3_VtxProb->at(i);
             Ups_Pt1 = B_J3_pt->at(i);
@@ -506,7 +506,7 @@ void AnalysisWithIso_Jpsi::Loop() {
             Ups_Pt2 = B_J4_pt->at(i);
             Ups_Rapidity2 = B_J4_rapidity->at(i);
             Ups_Phi2 = B_J4_phi->at(i);
-          } else if (B_J4_mass->at(i) > 0.0 && B_J4_mass->at(i) < 4.0) {
+          } else if (B_J4_mass->at(i) > 3.0 && B_J4_mass->at(i) < 3.2) {
             Ups1_mass = B_J4_mass->at(i);
             Ups_VtxProb1 = B_J4_VtxProb->at(i);
             Ups_Pt1 = B_J4_pt->at(i);
@@ -674,7 +674,7 @@ void AnalysisWithIso_Jpsi::Loop() {
 
       /*
       //cut 3 Muon Acceptance+ Blinding
-      if (B_Mu1_pt->at(i) < 4.0 || B_Mu2_pt->at(i) < 4.0 || B_Mu3_pt->at(i) < 4.0 || B_Mu4_pt->at(i) < 4.0) continue;
+      if (B_Mu1_pt->at(i) < 3.2 || B_Mu2_pt->at(i) < 3.2 || B_Mu3_pt->at(i) < 3.2 || B_Mu4_pt->at(i) < 3.2) continue;
 
 
       ncandiMuonPtGreaterThan++;
@@ -710,9 +710,9 @@ void AnalysisWithIso_Jpsi::Loop() {
       }
 
       //Dilepton mass cut 5
-      if (Ups1_mass < 0.0 || Ups1_mass > 4.0)
+      if (Ups1_mass < 3.0 || Ups1_mass > 3.2)
         continue;
-      if (Ups2_mass < 70.0 || Ups2_mass > 110)
+      if (Ups2_mass < 80.0 || Ups2_mass > 110)
         continue;
       // if (Ups2_mass < 85.0 || Ups2_mass>110) continue;
 
@@ -724,8 +724,8 @@ void AnalysisWithIso_Jpsi::Loop() {
       }
 
       //OnlyUps(1S)
-      //if (Ups1_mass > 4.0) continue;
-      //if (Ups2_mass > 4.0) continue;
+      //if (Ups1_mass > 3.2) continue;
+      //if (Ups2_mass > 3.2) continue;
       //rapidity cut cut 6
       // if (Ups1To2_dY > 3.0 ) continue;
       //delta phi cut cut 7
@@ -755,7 +755,7 @@ void AnalysisWithIso_Jpsi::Loop() {
       }
 
       //FourL_mass Cut
-      if (FourL_mass->at(i) < 112 || FourL_mass->at(i) > 162)
+      if (FourL_mass->at(i) < 112 || FourL_mass->at(i) > 142)
         continue;
 
       // blinding cut

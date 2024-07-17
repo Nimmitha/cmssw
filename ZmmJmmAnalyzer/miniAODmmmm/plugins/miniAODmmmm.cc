@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
-// Package:    ZmmYmmAnalyzer/miniAODmmmm
+// Package:    ZmmJmmAnalyzer/miniAODmmmm
 // Class:      miniAODmmmm
 //
-/**\class miniAODmmmm miniAODmmmm.cc ZmmYmmAnalyzer/miniAODmmmm/plugins/miniAODmmmm.cc
+/**\class miniAODmmmm miniAODmmmm.cc ZmmJmmAnalyzer/miniAODmmmm/plugins/miniAODmmmm.cc
 
  Description: [one line class summary]
 
@@ -20,7 +20,7 @@
 #include <memory>
 
 // user include files
-#include "ZmmYmmAnalyzer/miniAODmmmm/plugins/miniAODmmmm.h"
+#include "ZmmJmmAnalyzer/miniAODmmmm/plugins/miniAODmmmm.h"
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
