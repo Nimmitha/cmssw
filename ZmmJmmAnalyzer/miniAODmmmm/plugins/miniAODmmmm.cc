@@ -533,8 +533,7 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   if (passTrig > 0) {
     EET = true;
     //float ElectronTriggerPt;
-    for (pat::TriggerObjectStandAlone obj :
-         *triggerObjects) {  // note: not "const &" since we want to call unpackPathNames
+    for (pat::TriggerObjectStandAlone obj : *triggerObjects) {  // note: not "const &" since we want to call unpackPathNames
       obj.unpackPathNames(names);
       //for (unsigned h = 0, n = pathNamesAll.size(); h < n; ++h) {
       //bool isBoth = obj.hasPathName("HLT_Ele35_WPTight_Gsf_v*", true, true );
@@ -595,8 +594,7 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
   //unsigned int nMu_tmp = thePATMuonHandle->size();
 
-  for (View<pat::Muon>::const_iterator iMuon1 = thePATMuonHandle->begin(); iMuon1 != thePATMuonHandle->end();
-       ++iMuon1) {
+  for (View<pat::Muon>::const_iterator iMuon1 = thePATMuonHandle->begin(); iMuon1 != thePATMuonHandle->end(); ++iMuon1) {
     for (View<pat::Muon>::const_iterator iMuon2 = iMuon1 + 1; iMuon2 != thePATMuonHandle->end(); ++iMuon2) {
       for (View<pat::Muon>::const_iterator iMuon3 = iMuon2 + 1; iMuon3 != thePATMuonHandle->end(); ++iMuon3) {
         for (View<pat::Muon>::const_iterator iMuon4 = iMuon3 + 1; iMuon4 != thePATMuonHandle->end(); ++iMuon4) {
@@ -1154,15 +1152,13 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
           B_Mu1_PaperIsoTrackRF04->push_back(
               (iMuon1->pfIsolationR04().sumChargedHadronPt +
-               std::max(0.,
-                        iMuon1->pfIsolationR04().sumNeutralHadronEt + iMuon1->pfIsolationR04().sumPhotonEt -
-                            iMuon1->pfIsolationR04().sumPUPt * 0.5)) /
+               std::max(
+                   0., iMuon1->pfIsolationR04().sumNeutralHadronEt + iMuon1->pfIsolationR04().sumPhotonEt - iMuon1->pfIsolationR04().sumPUPt * 0.5)) /
               iMuon1->pt());
           B_Mu1_PaperIsoTrackRF03->push_back(
               (iMuon1->pfIsolationR03().sumChargedHadronPt +
-               std::max(0.,
-                        iMuon1->pfIsolationR03().sumNeutralHadronEt + iMuon1->pfIsolationR03().sumPhotonEt -
-                            iMuon1->pfIsolationR03().sumPUPt * 0.5)) /
+               std::max(
+                   0., iMuon1->pfIsolationR03().sumNeutralHadronEt + iMuon1->pfIsolationR03().sumPhotonEt - iMuon1->pfIsolationR03().sumPUPt * 0.5)) /
               iMuon1->pt());
 
           B_Mu1_Paper3DIP->push_back(iMuon1->dB(pat::Muon::PV3D) / iMuon1->edB(pat::Muon::PV3D));
@@ -1187,15 +1183,13 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
           B_Mu2_PaperIsoTrackRF04->push_back(
               (iMuon2->pfIsolationR04().sumChargedHadronPt +
-               std::max(0.,
-                        iMuon2->pfIsolationR04().sumNeutralHadronEt + iMuon2->pfIsolationR04().sumPhotonEt -
-                            iMuon2->pfIsolationR04().sumPUPt * 0.5)) /
+               std::max(
+                   0., iMuon2->pfIsolationR04().sumNeutralHadronEt + iMuon2->pfIsolationR04().sumPhotonEt - iMuon2->pfIsolationR04().sumPUPt * 0.5)) /
               iMuon2->pt());
           B_Mu2_PaperIsoTrackRF03->push_back(
               (iMuon2->pfIsolationR03().sumChargedHadronPt +
-               std::max(0.,
-                        iMuon2->pfIsolationR03().sumNeutralHadronEt + iMuon2->pfIsolationR03().sumPhotonEt -
-                            iMuon2->pfIsolationR03().sumPUPt * 0.5)) /
+               std::max(
+                   0., iMuon2->pfIsolationR03().sumNeutralHadronEt + iMuon2->pfIsolationR03().sumPhotonEt - iMuon2->pfIsolationR03().sumPUPt * 0.5)) /
               iMuon2->pt());
 
           B_Mu2_Paper3DIP->push_back(iMuon2->dB(pat::Muon::PV3D) / iMuon2->edB(pat::Muon::PV3D));
@@ -1217,15 +1211,13 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
           B_Mu3_PaperIsoTrackRF04->push_back(
               (iMuon3->pfIsolationR04().sumChargedHadronPt +
-               std::max(0.,
-                        iMuon3->pfIsolationR04().sumNeutralHadronEt + iMuon3->pfIsolationR04().sumPhotonEt -
-                            iMuon3->pfIsolationR04().sumPUPt * 0.5)) /
+               std::max(
+                   0., iMuon3->pfIsolationR04().sumNeutralHadronEt + iMuon3->pfIsolationR04().sumPhotonEt - iMuon3->pfIsolationR04().sumPUPt * 0.5)) /
               iMuon3->pt());
           B_Mu3_PaperIsoTrackRF03->push_back(
               (iMuon3->pfIsolationR03().sumChargedHadronPt +
-               std::max(0.,
-                        iMuon3->pfIsolationR03().sumNeutralHadronEt + iMuon3->pfIsolationR03().sumPhotonEt -
-                            iMuon3->pfIsolationR03().sumPUPt * 0.5)) /
+               std::max(
+                   0., iMuon3->pfIsolationR03().sumNeutralHadronEt + iMuon3->pfIsolationR03().sumPhotonEt - iMuon3->pfIsolationR03().sumPUPt * 0.5)) /
               iMuon3->pt());
 
           B_Mu3_Paper3DIP->push_back(iMuon3->dB(pat::Muon::PV3D) / iMuon3->edB(pat::Muon::PV3D));
@@ -1247,15 +1239,13 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
           B_Mu4_PaperIsoTrackRF04->push_back(
               (iMuon4->pfIsolationR04().sumChargedHadronPt +
-               std::max(0.,
-                        iMuon4->pfIsolationR04().sumNeutralHadronEt + iMuon4->pfIsolationR04().sumPhotonEt -
-                            iMuon4->pfIsolationR04().sumPUPt * 0.5)) /
+               std::max(
+                   0., iMuon4->pfIsolationR04().sumNeutralHadronEt + iMuon4->pfIsolationR04().sumPhotonEt - iMuon4->pfIsolationR04().sumPUPt * 0.5)) /
               iMuon4->pt());
           B_Mu4_PaperIsoTrackRF03->push_back(
               (iMuon4->pfIsolationR03().sumChargedHadronPt +
-               std::max(0.,
-                        iMuon4->pfIsolationR03().sumNeutralHadronEt + iMuon4->pfIsolationR03().sumPhotonEt -
-                            iMuon4->pfIsolationR03().sumPUPt * 0.5)) /
+               std::max(
+                   0., iMuon4->pfIsolationR03().sumNeutralHadronEt + iMuon4->pfIsolationR03().sumPhotonEt - iMuon4->pfIsolationR03().sumPUPt * 0.5)) /
               iMuon4->pt());
 
           B_Mu4_Paper3DIP->push_back(iMuon4->dB(pat::Muon::PV3D) / iMuon4->edB(pat::Muon::PV3D));
