@@ -865,10 +865,10 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           } else if (iMuon1->charge() == -1) {
             if (iMuon2->charge() == -1) {
               // P1->Mu3;P2->Mu4;M1->Mu1;M2->Mu2
-              M3.SetXYZM(iMuon1->px(), iMuon1->py(), iMuon1->pz(), mu_mass);
-              M1.SetXYZM(iMuon2->px(), iMuon2->py(), iMuon2->pz(), mu_mass);
-              M4.SetXYZM(iMuon3->px(), iMuon3->py(), iMuon3->pz(), mu_mass);
-              M2.SetXYZM(iMuon4->px(), iMuon4->py(), iMuon4->pz(), mu_mass);
+              M2.SetXYZM(iMuon1->px(), iMuon1->py(), iMuon1->pz(), mu_mass);
+              M4.SetXYZM(iMuon2->px(), iMuon2->py(), iMuon2->pz(), mu_mass);
+              M1.SetXYZM(iMuon3->px(), iMuon3->py(), iMuon3->pz(), mu_mass);
+              M3.SetXYZM(iMuon4->px(), iMuon4->py(), iMuon4->pz(), mu_mass);
             } else if (iMuon3->charge() == -1) {
               // P1->Mu2;P2->Mu4;M1->Mu1;M2->Mu3
               M2.SetXYZM(iMuon1->px(), iMuon1->py(), iMuon1->pz(), mu_mass);
