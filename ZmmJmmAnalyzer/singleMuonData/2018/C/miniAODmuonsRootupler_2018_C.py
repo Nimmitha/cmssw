@@ -32,7 +32,7 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring('file:test.root')
 )
 
-process.rootuple = cms.EDAnalyzer('miniAODmuons',
+process.rootuple = cms.EDAnalyzer('miniAODmmmm',
                           dimuons = cms.InputTag("slimmedMuons"),
                           dielectron = cms.InputTag("slimmedElectrons"),
                           Trak = cms.InputTag("packedPFCandidates"),
@@ -42,12 +42,12 @@ process.rootuple = cms.EDAnalyzer('miniAODmuons',
                           pruned = cms.InputTag("prunedGenParticles"),
                           MuonTrigger = cms.string("HLT_IsoMu24_v"),
                           # ElectronTrigger = cms.string("HLT_Ele27_WPTight_Gsf_v"),
-                          # DataType = cms.string("2018A_UL"),  # Title of the output ROOT file
+                          # DataType = cms.string("2018C_UL"),  # Title of the output ROOT file
                                   isMC = cms.bool(False),
                           )
 
 process.TFileService = cms.Service("TFileService",
-  fileName = cms.string('SingleMuon_Run2018A_UL_v5_Data.root'),
+  fileName = cms.string('SingleMuon_Run2018C_UL_v3_Data.root'),
 )
 
 process.p = cms.Path(process.egammaPostRecoSeq+process.rootuple)

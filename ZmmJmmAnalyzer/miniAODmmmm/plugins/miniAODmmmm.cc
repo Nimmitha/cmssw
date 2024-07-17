@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //
-// Package:    miniAODmuons
-// Class:      miniAODmuons
+// Package:    miniAODmmmm
+// Class:      miniAODmmmm
 //
 
 //=================================================
@@ -13,8 +13,8 @@
 // system include files
 #include <memory>
 
-// #include "myAnalyzers/JPsiKsPAT/src/miniAODmuons.h"
-#include "ZmmYmmAnalyzer_Jesse/miniAODmuons/plugins/miniAODmuons.h"
+// #include "myAnalyzers/JPsiKsPAT/src/miniAODmmmm.h"
+#include "ZmmJmmAnalyzer/miniAODmmmm/plugins/miniAODmmmm.h"
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
@@ -85,7 +85,7 @@ typedef math::Error<3>::type CovarianceMatrix;
 // constructors and destructor
 //
 
-miniAODmuons::miniAODmuons(const edm::ParameterSet& iConfig)
+miniAODmmmm::miniAODmmmm(const edm::ParameterSet& iConfig)
     : dimuon_Label(consumes<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("dimuons"))),
       dielectron_Label(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("dielectron"))),
       trakCollection_label(consumes<edm::View<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("Trak"))),
@@ -365,14 +365,14 @@ miniAODmuons::miniAODmuons(const edm::ParameterSet& iConfig)
   //now do what ever initialization is needed
 }
 
-miniAODmuons::~miniAODmuons() {}
+miniAODmmmm::~miniAODmmmm() {}
 
 //
 // member functions
 //
 
 // ------------ method called to for each event  ------------
-void miniAODmuons::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using std::vector;
   using namespace edm;
   using namespace reco;
@@ -406,24 +406,24 @@ void miniAODmuons::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   iEvent.getByToken(prunedGenToken_, pruned);
   //some  cross checks
   if (!theB.isValid()) {
-    edm::LogWarning("miniAODmuons") << "no Transient Track in event";
+    edm::LogWarning("miniAODmmmm") << "no Transient Track in event";
     return;
   }
 
   if (!thePATElectronHandle.isValid()) {
-    edm::LogWarning("miniAODmuons") << "no pat::Electrons in event";
+    edm::LogWarning("miniAODmmmm") << "no pat::Electrons in event";
     return;
   }
   if (!thePATMuonHandle.isValid()) {
-    edm::LogWarning("miniAODmuons") << "no pat::Muons in event";
+    edm::LogWarning("miniAODmmmm") << "no pat::Muons in event";
     return;
   }
   if (!triggerBits.isValid()) {
-    edm::LogWarning("miniAODmuons") << "no Trigger path in event";
+    edm::LogWarning("miniAODmmmm") << "no Trigger path in event";
     return;
   }
   if (!triggerObjects.isValid()) {
-    edm::LogWarning("miniAODmuons") << "no Trigger Object in event";
+    edm::LogWarning("miniAODmmmm") << "no Trigger Object in event";
     return;
   }
 
@@ -1587,7 +1587,7 @@ void miniAODmuons::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
 // ------------ method called once each job just before starting event loop  ------------
 
-void miniAODmuons::beginJob() {
+void miniAODmmmm::beginJob() {
   std::cout << "Beginning analyzer job with value of isMC= " << isMC_ << std::endl;
 
   //edm::Service<TFileService> fs;
@@ -1873,10 +1873,10 @@ void miniAODmuons::beginJob() {
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
-void miniAODmuons::endJob() {
+void miniAODmmmm::endJob() {
   tree_->GetDirectory()->cd();
   tree_->Write();
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(miniAODmuons);
+DEFINE_FWK_MODULE(miniAODmmmm);

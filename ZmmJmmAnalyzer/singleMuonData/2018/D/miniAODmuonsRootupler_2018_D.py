@@ -12,9 +12,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
-# process.GlobalTag = GlobalTag(process.GlobalTag, '106X_dataRun2_v32', '') # data
-process.GlobalTag = GlobalTag(process.GlobalTag, '106X_upgrade2018_realistic_v15_L1v1', '') # MC
-
+process.GlobalTag = GlobalTag(process.GlobalTag, '106X_dataRun2_v32', '')
 
 from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
 setupEgammaPostRecoSeq(process,
@@ -25,22 +23,16 @@ setupEgammaPostRecoSeq(process,
                        era='2018-UL')                       
 #                       )  #era is new to select between 2016 / 2017,  it defaults to 2017
 
-
-process.MessageLogger.cerr.FwkReport.reportEvery = 1
-process.options = cms.untracked.PSet(
-  wantSummary = cms.untracked.bool(True),
-  allowUnscheduled = cms.untracked.bool(True),
-  SkipEvent = cms.untracked.vstring('ProductNotFound') )
-
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
-
+process.MessageLogger.cerr.FwkReport.reportEvery = 200
+process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
+process.options.allowUnscheduled = cms.untracked.bool(True)
+#process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))#,SkipEvent = cms.untracked.vstring('ProductNotFound'))
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring( 
- '/store/data/Run2018B/SingleMuon/MINIAOD/12Nov2019_UL2018-v3/00000/006332C4-470B-A44B-A281-8B0B10A7D591.root'
- )
+    fileNames = cms.untracked.vstring('file:test.root')
 )
 
-process.rootuple = cms.EDAnalyzer('miniAODmuons',
+process.rootuple = cms.EDAnalyzer('miniAODmmmm',
                           dimuons = cms.InputTag("slimmedMuons"),
                           dielectron = cms.InputTag("slimmedElectrons"),
                           Trak = cms.InputTag("packedPFCandidates"),
@@ -49,11 +41,13 @@ process.rootuple = cms.EDAnalyzer('miniAODmuons',
                           objects = cms.InputTag("slimmedPatTrigger"),
                           pruned = cms.InputTag("prunedGenParticles"),
                           MuonTrigger = cms.string("HLT_IsoMu24_v"),
-                          isMC = cms.bool(True),
+                          # ElectronTrigger = cms.string("HLT_Ele27_WPTight_Gsf_v"),
+                          # DataType = cms.string("2018D_UL"),  # Title of the output ROOT file
+                                  isMC = cms.bool(False),
                           )
 
 process.TFileService = cms.Service("TFileService",
-  fileName = cms.string('testDataB_jesse.root'),
+  fileName = cms.string('SingleMuon_Run2018D_UL_v8_Data.root'),
 )
 
 process.p = cms.Path(process.egammaPostRecoSeq+process.rootuple)

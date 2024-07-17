@@ -9,7 +9,7 @@ fi
 year=$1
 line_number=$2
 # filename_pattern="crabConfig_TTree.py"
-filename_pattern="miniAODmuonsRootupler_*.py"
+filename_pattern="miniAODmmmmRootupler_*.py"
 
 echo "Searching for line $line_number in files matching pattern '$filename_pattern' for year $year..."
 

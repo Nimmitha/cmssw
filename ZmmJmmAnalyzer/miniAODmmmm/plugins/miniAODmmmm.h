@@ -1,5 +1,5 @@
-#ifndef _miniAODmuons_h
-#define _miniAODmuons_h
+#ifndef _miniAODmmmm_h
+#define _miniAODmmmm_h
 
 // system include files
 #include <memory>
@@ -70,10 +70,10 @@
 // class decleration
 //
 
-class miniAODmuons : public edm::EDAnalyzer {
+class miniAODmmmm : public edm::EDAnalyzer {
 public:
-  explicit miniAODmuons(const edm::ParameterSet &);
-  ~miniAODmuons();
+  explicit miniAODmmmm(const edm::ParameterSet &);
+  ~miniAODmmmm();
 
 private:
   virtual void beginJob();

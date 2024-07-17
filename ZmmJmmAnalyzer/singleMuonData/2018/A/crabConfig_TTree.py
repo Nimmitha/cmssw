@@ -8,7 +8,7 @@ config.General.transferLogs = False
 
 # job type and related configurables
 config.JobType.pluginName = 'Analysis'                              # Specify: analysis or MC generation
-config.JobType.psetName = 'miniAODmuonsRootupler_2018_A.py'           # parameter-set config file
+config.JobType.psetName = 'miniAODmmmmRootupler_2018_A.py'           # parameter-set config file
 config.JobType.allowUndistributedCMSSW = True                       # Allow CMSSW release possibly not available at sites
 config.JobType.outputFiles = ['SingleMuon_Run2018A_UL_v5_Data.root']   # List of output files that needs to be collected
 # config.JobType.maxMemoryMB = 1000
