@@ -721,9 +721,9 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           } else if (iMuon1->charge() == -1) {
             if (iMuon2->charge() == -1) {
               //P1->Mu3;P2->Mu4;M1->Mu1;M2->Mu2
-              M3.SetXYZM(iMuon1->px(), iMuon1->py(), iMuon1->pz(), mu_mass);
-              M1.SetXYZM(iMuon2->px(), iMuon2->py(), iMuon2->pz(), mu_mass);
-              M4.SetXYZM(iMuon3->px(), iMuon3->py(), iMuon3->pz(), mu_mass);
+              M2.SetXYZM(iMuon1->px(), iMuon1->py(), iMuon1->pz(), mu_mass);
+              M4.SetXYZM(iMuon2->px(), iMuon2->py(), iMuon2->pz(), mu_mass);
+              M1.SetXYZM(iMuon3->px(), iMuon3->py(), iMuon3->pz(), mu_mass);
               M2.SetXYZM(iMuon4->px(), iMuon4->py(), iMuon4->pz(), mu_mass);
             } else if (iMuon3->charge() == -1) {
               //P1->Mu2;P2->Mu4;M1->Mu1;M2->Mu3
@@ -900,26 +900,21 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           // edit ** oldmuon cut 8.0-12.0 ** Jesse Harris
           // edit ** widemuon cut 2.8-110 ** Jesse Harris
           int UpsNumber = 0;
-          if ((MM1.M() > 2.8 && MM1.M() < 12) || (MM1.M() > 70 && MM1.M() < 110)) {
-            if ((MM2.M() > 2.8 && MM2.M() < 12) || (MM2.M() > 70 && MM1.M() < 110)) {
-              if ((MM1.M() > 2.8 && MM1.M() < 12) && (MM2.M() > 1 && MM2.M() < 12)) {
-              } else {
+          if ((MM1.M() > 0.0 && MM1.M() < 12) || (MM1.M() > 70 && MM1.M() < 110)) {
+            if ((MM2.M() > 0.0 && MM2.M() < 12) || (MM2.M() > 70 && MM1.M() < 110)) {
+              if ((MM1.M() > 0.0 && MM1.M() < 12) && (MM2.M() > 70 && MM2.M() < 110)) {
                 UpsNumber++;
-              }
-              if ((MM1.M() > 70 && MM1.M() < 110) && (MM2.M() > 70 && MM2.M() < 110)) {
-              } else {
+              } else if ((MM1.M() > 70 && MM1.M() < 110) && (MM2.M() > 0 && MM2.M() < 12)) {
                 UpsNumber++;
               }
             }
           }
-          if ((MM3.M() > 2.8 && MM3.M() < 12) || (MM3.M() > 70 && MM3.M() < 110)) {
-            if ((MM4.M() > 2.8 && MM4.M() < 12) || (MM4.M() > 70 && MM4.M() < 110)) {
-              if ((MM3.M() > 2.8 && MM3.M() < 12) && (MM4.M() > 1 && MM4.M() < 12)) {
-              } else {
+          if ((MM3.M() > 0.0 && MM3.M() < 12) || (MM3.M() > 70 && MM3.M() < 110)) {
+            if ((MM4.M() > 0.0 && MM4.M() < 12) || (MM4.M() > 70 && MM4.M() < 110)) {
+              if ((MM3.M() > 0.0 && MM3.M() < 12) && (MM4.M() > 70 && MM4.M() < 110)) {
                 UpsNumber++;
               }
-              if ((MM3.M() > 70 && MM3.M() < 110) && (MM4.M() > 70 && MM4.M() < 110)) {
-              } else {
+              else if ((MM3.M() > 70 && MM3.M() < 110) && (MM4.M() > 0 && MM4.M() < 12)) {
                 UpsNumber++;
               }
             }
