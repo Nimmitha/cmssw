@@ -2,7 +2,7 @@ from CRABClient.UserUtilities import config
 config = config()
 
 # user specific generic parameters
-config.General.requestName = 'TTree_13TeV_fourmuon_2022C'   # Used as the task/Project directory name
+config.General.requestName = 'TTree_13TeV_mmmm_2022C'   # Used as the task/Project directory name
 config.General.transferOutputs = True                               # Transfer output files to the storage site
 config.General.transferLogs = False
 
