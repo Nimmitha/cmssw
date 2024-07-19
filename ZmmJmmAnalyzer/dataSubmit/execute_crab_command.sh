@@ -61,7 +61,8 @@ for dir in "$year"/*/; do
                     echo "Found subdirectory: $subdir"
                     # Check if processedLumis.json exists
                     if [ -f "$subdir/processedLumis.json" ]; then
-                        (cd "$subdir" && brilcalc lumi -i processedLumis.json > onlinelumi.csv)
+                        (cd "$subdir" && brilcalc lumi -i processedLumis.json > lumi_online.csv)
+                        (cd "$subdir" && brilcalc lumi -i processedLumis.json --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json > lumi_normtagBRIL.csv)
                     else
                         echo "processedLumis.json not found in $subdir. Skipping..."
                     fi
