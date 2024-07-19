@@ -713,7 +713,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 
       for (View<pat::Electron>::const_iterator iEle1 = thePATElectronHandle->begin(); iEle1 != thePATElectronHandle->end(); ++iEle1) {
         for (View<pat::Electron>::const_iterator iEle2 = iEle1 + 1; iEle2 != thePATElectronHandle->end(); ++iEle2) {
-          cout<<"Begining Electron cuts"<<endl;
+          cout << "Begining Electron cuts" << endl;
           ncandiPreSelection++;
           Events = iEvent.id().event();
 
@@ -747,7 +747,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           }
 
           if (glbTrackP.isNull() || glbTrackM.isNull()) {
-             std::cout << "continue due to no track ref" << endl;
+            std::cout << "continue due to no track ref" << endl;
             continue;
           }
 
@@ -798,7 +798,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
             continue;
           if (EE.M() > 110)
             continue;
-          cout<<"mass cuts made"<<endl;
+          cout << "mass cuts made" << endl;
           int tkquality = 0;
           /*	      
 	      if (kfTrackRefP.isAvailable() && kfTrackRefP.isNonnull()) {
@@ -817,7 +817,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           // cout<<"tkquality="<<tkquality<<endl;
           if (tkquality == 0)
             continue;
-          cout<<"CTF track quality "<<tkquality<<endl;
+          cout << "CTF track quality " << tkquality << endl;
           //if (tkquality<1)continue;
           // cout<<"CTF track quality "<<tkquality<<endl;
           if (iMuon1->track()->pt() < 2.0)
@@ -825,12 +825,12 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           if (iMuon2->track()->pt() < 2.0)
             continue;
 
-          cout<<"Start looking muon track quality"<<endl;
+          cout << "Start looking muon track quality" << endl;
           if (!(glbTrackM->quality(reco::TrackBase::highPurity)))
             continue;
           if (!(glbTrackP->quality(reco::TrackBase::highPurity)))
             continue;
-          cout<<"Start Building Track"<<endl;
+          cout << "Start Building Track" << endl;
 
           reco::TransientTrack muon1TT;
           reco::TransientTrack muon2TT;
@@ -891,7 +891,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           reco::Vertex Z_Vtx = Z_candi;
           const math::XYZTLorentzVectorD Z_mom = Z_Vtx.p4(ele_mass, 0.0);
           if (!Z_candi.isValid()) {
-            cout<<"Z candidate non validated by kalman fitter"<<endl;
+            cout << "Z candidate non validated by kalman fitter" << endl;
             continue;
           }
           float B_Prob_tmp1 = TMath::Prob(Z_candi.totalChiSquared(), Z_candi.degreesOfFreedom());
@@ -904,7 +904,7 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           mu_tks.push_back(muon2TT);
           TransientVertex J_candi = kvfM.vertex(mu_tks);
           if (!J_candi.isValid()) {
-            cout<<"J candidate non validated by kalman fitter"<<endl;
+            cout << "J candidate non validated by kalman fitter" << endl;
             continue;
           }
           reco::Vertex JPsi_Vtx = J_candi;
@@ -922,12 +922,12 @@ void miniAODeemm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
           mmee_tks.push_back(muon2TT);
           TransientVertex FourL_candi = kvfEM.vertex(mmee_tks);
           if (!FourL_candi.isValid()) {
-            cout<<"J candidate non validated by kalman fitter"<<endl;
+            cout << "J candidate non validated by kalman fitter" << endl;
             continue;
           }
           float B_Prob_tmp4L = TMath::Prob(FourL_candi.totalChiSquared(), FourL_candi.degreesOfFreedom());
           reco::Vertex FourL_Vtx = FourL_candi;
-          cout<<"vertex 4l"<<endl;
+          cout << "vertex 4l" << endl;
           if (B_Prob_tmp4L < 0.001)
             continue;
 
