@@ -4,3 +4,18 @@ __init__.py
 .#*
 #*#
 *~
+*.pb
+
+# ignore partially applied patches and their backup
+*.rej
+*.orig
+
+# ignore files under the top level $CMSSW_BASE/src directory, but not its subdirectories
+/*
+!/*/
+
+
+run2_mc_2018/**/results
+run2_mc_2018/**/inputs
+*.requestcache
+crab.log
