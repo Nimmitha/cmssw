@@ -414,7 +414,7 @@ void AnalysisWithIso::Loop() {
       int check1, check2, UpsMass;
       UpsMass = check1 = check2 = 0;
 
-      if ((B_J_mass->at(i) > 9.2 && B_J_mass->at(i) < 9.7)) {
+      if ((B_J_mass->at(i) > 3.0 && B_J_mass->at(i) < 3.2)) {
         UpsMass++;
         check1++;
       }
@@ -628,7 +628,7 @@ if ( (B_Mu_IsoTrackCorr1/B_Mu1_pt->at(i) ) >0.50) continue;
       }
 
       //Dilepton mass cut 5
-      if (Ups2_mass < 9.2 || Ups2_mass > 9.7)
+      if (Ups2_mass < 3.0 || Ups2_mass > 3.2)
         continue;
       if (Ups1_mass < 70.0 || Ups1_mass > 110)
         continue;
@@ -642,8 +642,8 @@ if ( (B_Mu_IsoTrackCorr1/B_Mu1_pt->at(i) ) >0.50) continue;
       }
 
       //OnlyUps(1S)
-      //if (Ups1_mass > 9.7) continue;
-      //if (Ups2_mass > 9.7) continue;
+      //if (Ups1_mass > 3.2) continue;
+      //if (Ups2_mass > 3.2) continue;
       //rapidity cut cut 6
       // if (Ups1To2_dY > 3.0 ) continue;
       //delta phi cut cut 7
