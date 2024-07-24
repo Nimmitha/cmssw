@@ -55,6 +55,8 @@ void AnalysisWithIso::Loop() {
   vector<float> *B_Ups1To2dY_b;
   vector<float> *B_Ups1_Pt_b;
   vector<float> *B_Ups2_Pt_b;
+  vector<float> *B_Ups1_Eta_b;
+  vector<float> *B_Ups2_Eta_b;
   vector<float> *B_Ups1_Phi_b;
   vector<float> *B_Ups2_Phi_b;
   vector<float> *B_Mu1_pt_b;
@@ -135,6 +137,8 @@ void AnalysisWithIso::Loop() {
   B_Ups2_mass_b = 0;
   B_Ups1_Pt_b = 0;
   B_Ups2_Pt_b = 0;
+  B_Ups1_Eta_b = 0;
+  B_Ups2_Eta_b = 0;
   B_Ups1_Phi_b = 0;
   B_Ups2_Phi_b = 0;
   B_Ups1_VtxProb_b = 0;
@@ -219,6 +223,8 @@ void AnalysisWithIso::Loop() {
   fTree->Branch("B_Ups1To2dY", &B_Ups1To2dY_b);
   fTree->Branch("B_Ups1_Pt", &B_Ups1_Pt_b);
   fTree->Branch("B_Ups2_Pt", &B_Ups2_Pt_b);
+  fTree->Branch("B_Ups1_Eta", &B_Ups1_Eta_b);
+  fTree->Branch("B_Ups2_Eta", &B_Ups2_Eta_b);
   fTree->Branch("B_Ups1_Phi", &B_Ups1_Phi_b);
   fTree->Branch("B_Ups2_Phi", &B_Ups2_Phi_b);
   fTree->Branch("B_J1_mass", &B_J1_mass_b);
@@ -408,6 +414,8 @@ void AnalysisWithIso::Loop() {
       float Ups_Phi2 = 0;
       float Ups1_mass = 0;
       float Ups2_mass = 0;
+      float Ups_Eta1 = 0;
+      float Ups_Eta2 = 0;
       float Ups_Rapidity1 = 0;
       float Ups_Rapidity2 = 0;
       float Ups1To2_dY = 0;
@@ -423,22 +431,26 @@ void AnalysisWithIso::Loop() {
             Ups1_mass = B_J1_mass->at(i);
             Ups_VtxProb1 = B_J1_VtxProb->at(i);
             Ups_Pt1 = B_J1_pt->at(i);
+            Ups_Eta1 = B_J1_eta->at(i);
             Ups_Rapidity1 = B_J1_rapidity->at(i);
             Ups_Phi1 = B_J1_phi->at(i);
             Ups2_mass = B_J2_mass->at(i);
             Ups_VtxProb2 = B_J2_VtxProb->at(i);
             Ups_Pt2 = B_J2_pt->at(i);
+            Ups_Eta2 = B_J2_eta->at(i);
             Ups_Rapidity2 = B_J2_rapidity->at(i);
             Ups_Phi2 = B_J2_phi->at(i);
           } else {
             Ups1_mass = B_J2_mass->at(i);
             Ups_VtxProb1 = B_J2_VtxProb->at(i);
             Ups_Pt1 = B_J2_pt->at(i);
+            Ups_Eta1 = B_J2_eta->at(i);
             Ups_Rapidity1 = B_J2_rapidity->at(i);
             Ups_Phi1 = B_J2_phi->at(i);
             Ups2_mass = B_J1_mass->at(i);
             Ups_VtxProb2 = B_J1_VtxProb->at(i);
             Ups_Pt2 = B_J1_pt->at(i);
+            Ups_Eta2 = B_J1_eta->at(i);
             Ups_Rapidity2 = B_J1_rapidity->at(i);
             Ups_Phi2 = B_J1_phi->at(i);
           }
@@ -447,22 +459,26 @@ void AnalysisWithIso::Loop() {
             Ups1_mass = B_J3_mass->at(i);
             Ups_VtxProb1 = B_J3_VtxProb->at(i);
             Ups_Pt1 = B_J3_pt->at(i);
+            Ups_Eta1 = B_J3_eta->at(i);
             Ups_Rapidity1 = B_J3_rapidity->at(i);
             Ups_Phi1 = B_J3_phi->at(i);
             Ups2_mass = B_J4_mass->at(i);
             Ups_VtxProb2 = B_J4_VtxProb->at(i);
             Ups_Pt2 = B_J4_pt->at(i);
+            Ups_Eta2 = B_J4_eta->at(i);
             Ups_Rapidity2 = B_J4_rapidity->at(i);
             Ups_Phi2 = B_J4_phi->at(i);
           } else {
             Ups1_mass = B_J4_mass->at(i);
             Ups_VtxProb1 = B_J4_VtxProb->at(i);
             Ups_Pt1 = B_J4_pt->at(i);
+            Ups_Eta1 = B_J4_eta->at(i);
             Ups_Rapidity1 = B_J4_rapidity->at(i);
             Ups_Phi1 = B_J4_phi->at(i);
             Ups2_mass = B_J3_mass->at(i);
             Ups_VtxProb2 = B_J3_VtxProb->at(i);
             Ups_Pt2 = B_J3_pt->at(i);
+            Ups_Eta2 = B_J3_eta->at(i);
             Ups_Rapidity2 = B_J3_rapidity->at(i);
             Ups_Phi2 = B_J3_phi->at(i);
           }
@@ -475,22 +491,26 @@ void AnalysisWithIso::Loop() {
             Ups1_mass = B_J1_mass->at(i);
             Ups_VtxProb1 = B_J1_VtxProb->at(i);
             Ups_Pt1 = B_J1_pt->at(i);
+            Ups_Eta1 = B_J1_eta->at(i);
             Ups_Rapidity1 = B_J1_rapidity->at(i);
             Ups_Phi1 = B_J1_phi->at(i);
             Ups2_mass = B_J2_mass->at(i);
             Ups_VtxProb2 = B_J2_VtxProb->at(i);
             Ups_Pt2 = B_J2_pt->at(i);
+            Ups_Eta2 = B_J2_eta->at(i);
             Ups_Rapidity2 = B_J2_rapidity->at(i);
             Ups_Phi2 = B_J2_phi->at(i);
           } else if (B_J2_mass->at(i) > 9.0 && B_J2_mass->at(i) < 9.7) {
             Ups1_mass = B_J2_mass->at(i);
             Ups_VtxProb1 = B_J2_VtxProb->at(i);
             Ups_Pt1 = B_J2_pt->at(i);
+            Ups_Eta1 = B_J2_eta->at(i);
             Ups_Rapidity1 = B_J2_rapidity->at(i);
             Ups_Phi1 = B_J2_phi->at(i);
             Ups2_mass = B_J1_mass->at(i);
             Ups_VtxProb2 = B_J1_VtxProb->at(i);
             Ups_Pt2 = B_J1_pt->at(i);
+            Ups_Eta2 = B_J1_eta->at(i);
             Ups_Rapidity2 = B_J1_rapidity->at(i);
             Ups_Phi2 = B_J1_phi->at(i);
           }
@@ -674,7 +694,7 @@ void AnalysisWithIso::Loop() {
 
       /*
       //cut 3 Muon Acceptance+ Blinding
-      if (B_Mu1_pt->at(i) < 4.0 || B_Mu2_pt->at(i) < 4.0 || B_Mu3_pt->at(i) < 4.0 || B_Mu4_pt->at(i) < 4.0) continue;
+      if (B_Mu1_pt->at(i) < 3.2 || B_Mu2_pt->at(i) < 3.2 || B_Mu3_pt->at(i) < 3.2 || B_Mu4_pt->at(i) < 3.2) continue;
 
 
       ncandiMuonPtGreaterThan++;
@@ -686,7 +706,7 @@ void AnalysisWithIso::Loop() {
    */
       //blinding
       //if (FourL_mass->at(i) > 120. && FourL_mass->at(i)  < 130.) continue;
-      //if (FourL_mass->at(i) > 80. && FourL_mass->at(i)  < 100.) continue;
+      //if (FourL_mass->at(i) > 70. && FourL_mass->at(i)  < 100.) continue;
       //cut 4 Z, J Vtx Prob
       if (Ups_VtxProb1 < 0.01 || Ups_VtxProb2 < 0.01)
         continue;
@@ -799,8 +819,10 @@ void AnalysisWithIso::Loop() {
       B_Ups2_VtxProb_b->push_back(Ups_VtxProb2);
       B_Ups1To2dY_b->push_back(Ups1To2_dY);
       B_Ups1_Pt_b->push_back(Ups_Pt1);
+      B_Ups1_Eta_b->push_back(Ups_Eta1);
       B_Ups1_Phi_b->push_back(Ups_Phi1);
       B_Ups2_Pt_b->push_back(Ups_Pt2);
+      B_Ups2_Eta_b->push_back(Ups_Eta2);
       B_Ups2_Phi_b->push_back(Ups_Phi2);
       FourL_VtxProb_b->push_back(FourL_VtxProb->at(i));
       B_J1_mass_b->push_back(B_J1_mass->at(i));

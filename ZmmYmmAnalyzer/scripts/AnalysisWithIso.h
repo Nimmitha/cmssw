@@ -543,12 +543,13 @@ AnalysisWithIso::AnalysisWithIso(TTree *tree) : fChain(0) {
   // used to generate this class and read the Tree.
   if (tree == 0) {
     // TFile *f = (TFile *)gROOT->GetListOfFiles()->FindObject("../outputs/crab_TTree_13TeV_mmmm_Run3.root");
-    TFile *f = (TFile *)gROOT->GetListOfFiles()->FindObject(
-        "../inputFiles/mc_zmmjpsimm_v1/mc_zmmjpsimm_v1.root");
+    TFile *f = (TFile *)gROOT->GetListOfFiles()->FindObject("../inputFiles/mc_zmmjpsimm_v1/mc_zmmjpsimm_v1.root");
+    // TFile *f = (TFile *)gROOT->GetListOfFiles()->FindObject("../inputFiles/mmmmJesse/crab_TTree_13TeV_mmmm_Run3.root");
 
     if (!f || !f->IsOpen()) {
       // f = new TFile("../outputs/crab_TTree_13TeV_mmmm_Run3.root");
       f = new TFile("../inputFiles/mc_zmmjpsimm_v1/mc_zmmjpsimm_v1.root");
+      // f = new TFile("../inputFiles/mmmmJesse/crab_TTree_13TeV_mmmm_Run3.root");
     }
     f->GetObject("ntuple", tree);
   }
