@@ -572,10 +572,10 @@ AnalysisWithIso::AnalysisWithIso(TTree *tree) : fChain(0) {
   // used to generate this class and read the Tree.
   if (tree == 0) {
     TFile *f = (TFile *)gROOT->GetListOfFiles()->FindObject(
-        "../inputFiles/EGamma/2022/crab_TTree_13TeV_zeeymm_2022.root");
+        "../inputFiles/EGamma/crab_TTree_13TeV_eemm_Run3.root");
 
     if (!f || !f->IsOpen()) {
-      f = new TFile("../inputFiles/EGamma/2022/crab_TTree_13TeV_zeeymm_2022.root");
+      f = new TFile("../inputFiles/EGamma/crab_TTree_13TeV_eemm_Run3.root");
     }
     f->GetObject("ntuple", tree);
   }
