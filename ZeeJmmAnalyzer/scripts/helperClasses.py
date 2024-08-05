@@ -3,19 +3,6 @@ import awkward as ak
 import mplhep as hep
 hep.style.use(hep.style.CMS)
 
-class CutDict:
-    def __init__(self):
-        self.cutdict = {}
-
-    def add_cut(self, cut_id, cut):
-        self.cutdict[cut_id] = cut
-
-    def get_cut(self, cut_id):
-        return self.cutdict.get(cut_id)
-    
-    def __str__(self):
-        return "\n".join([f"{cut_id}: {cut}" for cut_id, cut in self.cutdict.items()])
-
 
 class CutType:
     def __init__(self, name, long_name, mask, variables=None, plot=True, bins=50, x_range=None, labels=None, xlabel=None, cut_line=None):
@@ -33,6 +20,20 @@ class CutType:
     def __str__(self):
         return f"Cut: {self.name} ({self.long_name})"
     
+    
+class CutDict:
+    def __init__(self):
+        self.cutdict = {}
+
+    def add_cut(self, cut_id, cut):
+        self.cutdict[cut_id] = cut
+
+    def get_cut(self, cut_id):
+        return self.cutdict.get(cut_id)
+    
+    def __str__(self):
+        return "\n".join([f"{cut_id}: {cut}" for cut_id, cut in self.cutdict.items()])
+
 
 class CutAnalysis:
     def __init__(self, events, cutdict):
@@ -95,7 +96,7 @@ class Plotter:
                 continue
 
             nbins = cut.bins
-            xrange = cut.x_range
+            xlow, xhigh = cut.x_range
             labels = cut.labels
             xlabel = cut.xlabel
             variables = cut.variables
@@ -103,13 +104,19 @@ class Plotter:
             
             plt.figure()
             for i, variable in enumerate(variables):
-                plt.hist(ak.flatten(self.events[variable][cut.mask]), bins=nbins, range=xrange, label=labels[i], alpha=0.5)
-            plt.xlabel(cut.labels[0])
-            plt.ylabel("Events")
+                plt.hist(ak.flatten(self.events[variable][cut.mask]), bins=nbins, range=(xlow, xhigh), label=labels[i], alpha=0.5)
+            plt.xlabel(cut.xlabel)
+            plt.ylabel(f"Counts / {(xhigh-xlow)/nbins:.3f} {unit}")
             plt.title(f"{cut.long_name}")
             plt.legend()
+            plt.tight_layout()
             plt.savefig(f"{self.save_path}/pre_{cut.long_name}.png")
             plt.close()
+
+    def plot_summary(self, cutSummary):
+        for cut_id in cutSummary["cut_id"]:
+            self.plot_summary_at(cut_id, cutSummary)
+            
 
     def plot_summary_at(self, cut_id, cutSummary):
         
@@ -151,36 +158,49 @@ class Plotter:
         plt.savefig(fileName)
         plt.close()
 
-    def plot_for_single_variable(self, variable, cutdict, cutSummary):
+
+    def plot_single_variable(self, cutsToShow, cutSummary):
+        for cut_id in self.cutdict.cutdict:
+            if not self.cutdict.cutdict[cut_id].plot:
+                print(f"Cut {cut_id} does not have a plot.")
+                continue
+            for variable in self.cutdict.cutdict[cut_id].variables:
+                self.plot_single_variable_for(variable, cutsToShow, cutSummary)
+
+    def plot_single_variable_for(self, variable, cutsToShow, cutSummary):
         # find the cut which has the variable
         cut_id = None
         for cut_id in self.cutdict.cutdict:
-            if variable in self.cutdict.cutdict[cut_id].variables:
+            if variable in self.cutdict.cutdict[cut_id].variables and self.cutdict.cutdict[cut_id].plot:
                 break
 
         if cut_id is None:
-            print(f"Variable {variable} not found in any cutdict.")
+            print(f"Info for variable {variable} not found in any cutdict.")
             return
         
-        print(f"Plotting variable {variable} for cutdict: {cutdict}")
+        if not self.cutdict.cutdict[cut_id].plot:
+            print(f"Again, Cut {cut_id} does not have a plot.")
+            return
+        
+        print(f"Plotting variable {variable} at steps: {cutsToShow}")
         
         nbins = self.cutdict.cutdict[cut_id].bins
         xlow, xhigh = self.cutdict.cutdict[cut_id].x_range
         xlabel = self.cutdict.cutdict[cut_id].xlabel
         unit = 'GeV' if 'eta' not in variable else ''
 
-        cut_names = [self.cutdict.get_cut(cut_id).long_name for cut_id in cutdict]
-        print(f"Plotting variable {variable} for cutdict: {cut_names}")
+        cut_names = [self.cutdict.get_cut(cut_id).long_name for cut_id in cutsToShow]
+        # print(f"Plotting variable {variable} at: {cut_names}")
 
         plt.figure()
-        for cut_id in cutdict:
+        for cut_id in cutsToShow:
             local_idx = cutSummary["cut_id"].index(cut_id)
             mask = cutSummary["mask"][local_idx]
             nevents = cutSummary["nevents"][local_idx]
             label = f"{cutSummary['cut_name'][local_idx]}({nevents})"
-            plt.hist(ak.flatten(self.events[variable][mask]), bins=50, label=label, alpha=0.5)
+            plt.hist(ak.flatten(self.events[variable][mask]), bins=50, range=(xlow, xhigh), label=label, alpha=0.5)
 
-        plt.xlabel(xlabel)
+        plt.xlabel(variable)
         plt.ylabel(f"Counts / {(xhigh-xlow)/nbins:.3f} {unit}")
         plt.legend()
         plt.tight_layout()
