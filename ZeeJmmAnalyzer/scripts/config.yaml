@@ -1,10 +1,9 @@
 # Data paths
-data_path: '../inputFiles/EGamma/crab_TTree_13TeV_eemm_Run3.root'
+data_path: '../inputFiles/crab_TTree_13TeV_eemm_2022.root'
 mc_path: '../inputFiles/EGamma/crab_TTree_13TeV_eemm_Run3.root'
 
 # Output paths
-savepath_data_base: 'plots/optimization/test/data/'
-savepath_mc_base: 'plots/ptimization/test/mc/'
+savepath_base: 'plots/optimization/test/'
 
 # Analysis parameters
 entry_stop: 100
