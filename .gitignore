@@ -8,4 +8,4 @@ __init__.py
 
 ZmmJmmAnalyzer/outputs
 ZmmJmmAnalyzer/inputFiles
-ZmmJmmAnalyzer/singleMuonData/**/crab_TTree_13TeV_*
+ZmmJmmAnalyzer/dataSubmit/**/crab_TTree_13TeV_*
