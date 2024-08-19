@@ -18,7 +18,8 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '106X_dataRun2_v32', '')#2016,2017,2018
+process.GlobalTag = GlobalTag(process.GlobalTag, '106X_dataRun2_v37', '') # https://twiki.cern.ch/twiki/bin/view/CMS/PdmVRun2LegacyAnalysis
+# process.GlobalTag = GlobalTag(process.GlobalTag, '106X_dataRun2_v32', '')#2016,2017,2018
 # process.GlobalTag = GlobalTag(process.GlobalTag, '106X_upgrade2018_realistic_v15_L1v1', '')#MC
 
 from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
@@ -38,7 +39,10 @@ process.options.allowUnscheduled = cms.untracked.bool(True)
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))#,SkipEvent = cms.untracked.vstring('ProductNotFound'))
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(     
-        'file:../../../prep/CMSSW_10_6_20/src/MiniAOD.root'
+        # 'file:../../../prep/CMSSW_10_6_20/src/MiniAOD.root'
+        # '/store/data/Run2018B/EGamma/MINIAOD/UL2018_MiniAODv2-v1/260000/00FAE4A8-E0E7-A941-AB7E-0DD0383C9CB5.root'
+        '/store/data/Run2018B/EGamma/MINIAOD/UL2018_MiniAODv2-v1/260000/041F6B17-C831-5249-BD07-90756D24D544.root'
+        # '/store/data/Run2018B/EGamma/MINIAOD/UL2018_MiniAODv2-v1/260000/041F6B17-C831-5249-BD07-90756D24D544.root'
 #'file:simWork/retryFromTheBegining/RECOandMINI/MiniAOD.root'
 #'file:simWork/realFromTheBegining/RECOandMini/MiniAOD.root'
 #'file:ZeeY2S/a1/mini/MiniAOD.root'
@@ -68,11 +72,11 @@ process.rootuple = cms.EDAnalyzer('miniAODeemm',
                           primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
                           bits = cms.InputTag("TriggerResults::HLT"),
                           objects = cms.InputTag("slimmedPatTrigger"),
-                          #packed = cms.InputTag("packedGenParticles"),
                           pruned = cms.InputTag("prunedGenParticles"),
-                          #genParticles=cms.InputTag("genParticles")
-                          #prescales = cms.InputTag("patTrigger"),
-                                  isMC = cms.bool(True),
+                          MuonTrigger = cms.string("HLT_IsoMu24_v"),
+                          ElectronTrigger = cms.string("HLT_Ele27_WPTight_Gsf_v"),
+                          DataType = cms.string("2018B_UL"),  # Title of the output ROOT file
+                          isMC = cms.bool(False),
                           )
 
 process.TFileService = cms.Service("TFileService",

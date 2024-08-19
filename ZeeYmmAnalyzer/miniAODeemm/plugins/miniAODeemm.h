@@ -97,6 +97,9 @@ private:
   //edm::EDGetTokenT<reco::GenParticleCollection> GenCollection_;
   edm::EDGetTokenT<edm::View<reco::GenParticle> > prunedGenToken_;
 
+  std::string MuonTriggerString;
+  std::string ElectronTriggerString;
+  std::string DataTypeString;
   bool isMC_;
 
   TTree*      tree_;
@@ -114,7 +117,7 @@ private:
   std::vector<float>       *FourL_PVxError,  *FourL_PVyError,  *FourL_PVzError;
 
   std::vector<float>        *B_Z_dca;
-  std::vector<bool>        *B_Z_TriggerPath, *B_Z_TriggerPath1;
+  std::vector<bool>        *Mu_TriggerPath, *Ele_TriggerPath;
   std::vector<float>       *B_Z_TriggerPt1, *B_Z_TriggerEta1, *B_Z_TriggerPhi1;
   std::vector<float>       *B_Z_TriggerPt2, *B_Z_TriggerEta2, *B_Z_TriggerPhi2;
   std::vector<float>       *B_Z_TriggerPt3, *B_Z_TriggerEta3, *B_Z_TriggerPhi3;
@@ -150,6 +153,8 @@ private:
 
   std::vector<float>       *B_J_lowPt;
   std::vector<float>       *B_J_highPt;
+  std::vector<float>       *B_Z_lowPt;
+  std::vector<float>       *B_Z_highPt;
   std::vector<float>        *B_J_dca;
 
   std::vector<float>       *B_J_mass, *B_J_px, *B_J_py, *B_J_pz;

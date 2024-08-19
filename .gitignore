@@ -8,3 +8,7 @@ __init__.py
 
 InputFiles
 selections
+ZeeYmmAnalyzer/dataSubmit/**/crab_TTree_13TeV*/inputs/
+ZeeYmmAnalyzer/dataSubmit/**/crab.log
+ZeeYmmAnalyzer/dataSubmit/**/*.gz
+ZeeYmmAnalyzer/dataSubmit/**/.requestcache
