@@ -12,8 +12,8 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
-# process.GlobalTag = GlobalTag(process.GlobalTag, '106X_dataRun2_v32', '') # data
-process.GlobalTag = GlobalTag(process.GlobalTag, '106X_upgrade2018_realistic_v15_L1v1', '') # MC
+process.GlobalTag = GlobalTag(process.GlobalTag, '106X_dataRun2_v32', '') # data
+# process.GlobalTag = GlobalTag(process.GlobalTag, '106X_upgrade2018_realistic_v15_L1v1', '') # MC
 
 
 from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
@@ -36,7 +36,7 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring( 
- 'file:/uscms/home/wkarunar/nobackup/datasets/mc/run2_zmmJpsimm/ZmmJpsimm_2018/MiniAOD/MiniAOD_10.root'
+#  'file:/uscms/home/wkarunar/nobackup/datasets/mc/run2_zmmJpsimm/ZmmJpsimm_2018/MiniAOD/MiniAOD_10.root'
  )
 )
 
@@ -49,11 +49,12 @@ process.rootuple = cms.EDAnalyzer('miniAODmmmm',
                           objects = cms.InputTag("slimmedPatTrigger"),
                           pruned = cms.InputTag("prunedGenParticles"),
                           MuonTrigger = cms.string("HLT_IsoMu24_v"),
-                          isMC = cms.bool(True),
+                          isMC = cms.bool(False),
                           )
 
 process.TFileService = cms.Service("TFileService",
-  fileName = cms.string('inputFiles/zmmjmm_mc_2018/zmmjmm_mc_2018_10.root'),
+  # fileName = cms.string('inputFiles/zmmjmm_mc_2018/zmmjmm_mc_2018_10.root'),
+  fileName = cms.string('inputFiles/mmmm_2018BCD_data.root'),
 )
 
 process.p = cms.Path(process.egammaPostRecoSeq+process.rootuple)
