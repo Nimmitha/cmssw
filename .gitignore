@@ -4,3 +4,8 @@ __init__.py
 .#*
 #*#
 *~
+
+.requestcache
+crab.log
+ZeeJmmAnalyzer/preselection
+ZeeJmmAnalyzer/dataSubmit/**/inputs
