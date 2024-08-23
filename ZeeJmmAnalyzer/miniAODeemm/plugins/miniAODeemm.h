@@ -97,7 +97,6 @@ private:
   //edm::EDGetTokenT<reco::GenParticleCollection> GenCollection_;
   edm::EDGetTokenT<edm::View<reco::GenParticle> > prunedGenToken_;
 
-  std::string MuonTriggerString;
   std::string ElectronTriggerString;
   std::string DataTypeString;
   bool isMC_;
@@ -117,7 +116,7 @@ private:
   std::vector<float>       *FourL_PVxError,  *FourL_PVyError,  *FourL_PVzError;
 
   std::vector<float>        *B_Z_dca;
-  std::vector<bool>        *Mu_TriggerPath, *Ele_TriggerPath;
+  std::vector<bool>        *Ele_TriggerPath;
   std::vector<float>       *B_Z_TriggerPt1, *B_Z_TriggerEta1, *B_Z_TriggerPhi1;
   std::vector<float>       *B_Z_TriggerPt2, *B_Z_TriggerEta2, *B_Z_TriggerPhi2;
   std::vector<float>       *B_Z_TriggerPt3, *B_Z_TriggerEta3, *B_Z_TriggerPhi3;

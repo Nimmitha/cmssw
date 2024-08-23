@@ -47,9 +47,9 @@ process.rootuple = cms.EDAnalyzer('miniAODeemm',
                           bits = cms.InputTag("TriggerResults::HLT"),
                           objects = cms.InputTag("slimmedPatTrigger"),
                           pruned = cms.InputTag("prunedGenParticles"),
-                          MuonTrigger = cms.string("HLT_IsoMu24_v"),
+                          # ElectronTrigger = cms.string("HLT_Ele32_WPTight_Gsf_v"), # 2018
+                          ElectronTrigger = cms.string("HLT_Ele32_WPTight_Gsf_L1DoubleEG_v"), # + HLT_Ele35_WPTight_Gsf_v 2017
                           # ElectronTrigger = cms.string("HLT_Ele27_WPTight_Gsf_v"), # 2016
-                          ElectronTrigger = cms.string("HLT_Ele32_WPTight_Gsf_v"), # 2018
                           DataType = cms.string("2018MC"),  # Title of the output ROOT file
                           isMC = cms.bool(True),
                           )

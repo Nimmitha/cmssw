@@ -66,6 +66,23 @@
 #include "TROOT.h"
 #include "TH2F.h"
 
+//the functions which actually match the trigger objects and see if it passes
+namespace {
+  std::vector<const pat::TriggerObjectStandAlone*> getMatchedObjs(const float eta,
+                                                                  const float phi,
+                                                                  const std::vector<pat::TriggerObjectStandAlone>& trigObjs,
+                                                                  const float maxDeltaR = 0.1) {
+    std::vector<const pat::TriggerObjectStandAlone*> matchedObjs;
+    const float maxDR2 = maxDeltaR * maxDeltaR;
+    for (auto& trigObj : trigObjs) {
+      const float dR2 = reco::deltaR2(eta, phi, trigObj.eta(), trigObj.phi());
+      if (dR2 < maxDR2)
+        matchedObjs.push_back(&trigObj);
+    }
+    return matchedObjs;
+  }
+}  // namespace
+
 //
 // constants, enums and typedefs
 //
@@ -91,7 +108,6 @@ miniAODeemm::miniAODeemm(const edm::ParameterSet& iConfig)
       triggerObjects_(consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("objects"))),
       //GenLevel Info
       prunedGenToken_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("pruned"))),
-      MuonTriggerString(iConfig.getParameter<std::string>("MuonTrigger")),
       ElectronTriggerString(iConfig.getParameter<std::string>("ElectronTrigger")),
       DataTypeString(iConfig.getParameter<std::string>("DataType")),
       isMC_(iConfig.getParameter<bool>("isMC")),
@@ -125,7 +141,6 @@ miniAODeemm::miniAODeemm(const edm::ParameterSet& iConfig)
       FourL_PVzError(0),
 
       //Z
-      Mu_TriggerPath(0),
       Ele_TriggerPath(0),
       B_Z_TriggerPt1(0),
       B_Z_TriggerEta1(0),
@@ -353,7 +368,6 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
   //Before Begining lets get Gen level Information
   int h = 0;
-  int h1 = 0;
 
   float EET_pt[5] = {-999, -999, -999, -999, -999};
   float EET_eta[5] = {-999, -999, -999, -999, -999};
@@ -364,8 +378,8 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   int nG1 = 0;
   int nG2 = 0;
 
-  bool firedMuTrigger = false;
   bool firedEleTrig = false;
+  bool passedL1seed = false;
 
   bool GenInfo = false;
   if (GenInfo) {
@@ -423,13 +437,8 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
   // Loop though the trigger bits
   for (unsigned int i = 0, n = triggerBits->size(); i < n; ++i) {
-    // until we find a fired Muon and Electron triggers
-    if (!firedMuTrigger || !firedEleTrig) {
-      if (names.triggerName(i).find(MuonTriggerString.c_str()) != string::npos) {
-        if (triggerBits->accept(i))
-          firedMuTrigger = true;  // Muon trigger was fired
-      }
-
+    // until we find a fired Electron triggers
+    if (!firedEleTrig) {
       if (names.triggerName(i).find(ElectronTriggerString.c_str()) != string::npos) {
         if (triggerBits->accept(i))
           firedEleTrig = true;  // Electron trigger was fired
@@ -437,31 +446,57 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     }
   }
 
+  // Special treatment for 2017 when using HLT_Ele32_WPTight_Gsf_L1DoubleEG_v
+  // It needs to pass hltEGL1SingleEGOrFilter filter as well
+  // Together this will emulate HLT_Ele32_WPTight_Gsf which was not in the menu in 2017
+  // https://twiki.cern.ch/twiki/bin/view/CMS/EgHLTRunIISummary
+  if (firedEleTrig && ElectronTriggerString.find("HLT_Ele32_WPTight_Gsf_L1DoubleEG_v") != string::npos) {
+    std::cout << "Special treatment for 2017 trigger" << std::endl;
+    //so the filter names are all packed in miniAOD so we need to create a new collection of them which are unpacked
+    std::vector<pat::TriggerObjectStandAlone> unpackedTrigObjs;
+    for (auto& trigObj : *triggerObjects) {
+      unpackedTrigObjs.push_back(trigObj);
+      unpackedTrigObjs.back().unpackFilterLabels(iEvent, *triggerBits);
+    }
+
+    for (auto& ele : *thePATElectronHandle) {
+      const float eta = ele.superCluster()->eta();
+      const float phi = ele.superCluster()->phi();
+
+      //now match ALL objects in a cone of DR<0.1
+      //it is important to match all objects as there are different ways to reconstruct the same electron
+      //eg, L1 seeded, unseeded, as a jet etc
+      //and so you want to be sure you get all possible objects
+      std::vector<const pat::TriggerObjectStandAlone*> matchedTrigObjs = getMatchedObjs(eta, phi, unpackedTrigObjs, 0.1);
+
+      for (const auto& trigObj : unpackedTrigObjs) {
+        // if (trigObj->hasFilterLabel("hltEle32L1DoubleEGWPTightGsfTrackIsoFilter") && trigObj->hasFilterLabel("hltEGL1SingleEGOrFilter"))
+        // I think we already checked the first filter by using the trigger name
+        if (trigObj.hasFilterLabel("hltEGL1SingleEGOrFilter")) {
+          passedL1seed = true;
+          break;
+        }
+      }
+      if (passedL1seed)
+        break;
+    }
+    firedEleTrig = firedEleTrig && passedL1seed;
+  }
+
   //****************************************************
   //***************Trigger Object***********************
   //****************************************************
 
   // if any of the triggers fired, check the trigger objects
-  if (firedMuTrigger || firedEleTrig) {
+  if (firedEleTrig) {
     for (pat::TriggerObjectStandAlone obj : *triggerObjects) {  // note: not "const &" since we want to call unpackPathNames
       obj.unpackPathNames(names);
-
-      if (firedMuTrigger > 0) {
-        if (obj.hasPathName(MuonTriggerString.c_str(), true, true) > 0) {
-          EET_pt[h] = obj.pt();
-          EET_eta[h] = obj.eta();
-          EET_phi[h] = obj.phi();
-          h++;
-        }
-      }
-
-      if (firedEleTrig > 0) {
-        if (obj.hasPathName(ElectronTriggerString.c_str(), true, true) > 0) {
-          EET_pt1[h1] = obj.pt();
-          EET_eta1[h1] = obj.eta();
-          EET_phi1[h1] = obj.phi();
-          h1++;
-        }
+      if (obj.hasPathName(ElectronTriggerString.c_str(), true, true) > 0) {
+        // This needs to be fixed for 2017
+        EET_pt1[h] = obj.pt();
+        EET_eta1[h] = obj.eta();
+        EET_phi1[h] = obj.phi();
+        h++;
       }
     }
   }
@@ -485,7 +520,7 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
       if (abs(iMuon1->charge()) != 1 || abs(iMuon2->charge()) != 1)
         continue;
-      
+
       for (View<pat::Electron>::const_iterator iEle1 = thePATElectronHandle->begin(); iEle1 != thePATElectronHandle->end(); ++iEle1) {
         for (View<pat::Electron>::const_iterator iEle2 = iEle1 + 1; iEle2 != thePATElectronHandle->end(); ++iEle2) {
           // std::cout << "Begining of cut on Ele loop" << std::endl;
@@ -496,7 +531,7 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
             continue;
 
           if (abs(iEle1->charge()) != 1 || abs(iEle2->charge()) != 1)
-              continue;
+            continue;
 
           TrackRef glbTrackP;
           TrackRef glbTrackM;
@@ -505,8 +540,7 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           if (iMuon1->charge() == 1) {
             glbTrackP = iMuon1->track();
             glbTrackM = iMuon2->track();
-          }
-          else if (iMuon1->charge() == -1) {
+          } else if (iMuon1->charge() == -1) {
             glbTrackM = iMuon1->track();
             glbTrackP = iMuon2->track();
           }
@@ -551,7 +585,7 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           }
           if (tkquality == 0)
             continue;
-          
+
           if (iMuon1->track()->pt() < 2.0)
             continue;
           if (iMuon2->track()->pt() < 2.0)
@@ -584,7 +618,7 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           // Measure distance between tracks at their closest approach
           ClosestApproachInRPhi cApp;
           cApp.calculate(mu1State, mu2State);
-          if (!cApp.status()){
+          if (!cApp.status()) {
             // std::cout << "cApp failed" << std::endl;
             continue;
           }
@@ -654,7 +688,7 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           float B_Prob_tmp4L = TMath::Prob(FourL_candi.totalChiSquared(), FourL_candi.degreesOfFreedom());
           reco::Vertex FourL_Vtx = FourL_candi;
           // cout<<"vertex 4l"<<endl;
-          if (B_Prob_tmp4L < 0.001){
+          if (B_Prob_tmp4L < 0.001) {
             // cout<<"B_Prob_tmp4L "<<B_Prob_tmp4L<<endl;
             continue;
           }
@@ -747,7 +781,6 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
           // Trigger Path Information
           // std::cout << "Trigger Path Information" << std::endl;
-          Mu_TriggerPath->push_back(firedMuTrigger);
           Ele_TriggerPath->push_back(firedEleTrig);
 
           // Trigger Object Information
@@ -819,7 +852,7 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
             B_Z_lowPt->push_back(iEle1->pt());
             B_Z_highPt->push_back(iEle2->pt());
           }
-          
+
           // std::cout << "electron1 information" << std::endl;
           B_Z_px1->push_back(iEle1->px());
           B_Z_py1->push_back(iEle1->py());
@@ -836,7 +869,7 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           B_Z_trackIso1->push_back(iEle1->trackIso());
 
           // std::cout << "electron1 id" << std::endl;
-          
+
           B_Z_looseCutBase1->push_back(iEle1->electronID("cutBasedElectronID-Fall17-94X-V2-loose"));
           B_Z_mediumCutBase1->push_back(iEle1->electronID("cutBasedElectronID-Fall17-94X-V2-medium"));
           B_Z_tightCutBase1->push_back(iEle1->electronID("cutBasedElectronID-Fall17-94X-V2-tight"));
@@ -857,7 +890,7 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           B_Z_ecalIso2->push_back(iEle2->ecalIso());
           B_Z_hcalIso2->push_back(iEle2->hcalIso());
           B_Z_trackIso2->push_back(iEle2->trackIso());
-        
+
           // std::cout << "electron2 id" << std::endl;
           B_Z_looseCutBase2->push_back(iEle2->electronID("cutBasedElectronID-Fall17-94X-V2-loose"));
           B_Z_mediumCutBase2->push_back(iEle2->electronID("cutBasedElectronID-Fall17-94X-V2-medium"));
@@ -987,7 +1020,6 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   FourL_PVzError->clear();
 
   //B_Z_dca->clear();
-  Mu_TriggerPath->clear();
   Ele_TriggerPath->clear();
   B_Z_TriggerPt1->clear();
   B_Z_TriggerEta1->clear();
@@ -1150,7 +1182,7 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 void miniAODeemm::beginJob() {
   std::cout << "Beginning analyzer job with value of isMC= " << isMC_ << std::endl;
 
-  std::string title = DataTypeString + " with " + MuonTriggerString + " " + ElectronTriggerString;
+  std::string title = DataTypeString + " with " + ElectronTriggerString;
 
   //edm::Service<TFileService> fs;
   //tree_ = fs->make<TTree>("ntuple"," J/psi ntuple");
@@ -1188,7 +1220,6 @@ void miniAODeemm::beginJob() {
   tree_->Branch("FourL_PVzError", &FourL_PVzError);
 
   //tree_->Branch("B_Z_dca", &B_Z_dca);
-  tree_->Branch("Mu_TriggerPath", &Mu_TriggerPath);
   tree_->Branch("Ele_TriggerPath", &Ele_TriggerPath);
   tree_->Branch("B_Z_TriggerPt1", &B_Z_TriggerPt1);
   tree_->Branch("B_Z_TriggerEta1", &B_Z_TriggerEta1);
