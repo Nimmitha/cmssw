@@ -1,0 +1,48 @@
+# Data paths
+data_path: '../inputFiles/crab_TTree_13TeV_eemm_2022.root'
+mc_path: '../inputFiles/EGamma/crab_TTree_13TeV_eemm_Run3.root'
+
+# Output paths
+savepath_base: 'plots/optimization/test/'
+
+# Analysis parameters
+entry_stop: 100
+columns:
+  - Event
+  - Run
+  - LumiBlock
+  - B_Z_TriggerPath
+  - B_Z_TriggerPath1
+  - B_Z_VtxMass
+  - B_Z_mass
+  - B_Z_pt1
+  - B_Z_pt2
+  - B_Z_eta1
+  - B_Z_eta2
+  - B_Z_mvaIsoWP90_1
+  - B_Z_mvaIsoWP90_2
+  - B_Z_VtxProb
+  - B_J_VtxMass
+  - B_J_mass
+  - B_J_pt1
+  - B_J_pt2
+  - B_J_eta1
+  - B_J_eta2
+  - B_J_soft1
+  - B_J_soft2
+  - B_J_VtxProb
+  - FourL_mass
+  - FourL_VtxProb
+
+
+
+
+# Cut parameters
+cut_parameters:
+  elePt_low: [5]
+  elePt_high: [5]
+  eleEta: [2.5]
+  ymass_upper: [10]
+
+# Output file
+output_file: 'FOM_results.csv'
