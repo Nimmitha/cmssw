@@ -4,3 +4,8 @@ __init__.py
 .#*
 #*#
 *~
+
+ZmmJmmAnalyzer/dataSubmit/**/crab_TTree_13TeV*/inputs/
+ZmmJmmAnalyzer/dataSubmit/**/crab.log
+ZmmJmmAnalyzer/dataSubmit/**/*.gz
+ZmmJmmAnalyzer/dataSubmit/**/.requestcache
