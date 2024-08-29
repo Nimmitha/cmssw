@@ -1,6 +1,6 @@
 # Data paths
-data_path: '../inputFiles/crab_TTree_13TeV_eemm_2022.root'
-mc_path: '../inputFiles/EGamma/crab_TTree_13TeV_eemm_Run3.root'
+data_path: '../../preselection/crab_TTree_13TeV_mmmm_UL_Run2.root'
+mc_path: '../../preselection/mmmm_mc_2018.root'
 
 # Output paths
 savepath_base: 'plots/optimization/test/'
@@ -11,28 +11,46 @@ columns:
   - Event
   - Run
   - LumiBlock
-  - B_Z_TriggerPath
-  - B_Z_TriggerPath1
-  - B_Z_VtxMass
-  - B_Z_mass
-  - B_Z_pt1
-  - B_Z_pt2
-  - B_Z_eta1
-  - B_Z_eta2
-  - B_Z_mvaIsoWP90_1
-  - B_Z_mvaIsoWP90_2
-  - B_Z_VtxProb
-  - B_J_VtxMass
-  - B_J_mass
-  - B_J_pt1
-  - B_J_pt2
-  - B_J_eta1
-  - B_J_eta2
-  - B_J_soft1
-  - B_J_soft2
-  - B_J_VtxProb
-  - FourL_mass
+  - Mu_TriggerPath
   - FourL_VtxProb
+  - FourL_pt
+  - FourL_mass
+  - B_Mu1_soft
+  - B_Mu2_soft
+  - B_Mu3_soft
+  - B_Mu4_soft
+  - B_Mu1_pt
+  - B_Mu2_pt
+  - B_Mu3_pt
+  - B_Mu4_pt
+  - B_Mu1_eta
+  - B_Mu2_eta
+  - B_Mu3_eta
+  - B_Mu4_eta
+  - B_Mu1_phi
+  - B_Mu2_phi
+  - B_Mu3_phi
+  - B_Mu4_phi
+  - B_J1_VtxProb
+  - B_J2_VtxProb
+  - B_J3_VtxProb
+  - B_J4_VtxProb
+  - B_J1_mass
+  - B_J2_mass
+  - B_J3_mass
+  - B_J4_mass
+  - B_J1_eta
+  - B_J2_eta
+  - B_J3_eta
+  - B_J4_eta
+  - B_J1_phi
+  - B_J2_phi
+  - B_J3_phi
+  - B_J4_phi
+  - B_J1_rapidity
+  - B_J2_rapidity
+  - B_J3_rapidity
+  - B_J4_rapidity
 
 
 
