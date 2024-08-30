@@ -3,7 +3,7 @@ data_path: '../../preselection/crab_TTree_13TeV_mmmm_UL_Run2.root'
 mc_path: '../../preselection/mmmm_mc_2018.root'
 
 # Output paths
-savepath_base: 'plots/optimization/test/'
+savepath_base: 'plots/test/'
 
 # Analysis parameters
 entry_stop: 100
@@ -51,8 +51,6 @@ columns:
   - B_J2_rapidity
   - B_J3_rapidity
   - B_J4_rapidity
-
-
 
 
 # Cut parameters
