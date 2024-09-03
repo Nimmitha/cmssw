@@ -11,5 +11,6 @@ ZmmJmmAnalyzer/dataSubmit/**/crab.log
 ZmmJmmAnalyzer/dataSubmit/**/*.gz
 ZmmJmmAnalyzer/dataSubmit/**/.requestcache
 
+ZmmJmmAnalyzer/selection
 ZmmJmmAnalyzer/preselection
 ZmmJmmAnalyzer/scripts/cutBasedAnalyzer/plots

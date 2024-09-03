@@ -179,7 +179,7 @@ def run_analysis(config, isMC):
         print(key, item)
 
     myorder = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-    print(f"\nRunning cut analysis in {myorder}")
+    print(f"\nRunning cut analysis with cuts {myorder}")
 
     cut_analysis = CutAnalysis(events, cutdict)
     cutSummary = cut_analysis.prepare_masks(myorder)
@@ -193,6 +193,9 @@ def run_analysis(config, isMC):
 
     cuts_to_show = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     plotter.plot_single_variable(cuts_to_show, cutSummary)
+
+    final_selection = events[cutSummary['mask'][-1]]
+    save_events(final_selection, isMC)
 
     print("Analysis complete!!\n")
     return events, cutdict, cutSummary

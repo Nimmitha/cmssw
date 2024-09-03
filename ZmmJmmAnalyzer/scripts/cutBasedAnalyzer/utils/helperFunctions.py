@@ -1,5 +1,6 @@
 import sys
 import yaml
+import uproot
 import awkward as ak
 from coffea.nanoevents import TreeMakerSchema, BaseSchema, NanoEventsFactory
 
@@ -36,6 +37,32 @@ def load_events(file_path, schema_class, entry_stop):
     except Exception as e:
         print(f"Error loading events from '{file_path}': {e}")
         return None
+
+
+def filter_and_flatten(events):
+    """
+    Filter non-empty fields and flatten them.
+    """
+    # Keep only records where at least one field is non-empty
+    filtered = events[ak.any([ak.num(events[field], axis=1) > 0 for field in events.fields], axis=0)]
+
+    # Flatten fields that are lists
+    flattened = {key: ak.flatten(filtered[key], axis=1) for key in filtered.fields}
+
+    return flattened
+
+
+def save_events(events, isMC):
+    """
+    Save events to a CSV file and a ROOT file.
+    """
+    print("\nSaving final tree to CSV and ROOT files...")
+    suffix = "mc" if isMC else "data"
+    ak.to_dataframe(events).reset_index().to_csv(f'selection_{suffix}.csv', index=False)
+    flattened_tree = filter_and_flatten(events)
+
+    with uproot.recreate(f"selection_{suffix}.root") as file:
+        file["ntuple"] = flattened_tree
 
 
 def combine_dimuon_candidates(data, J_lower, J_upper, z_lower, z_upper):
