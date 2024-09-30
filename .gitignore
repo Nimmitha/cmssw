@@ -6,6 +6,7 @@ __init__.py
 *~
 
 .requestcache
+*.tar.gz
 crab.log
 ZeeJmmAnalyzer/preselection
 ZeeJmmAnalyzer/dataSubmit/**/inputs
