@@ -451,7 +451,7 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   // Together this will emulate HLT_Ele32_WPTight_Gsf which was not in the menu in 2017
   // https://twiki.cern.ch/twiki/bin/view/CMS/EgHLTRunIISummary
   if (firedEleTrig && ElectronTriggerString.find("HLT_Ele32_WPTight_Gsf_L1DoubleEG_v") != string::npos) {
-    std::cout << "Special treatment for 2017 trigger" << std::endl;
+    // std::cout << "Special treatment for 2017 trigger" << std::endl;
     //so the filter names are all packed in miniAOD so we need to create a new collection of them which are unpacked
     std::vector<pat::TriggerObjectStandAlone> unpackedTrigObjs;
     for (auto& trigObj : *triggerObjects) {
