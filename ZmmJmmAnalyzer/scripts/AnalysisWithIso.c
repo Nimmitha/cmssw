@@ -391,14 +391,14 @@ void AnalysisWithIso::Loop() {
 
       int check1, check2, UpsMass;
       UpsMass = check1 = check2 = 0;
-      if ((B_J1_mass->at(i) > 3.0 && B_J1_mass->at(i) < 3.2) || (B_J1_mass->at(i) > 70.0 && B_J1_mass->at(i) < 110.0)) {
-        if ((B_J2_mass->at(i) > 3.0 && B_J2_mass->at(i) < 3.2) || (B_J2_mass->at(i) > 70.0 && B_J2_mass->at(i) < 110.0)) {
+      if ((B_J1_mass->at(i) > 3.0 && B_J1_mass->at(i) < 3.2) || (B_J1_mass->at(i) > 80 && B_J1_mass->at(i) < 100)) {
+        if ((B_J2_mass->at(i) > 3.0 && B_J2_mass->at(i) < 3.2) || (B_J2_mass->at(i) > 80 && B_J2_mass->at(i) < 100)) {
           UpsMass++;
           check1++;
         }
       }
-      if ((B_J3_mass->at(i) > 3.0 && B_J3_mass->at(i) < 3.2) || (B_J3_mass->at(i) > 70.0 && B_J3_mass->at(i) < 110.0)) {
-        if ((B_J4_mass->at(i) > 3.0 && B_J4_mass->at(i) < 3.2) || (B_J4_mass->at(i) > 70.0 && B_J4_mass->at(i) < 110.0)) {
+      if ((B_J3_mass->at(i) > 3.0 && B_J3_mass->at(i) < 3.2) || (B_J3_mass->at(i) > 80 && B_J3_mass->at(i) < 100)) {
+        if ((B_J4_mass->at(i) > 3.0 && B_J4_mass->at(i) < 3.2) || (B_J4_mass->at(i) > 80 && B_J4_mass->at(i) < 100)) {
           UpsMass++;
           check2++;
         }
@@ -706,7 +706,7 @@ void AnalysisWithIso::Loop() {
    */
       //blinding
       //if (FourL_mass->at(i) > 120. && FourL_mass->at(i)  < 130.) continue;
-      //if (FourL_mass->at(i) > 70.0. && FourL_mass->at(i)  < 100.) continue;
+      //if (FourL_mass->at(i) > 80. && FourL_mass->at(i)  < 100.) continue;
       //cut 4 Z, J Vtx Prob
       if (Ups_VtxProb1 < 0.01 || Ups_VtxProb2 < 0.01)
         continue;
@@ -732,9 +732,9 @@ void AnalysisWithIso::Loop() {
       //Dilepton mass cut 5
       if (Ups1_mass < 3.0 || Ups1_mass > 3.2)
         continue;
-      if (Ups2_mass < 70.0 || Ups2_mass > 110)
+      if (Ups2_mass < 80 || Ups2_mass > 100)
         continue;
-      // if (Ups2_mass < 85.0 || Ups2_mass>110) continue;
+      // if (Ups2_mass < 85.0 || Ups2_mass>100) continue;
 
       ncandiYZMass++;
       //Events=Event->at(i);
