@@ -8,5 +8,9 @@ __init__.py
 .requestcache
 *.tar.gz
 crab.log
+ZeeJmmAnalyzer/selections
 ZeeJmmAnalyzer/preselection
 ZeeJmmAnalyzer/dataSubmit/**/inputs
+
+ZeeJmmAnalyzer/scripts/cutBasedAnalyzer/plots/
+

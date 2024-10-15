@@ -1,0 +1,45 @@
+# Data paths
+data_path: '../../preselection/crab_TTree_13TeV_eemm_UL_run2.root'
+mc_path: '../../preselection/zeejmm_mc_2018.root'
+
+# Output paths
+savepath_base: 'plots/test/'
+
+# Analysis parameters
+entry_stop: 100
+columns:
+  - Event
+  - Run
+  - LumiBlock
+  - Ele_TriggerPath
+  - FourL_VtxProb
+  - B_Z_mass
+  - B_J_soft1
+  - B_J_soft2
+  - B_Z_mvaIsoWP90_1
+  - B_Z_mvaIsoWP90_2
+  - B_J_pt1
+  - B_J_pt2
+  - B_Z_pt1
+  - B_Z_pt2
+  - B_J_eta1
+  - B_J_eta2
+  - B_Z_eta1
+  - B_Z_eta2
+  - B_J_VtxProb
+  - B_Z_VtxProb
+  - B_Z_mass
+  - B_J_mass
+  - FourL_mass
+
+
+
+# Cut parameters
+cut_parameters:
+  elePt_low: [5]
+  elePt_high: [5]
+  eleEta: [2.5]
+  ymass_upper: [10]
+
+# Output file
+output_file: 'FOM_results.csv'
