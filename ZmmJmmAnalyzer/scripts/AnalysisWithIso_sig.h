@@ -542,11 +542,11 @@ AnalysisWithIso_sig::AnalysisWithIso_sig(TTree *tree) : fChain(0) {
   // if parameter tree is not specified (or zero), connect the file
   // used to generate this class and read the Tree.
   if (tree == 0) {
-    TFile *f = (TFile *)gROOT->GetListOfFiles()->FindObject("../preselection/mmmm_mc_2018/mmmm_mc_2018.root");
+    TFile *f = (TFile *)gROOT->GetListOfFiles()->FindObject("../preselection/mmmm_mc_2018.root");
     // TFile *f = (TFile *)gROOT->GetListOfFiles()->FindObject("../preselection/mmmm/crab_TTree_13TeV_mmmm_UL_Run2.root");
 
     if (!f || !f->IsOpen()) {
-      f = new TFile("../preselection/mmmm_mc_2018/mmmm_mc_2018.root");
+      f = new TFile("../preselection/mmmm_mc_2018.root");
       // f = new TFile("../preselection/mmmm/crab_TTree_13TeV_mmmm_UL_Run2.root");
     }
     f->GetObject("ntuple", tree);

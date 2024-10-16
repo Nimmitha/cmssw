@@ -5,8 +5,8 @@
 // found on file: Rootuple_MC_2017-MiniAOD_ZY1Y1_All-5K.root
 //////////////////////////////////////////////////////////
 
-#ifndef AnalysisWithIso_h
-#define AnalysisWithIso_h
+#ifndef AnalysisWithIso_final_h
+#define AnalysisWithIso_final_h
 
 #include <TROOT.h>
 #include <TChain.h>
@@ -17,7 +17,7 @@
 #include "vector"
 #include "vector"
 
-class AnalysisWithIso {
+class AnalysisWithIso_final {
 public:
   TTree *fChain;   //!pointer to the analyzed TTree or TChain
   Int_t fCurrent;  //!current Tree number in a TChain
@@ -524,8 +524,8 @@ public:
   TBranch *b_B_Z_GenMuonEta;  //!
   TBranch *b_B_Z_GenMuonPhi;  //!
 
-  AnalysisWithIso(TTree *tree = 0);
-  virtual ~AnalysisWithIso();
+  AnalysisWithIso_final(TTree *tree = 0);
+  virtual ~AnalysisWithIso_final();
   virtual Int_t Cut(Long64_t entry);
   virtual Int_t GetEntry(Long64_t entry);
   virtual Long64_t LoadTree(Long64_t entry);
@@ -537,16 +537,16 @@ public:
 
 #endif
 
-#ifdef AnalysisWithIso_cxx
-AnalysisWithIso::AnalysisWithIso(TTree *tree) : fChain(0) {
+#ifdef AnalysisWithIso_final_cxx
+AnalysisWithIso_final::AnalysisWithIso_final(TTree *tree) : fChain(0) {
   // if parameter tree is not specified (or zero), connect the file
   // used to generate this class and read the Tree.
   if (tree == 0) {
-    // TFile *f = (TFile *)gROOT->GetListOfFiles()->FindObject("../preselection/mmmm_mc_2018/mmmm_mc_2018.root");
+    // TFile *f = (TFile *)gROOT->GetListOfFiles()->FindObject("../preselection/mmmm_mc_2018.root");
     TFile *f = (TFile *)gROOT->GetListOfFiles()->FindObject("../preselection/crab_TTree_13TeV_mmmm_UL_Run2.root");
 
     if (!f || !f->IsOpen()) {
-      // f = new TFile("../preselection/mmmm_mc_2018/mmmm_mc_2018.root");
+      // f = new TFile("../preselection/mmmm_mc_2018.root");
       f = new TFile("../preselection/crab_TTree_13TeV_mmmm_UL_Run2.root");
     }
     f->GetObject("ntuple", tree);
@@ -554,19 +554,19 @@ AnalysisWithIso::AnalysisWithIso(TTree *tree) : fChain(0) {
   Init(tree);
 }
 
-AnalysisWithIso::~AnalysisWithIso() {
+AnalysisWithIso_final::~AnalysisWithIso_final() {
   if (!fChain)
     return;
   delete fChain->GetCurrentFile();
 }
 
-Int_t AnalysisWithIso::GetEntry(Long64_t entry) {
+Int_t AnalysisWithIso_final::GetEntry(Long64_t entry) {
   // Read contents of entry.
   if (!fChain)
     return 0;
   return fChain->GetEntry(entry);
 }
-Long64_t AnalysisWithIso::LoadTree(Long64_t entry) {
+Long64_t AnalysisWithIso_final::LoadTree(Long64_t entry) {
   // Set the environment to read one entry
   if (!fChain)
     return -5;
@@ -580,7 +580,7 @@ Long64_t AnalysisWithIso::LoadTree(Long64_t entry) {
   return centry;
 }
 
-void AnalysisWithIso::Init(TTree *tree) {
+void AnalysisWithIso_final::Init(TTree *tree) {
   // The Init() function is called when the selector needs to initialize
   // a new tree or chain. Typically here the branch addresses and branch
   // pointers of the tree will be set.
@@ -1095,7 +1095,7 @@ void AnalysisWithIso::Init(TTree *tree) {
   Notify();
 }
 
-Bool_t AnalysisWithIso::Notify() {
+Bool_t AnalysisWithIso_final::Notify() {
   // The Notify() function is called when a new file is opened. This
   // can be either for a new TTree in a TChain or when when a new TTree
   // is started when using PROOF. It is normally not necessary to make changes
@@ -1105,17 +1105,17 @@ Bool_t AnalysisWithIso::Notify() {
   return kTRUE;
 }
 
-void AnalysisWithIso::Show(Long64_t entry) {
+void AnalysisWithIso_final::Show(Long64_t entry) {
   // Print contents of entry.
   // If entry is not specified, print current entry
   if (!fChain)
     return;
   fChain->Show(entry);
 }
-Int_t AnalysisWithIso::Cut(Long64_t entry) {
+Int_t AnalysisWithIso_final::Cut(Long64_t entry) {
   // This function may be called from Loop.
   // returns  1 if entry is accepted.
   // returns -1 otherwise.
   return 1;
 }
-#endif  // #ifdef AnalysisWithIso_cxx
+#endif  // #ifdef AnalysisWithIso_final_cxx

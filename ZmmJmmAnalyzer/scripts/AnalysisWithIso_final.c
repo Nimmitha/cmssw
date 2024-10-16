@@ -1,13 +1,13 @@
-#define AnalysisWithIso_cxx
-#include "AnalysisWithIso.h"
+#define AnalysisWithIso_final_cxx
+#include "AnalysisWithIso_final.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
 
-void AnalysisWithIso::Loop() {
+void AnalysisWithIso_final::Loop() {
   //   In a ROOT session, you can do:
-  //      root> .L AnalysisWithIso.C
-  //      root> AnalysisWithIso t
+  //      root> .L AnalysisWithIso_final.C
+  //      root> AnalysisWithIso_final t
   //      root> t.GetEntry(12); // Fill t data members with entry number 12
   //      root> t.Show();       // Show values of entry 12
   //      root> t.Show(16);     // Read and show values of entry 16
@@ -41,9 +41,9 @@ void AnalysisWithIso::Loop() {
   //myfile.open("ZuuYuu_singleMuonRun2_HimalsCutsBlindedRegion_candidatesE.dat");
   //myfile1.open("ZuuYuu_singleMuonRun2_HimalsCutsBlindedRegion_candidatesEventNumberOfMultiples.dat");
   //TFile *fFile = new TFile("ZuuYuu_singleMuonRun2_BlindedRegion_candidatesE.root","recreate");
-  myfile.open("temp.dat");
-  myfile1.open("tempNumberOfMultiples.dat");
-  TFile *fFile = new TFile("temp.root", "recreate");
+  myfile.open("mmmm_final.dat");
+  myfile1.open("mmmm_finalMultiples.dat");
+  TFile *fFile = new TFile("mmmm_final.root", "recreate");
   TTree *fTree = new TTree("ntuple", "ntuple");
   //Now create the branches on tree
   //Define Tree name
@@ -391,14 +391,14 @@ void AnalysisWithIso::Loop() {
 
       int check1, check2, UpsMass;
       UpsMass = check1 = check2 = 0;
-      if ((B_J1_mass->at(i) > 3.0 && B_J1_mass->at(i) < 3.2) || (B_J1_mass->at(i) > 80 && B_J1_mass->at(i) < 100)) {
-        if ((B_J2_mass->at(i) > 3.0 && B_J2_mass->at(i) < 3.2) || (B_J2_mass->at(i) > 80 && B_J2_mass->at(i) < 100)) {
+      if ((B_J1_mass->at(i) > 3.0 && B_J1_mass->at(i) < 3.2) || (B_J1_mass->at(i) > 80.0 && B_J1_mass->at(i) < 100.0)) {
+        if ((B_J2_mass->at(i) > 3.0 && B_J2_mass->at(i) < 3.2) || (B_J2_mass->at(i) > 80.0 && B_J2_mass->at(i) < 100.0)) {
           UpsMass++;
           check1++;
         }
       }
-      if ((B_J3_mass->at(i) > 3.0 && B_J3_mass->at(i) < 3.2) || (B_J3_mass->at(i) > 80 && B_J3_mass->at(i) < 100)) {
-        if ((B_J4_mass->at(i) > 3.0 && B_J4_mass->at(i) < 3.2) || (B_J4_mass->at(i) > 80 && B_J4_mass->at(i) < 100)) {
+      if ((B_J3_mass->at(i) > 3.0 && B_J3_mass->at(i) < 3.2) || (B_J3_mass->at(i) > 80.0 && B_J3_mass->at(i) < 100.0)) {
+        if ((B_J4_mass->at(i) > 3.0 && B_J4_mass->at(i) < 3.2) || (B_J4_mass->at(i) > 80.0 && B_J4_mass->at(i) < 100.0)) {
           UpsMass++;
           check2++;
         }
@@ -706,7 +706,7 @@ void AnalysisWithIso::Loop() {
    */
       //blinding
       //if (FourL_mass->at(i) > 120. && FourL_mass->at(i)  < 130.) continue;
-      //if (FourL_mass->at(i) > 80. && FourL_mass->at(i)  < 100.) continue;
+      //if (FourL_mass->at(i) > 80.0. && FourL_mass->at(i)  < 100.) continue;
       //cut 4 Z, J Vtx Prob
       if (Ups_VtxProb1 < 0.01 || Ups_VtxProb2 < 0.01)
         continue;
@@ -732,7 +732,7 @@ void AnalysisWithIso::Loop() {
       //Dilepton mass cut 5
       if (Ups1_mass < 3.0 || Ups1_mass > 3.2)
         continue;
-      if (Ups2_mass < 80 || Ups2_mass > 100)
+      if (Ups2_mass < 80.0 || Ups2_mass > 100)
         continue;
       // if (Ups2_mass < 85.0 || Ups2_mass>100) continue;
 
@@ -780,7 +780,7 @@ void AnalysisWithIso::Loop() {
 
       // blinding cut
 
-      // if (FourL_mass->at(i) < 120 || FourL_mass->at(i) > 130) continue;
+      if (FourL_mass->at(i) > 120 && FourL_mass->at(i) < 130) continue;
 
       ncandi4Mass++;
       //Events=Event->at(i);
