@@ -200,8 +200,9 @@ class Plotter:
             local_idx = cutSummary["cut_id"].index(cut_id)
             mask = cutSummary["mask"][local_idx]
             nevents = cutSummary["nevents"][local_idx]
+            nbins = cutSummary["cutobj"][local_idx].bins
             label = f"{cutSummary['cut_name'][local_idx]}({nevents})"
-            plt.hist(ak.flatten(self.events[variable][mask]), bins=50, range=(xlow, xhigh), label=label, alpha=0.5)
+            plt.hist(ak.flatten(self.events[variable][mask]), bins=nbins, range=(xlow, xhigh), label=label, alpha=0.5)
 
         plt.xlabel(variable)
         plt.ylabel(f"Counts / {(xhigh-xlow)/nbins:.3f} {unit}")
