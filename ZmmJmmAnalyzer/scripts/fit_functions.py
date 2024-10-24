@@ -1,7 +1,7 @@
 import ROOT
 
 
-def fit_unbinned_double_gauss_Z(data, Z_mass, nbins):
+def fit_unbinned_double_gauss_Z(data, Zcand_mass, nbins):
     # Define the mean, sigma, and background parameters for the first Gaussian
     mean1 = ROOT.RooRealVar("mean1", "Mean1", 91.2, 80, 100)
     sigma1 = ROOT.RooRealVar("sigma1", "Sigma1", 2, 0.1, 50)
@@ -15,10 +15,10 @@ def fit_unbinned_double_gauss_Z(data, Z_mass, nbins):
     f_sig2 = ROOT.RooRealVar("f_sig2", "Signal Fraction 2", 0.5, 0, 1)
 
     # Create the first Gaussian component
-    gaussian1 = ROOT.RooGaussian("gaussian1", "Gaussian1", Z_mass, mean1, sigma1)
+    gaussian1 = ROOT.RooGaussian("gaussian1", "Gaussian1", Zcand_mass, mean1, sigma1)
 
     # Create the second Gaussian component
-    gaussian2 = ROOT.RooGaussian("gaussian2", "Gaussian2", Z_mass, mean1, sigma2)
+    gaussian2 = ROOT.RooGaussian("gaussian2", "Gaussian2", Zcand_mass, mean1, sigma2)
 
     # Combine the Gaussian components with their corresponding fractions
     # signal_model = ROOT.RooAddPdf("signal_model", "Signal Model", ROOT.RooArgList(gaussian1, gaussian2), ROOT.RooArgList(f_sig1, f_sig2))
@@ -28,7 +28,7 @@ def fit_unbinned_double_gauss_Z(data, Z_mass, nbins):
     # background = ROOT.RooRealVar("background", "Background", -0.1, -10, 10)
 
     # # Create the background model
-    # background_model = ROOT.RooPolynomial("background_model", "Background Model", Z_mass, ROOT.RooArgList(background))
+    # background_model = ROOT.RooPolynomial("background_model", "Background Model", Zcand_mass, ROOT.RooArgList(background))
 
     # # Define the overall signal and background fractions
     # f_sig = ROOT.RooRealVar("f_sig", "Total Signal Fraction", 0.5, 0, 1)
@@ -41,7 +41,7 @@ def fit_unbinned_double_gauss_Z(data, Z_mass, nbins):
     model.fitTo(data, ROOT.RooFit.Save())
 
     # Plot data
-    frame = Z_mass.frame()
+    frame = Zcand_mass.frame()
     data.plotOn(frame, ROOT.RooFit.Name('dataset'), ROOT.RooFit.Binning(nbins))
 
     # Plot the total fit
@@ -69,7 +69,7 @@ def fit_unbinned_double_gauss_Z(data, Z_mass, nbins):
     return frame
 
 
-def fit_unbinned_gauss_Z_with_background(data, Z_mass, nbins):
+def fit_unbinned_gauss_Z_with_background(data, Zcand_mass, nbins):
     # Define the mean, sigma, and background parameters
     mean = ROOT.RooRealVar("mean", "Mean", 91, 80, 100)
     sigma = ROOT.RooRealVar("sigma", "Sigma", 2, 0.1, 10)
@@ -80,9 +80,9 @@ def fit_unbinned_gauss_Z_with_background(data, Z_mass, nbins):
     a2 = ROOT.RooRealVar("a2", "a2", 0.1, -10, 10)
 
     # Create the Gaussian and background models
-    gaussian = ROOT.RooGaussian("gaussian", "Gaussian", Z_mass, mean, sigma)
-    # background = ROOT.RooChebychev("background", "Background", Z_mass, ROOT.RooArgList(a0, a1, a2))
-    background = ROOT.RooPolynomial("background", "Background", Z_mass, ROOT.RooArgList(a0, a1, a2))
+    gaussian = ROOT.RooGaussian("gaussian", "Gaussian", Zcand_mass, mean, sigma)
+    # background = ROOT.RooChebychev("background", "Background", Zcand_mass, ROOT.RooArgList(a0, a1, a2))
+    background = ROOT.RooPolynomial("background", "Background", Zcand_mass, ROOT.RooArgList(a0, a1, a2))
 
     # Sum the composite signal and background models
     nbkg = ROOT.RooRealVar("nbkg", "number of background events", 10000, 0, 25000)
@@ -95,7 +95,7 @@ def fit_unbinned_gauss_Z_with_background(data, Z_mass, nbins):
     model.fitTo(data, ROOT.RooFit.Save())
 
     # Plot data
-    frame = Z_mass.frame(ROOT.RooFit.Title(""))
+    frame = Zcand_mass.frame(ROOT.RooFit.Title(""))
     data.plotOn(frame, ROOT.RooFit.Name('dataset'), ROOT.RooFit.Binning(nbins))
 
     # Plot the total fit
@@ -120,7 +120,7 @@ def fit_unbinned_gauss_Z_with_background(data, Z_mass, nbins):
     return frame
 
 
-def fit_unbinned_double_gauss_J(data, Z_mass, nbins):
+def fit_unbinned_double_gauss_J(data, Zcand_mass, nbins):
     # Define the mean, sigma, and background parameters for the first Gaussian
     mean1 = ROOT.RooRealVar("mean1", "Mean1", 3.1, 2.5, 3.6)
     sigma1 = ROOT.RooRealVar("sigma1", "Sigma1", 0.01, 0.001, 0.1)
@@ -134,10 +134,10 @@ def fit_unbinned_double_gauss_J(data, Z_mass, nbins):
     f_sig2 = ROOT.RooRealVar("f_sig2", "Signal Fraction 2", 0.5, 0, 1)
 
     # Create the first Gaussian component
-    gaussian1 = ROOT.RooGaussian("gaussian1", "Gaussian1", Z_mass, mean1, sigma1)
+    gaussian1 = ROOT.RooGaussian("gaussian1", "Gaussian1", Zcand_mass, mean1, sigma1)
 
     # Create the second Gaussian component
-    gaussian2 = ROOT.RooGaussian("gaussian2", "Gaussian2", Z_mass, mean1, sigma2)
+    gaussian2 = ROOT.RooGaussian("gaussian2", "Gaussian2", Zcand_mass, mean1, sigma2)
 
     # Combine the Gaussian components with their corresponding fractions
     # signal_model = ROOT.RooAddPdf("signal_model", "Signal Model", ROOT.RooArgList(gaussian1, gaussian2), ROOT.RooArgList(f_sig1, f_sig2))
@@ -147,7 +147,7 @@ def fit_unbinned_double_gauss_J(data, Z_mass, nbins):
     # background = ROOT.RooRealVar("background", "Background", -0.1, -10, 10)
 
     # # Create the background model
-    # background_model = ROOT.RooPolynomial("background_model", "Background Model", Z_mass, ROOT.RooArgList(background))
+    # background_model = ROOT.RooPolynomial("background_model", "Background Model", Zcand_mass, ROOT.RooArgList(background))
 
     # # Define the overall signal and background fractions
     # f_sig = ROOT.RooRealVar("f_sig", "Total Signal Fraction", 0.5, 0, 1)
@@ -160,7 +160,7 @@ def fit_unbinned_double_gauss_J(data, Z_mass, nbins):
     model.fitTo(data, ROOT.RooFit.Save())
 
     # Plot data
-    frame = Z_mass.frame()
+    frame = Zcand_mass.frame()
     data.plotOn(frame, ROOT.RooFit.Name('dataset'), ROOT.RooFit.Binning(nbins))
 
     # Plot the total fit
@@ -187,7 +187,8 @@ def fit_unbinned_double_gauss_J(data, Z_mass, nbins):
 
     return frame
 
-def fit_unbinned_gauss_J_with_background(data, Z_mass, nbins):
+
+def fit_unbinned_gauss_J_with_background(data, Zcand_mass, nbins):
     # Define the mean, sigma, and background parameters
     mean = ROOT.RooRealVar("mean", "Mean", 3.1, 3.0, 3.2)
     sigma = ROOT.RooRealVar("sigma", "Sigma", 0.03, 0.01, 0.1)
@@ -198,9 +199,9 @@ def fit_unbinned_gauss_J_with_background(data, Z_mass, nbins):
     a2 = ROOT.RooRealVar("a2", "a2", 0.01, -10, 10)
 
     # Create the Gaussian and background models
-    gaussian = ROOT.RooGaussian("gaussian", "Gaussian", Z_mass, mean, sigma)
-    # background = ROOT.RooChebychev("background", "Background", Z_mass, ROOT.RooArgList(a0, a1, a2))
-    background = ROOT.RooPolynomial("background", "Background", Z_mass, ROOT.RooArgList(a0, a1, a2))
+    gaussian = ROOT.RooGaussian("gaussian", "Gaussian", Zcand_mass, mean, sigma)
+    # background = ROOT.RooChebychev("background", "Background", Zcand_mass, ROOT.RooArgList(a0, a1, a2))
+    background = ROOT.RooPolynomial("background", "Background", Zcand_mass, ROOT.RooArgList(a0, a1, a2))
 
     # Sum the composite signal and background models
     nbkg = ROOT.RooRealVar("nbkg", "number of background events", 10000, 0, 25000)
@@ -213,7 +214,7 @@ def fit_unbinned_gauss_J_with_background(data, Z_mass, nbins):
     model.fitTo(data, ROOT.RooFit.Save())
 
     # Plot data
-    frame = Z_mass.frame(ROOT.RooFit.Title(""))
+    frame = Zcand_mass.frame(ROOT.RooFit.Title(""))
     data.plotOn(frame, ROOT.RooFit.Name('dataset'), ROOT.RooFit.Binning(nbins))
 
     # Plot the total fit

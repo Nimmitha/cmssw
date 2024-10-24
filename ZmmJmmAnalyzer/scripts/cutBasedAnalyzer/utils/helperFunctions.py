@@ -97,24 +97,24 @@ def combine_dimuon_candidates(data, J_lower, J_upper, z_lower, z_upper):
     ups_mask2 = x & y
 
     # Count Upsilon candidates
-    UpsMass = ak.values_astype(ups_mask1, "int") + ak.values_astype(ups_mask2, "int")
+    JPsiMass = ak.values_astype(ups_mask1, "int") + ak.values_astype(ups_mask2, "int")
 
     # Initialize output arrays
-    Ups1_mass = ak.zeros_like(B_J1_mass)
-    Ups2_mass = ak.zeros_like(B_J1_mass)
-    Ups_VtxProb1 = ak.zeros_like(B_J1_mass)
-    Ups_VtxProb2 = ak.zeros_like(B_J1_mass)
-    Ups_Pt1 = ak.zeros_like(B_J1_mass)
-    Ups_Pt2 = ak.zeros_like(B_J1_mass)
-    # Ups_Eta1 = ak.zeros_like(B_J1_mass)
-    # Ups_Eta2 = ak.zeros_like(B_J1_mass)
-    # Ups_Rapidity1 = ak.zeros_like(B_J1_mass)
-    # Ups_Rapidity2 = ak.zeros_like(B_J1_mass)
-    # Ups_Phi1 = ak.zeros_like(B_J1_mass)
-    # Ups_Phi2 = ak.zeros_like(B_J1_mass)
+    JPsi_mass = ak.zeros_like(B_J1_mass)
+    Z_mass = ak.zeros_like(B_J1_mass)
+    JPsi_VtxProb = ak.zeros_like(B_J1_mass)
+    Z_VtxProb = ak.zeros_like(B_J1_mass)
+    JPsi_Pt = ak.zeros_like(B_J1_mass)
+    Z_Pt = ak.zeros_like(B_J1_mass)
+    # JPsi_Eta = ak.zeros_like(B_J1_mass)
+    # Z_Eta = ak.zeros_like(B_J1_mass)
+    # JPsi_Rapidity = ak.zeros_like(B_J1_mass)
+    # Z_Rapidity = ak.zeros_like(B_J1_mass)
+    # JPsi_Phi = ak.zeros_like(B_J1_mass)
+    # Z_Phi = ak.zeros_like(B_J1_mass)
 
     # Process events with 2 Upsilon candidates
-    two_ups_mask = (UpsMass == 2)
+    two_ups_mask = (JPsiMass == 2)
     vtx_prob_sum1 = B_J1_VtxProb + B_J2_VtxProb
     vtx_prob_sum2 = B_J3_VtxProb + B_J4_VtxProb
     better_vtx_mask = vtx_prob_sum1 > vtx_prob_sum2
@@ -122,95 +122,95 @@ def combine_dimuon_candidates(data, J_lower, J_upper, z_lower, z_upper):
     # For events with 2 Upsilon candidates and better vertex probability in J1-J2 pair
     mask_2ups_better12 = two_ups_mask & better_vtx_mask
     j1_is_ups = (B_J1_mass > J_lower) & (B_J1_mass < J_upper)
-    Ups1_mass = ak.where(mask_2ups_better12 & j1_is_ups, B_J1_mass, Ups1_mass)
-    Ups2_mass = ak.where(mask_2ups_better12 & j1_is_ups, B_J2_mass, Ups2_mass)
-    Ups1_mass = ak.where(mask_2ups_better12 & ~j1_is_ups, B_J2_mass, Ups1_mass)
-    Ups2_mass = ak.where(mask_2ups_better12 & ~j1_is_ups, B_J1_mass, Ups2_mass)
+    JPsi_mass = ak.where(mask_2ups_better12 & j1_is_ups, B_J1_mass, JPsi_mass)
+    Z_mass = ak.where(mask_2ups_better12 & j1_is_ups, B_J2_mass, Z_mass)
+    JPsi_mass = ak.where(mask_2ups_better12 & ~j1_is_ups, B_J2_mass, JPsi_mass)
+    Z_mass = ak.where(mask_2ups_better12 & ~j1_is_ups, B_J1_mass, Z_mass)
 
     # Similar assignments for other variables (VtxProb, Pt, Eta, Rapidity, Phi)
     # ... (omitted for brevity, but follow the same pattern as mass assignments)
-    Ups_VtxProb1 = ak.where(mask_2ups_better12 & j1_is_ups, B_J1_VtxProb, Ups_VtxProb1)
-    Ups_VtxProb2 = ak.where(mask_2ups_better12 & j1_is_ups, B_J2_VtxProb, Ups_VtxProb2)
-    Ups_VtxProb1 = ak.where(mask_2ups_better12 & ~j1_is_ups, B_J2_VtxProb, Ups_VtxProb1)
-    Ups_VtxProb2 = ak.where(mask_2ups_better12 & ~j1_is_ups, B_J1_VtxProb, Ups_VtxProb2)
+    JPsi_VtxProb = ak.where(mask_2ups_better12 & j1_is_ups, B_J1_VtxProb, JPsi_VtxProb)
+    Z_VtxProb = ak.where(mask_2ups_better12 & j1_is_ups, B_J2_VtxProb, Z_VtxProb)
+    JPsi_VtxProb = ak.where(mask_2ups_better12 & ~j1_is_ups, B_J2_VtxProb, JPsi_VtxProb)
+    Z_VtxProb = ak.where(mask_2ups_better12 & ~j1_is_ups, B_J1_VtxProb, Z_VtxProb)
 
-    Ups_Pt1 = ak.where(mask_2ups_better12 & j1_is_ups, B_Mu1_pt, Ups_Pt1)
-    Ups_Pt2 = ak.where(mask_2ups_better12 & j1_is_ups, B_Mu2_pt, Ups_Pt2)
-    Ups_Pt1 = ak.where(mask_2ups_better12 & ~j1_is_ups, B_Mu2_pt, Ups_Pt1)
-    Ups_Pt2 = ak.where(mask_2ups_better12 & ~j1_is_ups, B_Mu1_pt, Ups_Pt2)
+    JPsi_Pt = ak.where(mask_2ups_better12 & j1_is_ups, B_Mu1_pt, JPsi_Pt)
+    Z_Pt = ak.where(mask_2ups_better12 & j1_is_ups, B_Mu2_pt, Z_Pt)
+    JPsi_Pt = ak.where(mask_2ups_better12 & ~j1_is_ups, B_Mu2_pt, JPsi_Pt)
+    Z_Pt = ak.where(mask_2ups_better12 & ~j1_is_ups, B_Mu1_pt, Z_Pt)
 
     # For events with 2 Upsilon candidates and better vertex probability in J3-J4 pair
     mask_2ups_better34 = two_ups_mask & ~better_vtx_mask
     j3_is_ups = (B_J3_mass > J_lower) & (B_J3_mass < J_upper)
-    Ups1_mass = ak.where(mask_2ups_better34 & j3_is_ups, B_J3_mass, Ups1_mass)
-    Ups2_mass = ak.where(mask_2ups_better34 & j3_is_ups, B_J4_mass, Ups2_mass)
-    Ups1_mass = ak.where(mask_2ups_better34 & ~j3_is_ups, B_J4_mass, Ups1_mass)
-    Ups2_mass = ak.where(mask_2ups_better34 & ~j3_is_ups, B_J3_mass, Ups2_mass)
+    JPsi_mass = ak.where(mask_2ups_better34 & j3_is_ups, B_J3_mass, JPsi_mass)
+    Z_mass = ak.where(mask_2ups_better34 & j3_is_ups, B_J4_mass, Z_mass)
+    JPsi_mass = ak.where(mask_2ups_better34 & ~j3_is_ups, B_J4_mass, JPsi_mass)
+    Z_mass = ak.where(mask_2ups_better34 & ~j3_is_ups, B_J3_mass, Z_mass)
 
     # Similar assignments for other variables (VtxProb, Pt, Eta, Rapidity, Phi)
     # ... (omitted for brevity, but follow the same pattern as mass assignments)
-    Ups_VtxProb1 = ak.where(mask_2ups_better34 & j3_is_ups, B_J3_VtxProb, Ups_VtxProb1)
-    Ups_VtxProb2 = ak.where(mask_2ups_better34 & j3_is_ups, B_J4_VtxProb, Ups_VtxProb2)
-    Ups_VtxProb1 = ak.where(mask_2ups_better34 & ~j3_is_ups, B_J4_VtxProb, Ups_VtxProb1)
-    Ups_VtxProb2 = ak.where(mask_2ups_better34 & ~j3_is_ups, B_J3_VtxProb, Ups_VtxProb2)
+    JPsi_VtxProb = ak.where(mask_2ups_better34 & j3_is_ups, B_J3_VtxProb, JPsi_VtxProb)
+    Z_VtxProb = ak.where(mask_2ups_better34 & j3_is_ups, B_J4_VtxProb, Z_VtxProb)
+    JPsi_VtxProb = ak.where(mask_2ups_better34 & ~j3_is_ups, B_J4_VtxProb, JPsi_VtxProb)
+    Z_VtxProb = ak.where(mask_2ups_better34 & ~j3_is_ups, B_J3_VtxProb, Z_VtxProb)
 
-    Ups_Pt1 = ak.where(mask_2ups_better34 & j3_is_ups, B_Mu3_pt, Ups_Pt1)
-    Ups_Pt2 = ak.where(mask_2ups_better34 & j3_is_ups, B_Mu4_pt, Ups_Pt2)
-    Ups_Pt1 = ak.where(mask_2ups_better34 & ~j3_is_ups, B_Mu4_pt, Ups_Pt1)
-    Ups_Pt2 = ak.where(mask_2ups_better34 & ~j3_is_ups, B_Mu3_pt, Ups_Pt2)
+    JPsi_Pt = ak.where(mask_2ups_better34 & j3_is_ups, B_Mu3_pt, JPsi_Pt)
+    Z_Pt = ak.where(mask_2ups_better34 & j3_is_ups, B_Mu4_pt, Z_Pt)
+    JPsi_Pt = ak.where(mask_2ups_better34 & ~j3_is_ups, B_Mu4_pt, JPsi_Pt)
+    Z_Pt = ak.where(mask_2ups_better34 & ~j3_is_ups, B_Mu3_pt, Z_Pt)
 
     # Process events with 1 Upsilon candidate
-    one_ups_mask = (UpsMass == 1)
+    one_ups_mask = (JPsiMass == 1)
     j1j2_ups_mask = one_ups_mask & ups_mask1
     j3j4_ups_mask = one_ups_mask & ups_mask2
 
     # For J1-J2 pair
     j1_is_ups = (B_J1_mass > J_lower) & (B_J1_mass < J_upper)
-    Ups1_mass = ak.where(j1j2_ups_mask & j1_is_ups, B_J1_mass, Ups1_mass)
-    Ups2_mass = ak.where(j1j2_ups_mask & j1_is_ups, B_J2_mass, Ups2_mass)
-    Ups1_mass = ak.where(j1j2_ups_mask & ~j1_is_ups, B_J2_mass, Ups1_mass)
-    Ups2_mass = ak.where(j1j2_ups_mask & ~j1_is_ups, B_J1_mass, Ups2_mass)
+    JPsi_mass = ak.where(j1j2_ups_mask & j1_is_ups, B_J1_mass, JPsi_mass)
+    Z_mass = ak.where(j1j2_ups_mask & j1_is_ups, B_J2_mass, Z_mass)
+    JPsi_mass = ak.where(j1j2_ups_mask & ~j1_is_ups, B_J2_mass, JPsi_mass)
+    Z_mass = ak.where(j1j2_ups_mask & ~j1_is_ups, B_J1_mass, Z_mass)
 
     # Similar assignments for other variables (VtxProb, Pt, Eta, Rapidity, Phi)
     # ... (omitted for brevity, but follow the same pattern as mass assignments)
-    Ups_VtxProb1 = ak.where(j1j2_ups_mask & j1_is_ups, B_J1_VtxProb, Ups_VtxProb1)
-    Ups_VtxProb2 = ak.where(j1j2_ups_mask & j1_is_ups, B_J2_VtxProb, Ups_VtxProb2)
-    Ups_VtxProb1 = ak.where(j1j2_ups_mask & ~j1_is_ups, B_J2_VtxProb, Ups_VtxProb1)
-    Ups_VtxProb2 = ak.where(j1j2_ups_mask & ~j1_is_ups, B_J1_VtxProb, Ups_VtxProb2)
+    JPsi_VtxProb = ak.where(j1j2_ups_mask & j1_is_ups, B_J1_VtxProb, JPsi_VtxProb)
+    Z_VtxProb = ak.where(j1j2_ups_mask & j1_is_ups, B_J2_VtxProb, Z_VtxProb)
+    JPsi_VtxProb = ak.where(j1j2_ups_mask & ~j1_is_ups, B_J2_VtxProb, JPsi_VtxProb)
+    Z_VtxProb = ak.where(j1j2_ups_mask & ~j1_is_ups, B_J1_VtxProb, Z_VtxProb)
 
-    Ups_Pt1 = ak.where(j1j2_ups_mask & j1_is_ups, B_Mu1_pt, Ups_Pt1)
-    Ups_Pt2 = ak.where(j1j2_ups_mask & j1_is_ups, B_Mu2_pt, Ups_Pt2)
-    Ups_Pt1 = ak.where(j1j2_ups_mask & ~j1_is_ups, B_Mu2_pt, Ups_Pt1)
-    Ups_Pt2 = ak.where(j1j2_ups_mask & ~j1_is_ups, B_Mu1_pt, Ups_Pt2)
+    JPsi_Pt = ak.where(j1j2_ups_mask & j1_is_ups, B_Mu1_pt, JPsi_Pt)
+    Z_Pt = ak.where(j1j2_ups_mask & j1_is_ups, B_Mu2_pt, Z_Pt)
+    JPsi_Pt = ak.where(j1j2_ups_mask & ~j1_is_ups, B_Mu2_pt, JPsi_Pt)
+    Z_Pt = ak.where(j1j2_ups_mask & ~j1_is_ups, B_Mu1_pt, Z_Pt)
 
     # For J3-J4 pair
     j3_is_ups = (B_J3_mass > J_lower) & (B_J3_mass < J_upper)
-    Ups1_mass = ak.where(j3j4_ups_mask & j3_is_ups, B_J3_mass, Ups1_mass)
-    Ups2_mass = ak.where(j3j4_ups_mask & j3_is_ups, B_J4_mass, Ups2_mass)
-    Ups1_mass = ak.where(j3j4_ups_mask & ~j3_is_ups, B_J4_mass, Ups1_mass)
-    Ups2_mass = ak.where(j3j4_ups_mask & ~j3_is_ups, B_J3_mass, Ups2_mass)
+    JPsi_mass = ak.where(j3j4_ups_mask & j3_is_ups, B_J3_mass, JPsi_mass)
+    Z_mass = ak.where(j3j4_ups_mask & j3_is_ups, B_J4_mass, Z_mass)
+    JPsi_mass = ak.where(j3j4_ups_mask & ~j3_is_ups, B_J4_mass, JPsi_mass)
+    Z_mass = ak.where(j3j4_ups_mask & ~j3_is_ups, B_J3_mass, Z_mass)
 
     # Similar assignments for other variables (VtxProb, Pt, Eta, Rapidity, Phi)
     # ... (omitted for brevity, but follow the same pattern as mass assignments)
-    Ups_VtxProb1 = ak.where(j3j4_ups_mask & j3_is_ups, B_J3_VtxProb, Ups_VtxProb1)
-    Ups_VtxProb2 = ak.where(j3j4_ups_mask & j3_is_ups, B_J4_VtxProb, Ups_VtxProb2)
-    Ups_VtxProb1 = ak.where(j3j4_ups_mask & ~j3_is_ups, B_J4_VtxProb, Ups_VtxProb1)
-    Ups_VtxProb2 = ak.where(j3j4_ups_mask & ~j3_is_ups, B_J3_VtxProb, Ups_VtxProb2)
+    JPsi_VtxProb = ak.where(j3j4_ups_mask & j3_is_ups, B_J3_VtxProb, JPsi_VtxProb)
+    Z_VtxProb = ak.where(j3j4_ups_mask & j3_is_ups, B_J4_VtxProb, Z_VtxProb)
+    JPsi_VtxProb = ak.where(j3j4_ups_mask & ~j3_is_ups, B_J4_VtxProb, JPsi_VtxProb)
+    Z_VtxProb = ak.where(j3j4_ups_mask & ~j3_is_ups, B_J3_VtxProb, Z_VtxProb)
 
-    Ups_Pt1 = ak.where(j3j4_ups_mask & j3_is_ups, B_Mu3_pt, Ups_Pt1)
-    Ups_Pt2 = ak.where(j3j4_ups_mask & j3_is_ups, B_Mu4_pt, Ups_Pt2)
-    Ups_Pt1 = ak.where(j3j4_ups_mask & ~j3_is_ups, B_Mu4_pt, Ups_Pt1)
-    Ups_Pt2 = ak.where(j3j4_ups_mask & ~j3_is_ups, B_Mu3_pt, Ups_Pt2)
+    JPsi_Pt = ak.where(j3j4_ups_mask & j3_is_ups, B_Mu3_pt, JPsi_Pt)
+    Z_Pt = ak.where(j3j4_ups_mask & j3_is_ups, B_Mu4_pt, Z_Pt)
+    JPsi_Pt = ak.where(j3j4_ups_mask & ~j3_is_ups, B_Mu4_pt, JPsi_Pt)
+    Z_Pt = ak.where(j3j4_ups_mask & ~j3_is_ups, B_Mu3_pt, Z_Pt)
 
-    # valid_mask = (UpsMass > 0)
-    data['Ups1_mass'] = Ups1_mass
-    data['Ups2_mass'] = Ups2_mass
-    data['UpsMass'] = UpsMass
-    data['Ups_VtxProb1'] = Ups_VtxProb1
-    data['Ups_VtxProb2'] = Ups_VtxProb2
-    data['Ups_Pt1'] = Ups_Pt1
-    data['Ups_Pt2'] = Ups_Pt2
-    # data['Ups_Eta1'] = Ups_Eta1
-    # data['Ups_Eta2'] = Ups_Eta2
+    # valid_mask = (JPsiMass > 0)
+    data['JPsi_mass'] = JPsi_mass
+    data['Z_mass'] = Z_mass
+    data['JPsiMass'] = JPsiMass
+    data['JPsi_VtxProb'] = JPsi_VtxProb
+    data['Z_VtxProb'] = Z_VtxProb
+    data['JPsi_Pt'] = JPsi_Pt
+    data['Z_Pt'] = Z_Pt
+    # data['JPsi_Eta'] = JPsi_Eta
+    # data['Z_Eta'] = Z_Eta
 
     return data
