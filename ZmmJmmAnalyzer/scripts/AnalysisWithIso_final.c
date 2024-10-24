@@ -48,17 +48,17 @@ void AnalysisWithIso_final::Loop() {
   //Now create the branches on tree
   //Define Tree name
   vector<float> *Events_b;
-  vector<float> *B_Ups1_mass_b;
-  vector<float> *B_Ups2_mass_b;
-  vector<float> *B_Ups1_VtxProb_b;
-  vector<float> *B_Ups2_VtxProb_b;
-  vector<float> *B_Ups1To2dY_b;
-  vector<float> *B_Ups1_Pt_b;
-  vector<float> *B_Ups2_Pt_b;
-  vector<float> *B_Ups1_Eta_b;
-  vector<float> *B_Ups2_Eta_b;
-  vector<float> *B_Ups1_Phi_b;
-  vector<float> *B_Ups2_Phi_b;
+  vector<float> *B_JPsi_mass_b;
+  vector<float> *B_Z_mass_b;
+  vector<float> *B_JPsi_VtxProb_b;
+  vector<float> *B_Z_VtxProb_b;
+  vector<float> *B_JpsiTo2dy_b;
+  vector<float> *B_JPsi_Pt_b;
+  vector<float> *B_Z_Pt_b;
+  vector<float> *B_JPsi_Eta_b;
+  vector<float> *B_Z_Eta_b;
+  vector<float> *B_JPsi_Phi_b;
+  vector<float> *B_Z_Phi_b;
   vector<float> *B_Mu1_pt_b;
   vector<float> *B_Mu2_pt_b;
   vector<float> *B_Mu3_pt_b;
@@ -107,8 +107,6 @@ void AnalysisWithIso_final::Loop() {
   vector<float> *B_J_zP2_b;
   vector<float> *B_J_zM2_b;
 
-  vector<float> *B_Z_mass_b;
-  vector<float> *B_J_mass_b;
   vector<float> *B_J1_mass_b;
   vector<float> *B_J2_mass_b;
   vector<float> *B_J3_mass_b;
@@ -133,19 +131,18 @@ void AnalysisWithIso_final::Loop() {
   vector<float> *B_J_phi2_b;
 
   Events_b = 0;
-  B_Ups1_mass_b = 0;
-  B_Ups2_mass_b = 0;
-  B_Ups1_Pt_b = 0;
-  B_Ups2_Pt_b = 0;
-  B_Ups1_Eta_b = 0;
-  B_Ups2_Eta_b = 0;
-  B_Ups1_Phi_b = 0;
-  B_Ups2_Phi_b = 0;
-  B_Ups1_VtxProb_b = 0;
-  B_Ups2_VtxProb_b = 0;
-  B_Ups1To2dY_b = 0;
+  B_JPsi_mass_b = 0;
   B_Z_mass_b = 0;
-  B_J_mass_b = 0;
+  B_JPsi_Pt_b = 0;
+  B_Z_Pt_b = 0;
+  B_JPsi_Eta_b = 0;
+  B_Z_Eta_b = 0;
+  B_JPsi_Phi_b = 0;
+  B_Z_Phi_b = 0;
+  B_JPsi_VtxProb_b = 0;
+  B_Z_VtxProb_b = 0;
+  B_JpsiTo2dy_b = 0;
+
   FourL_mass_b = 0;
   FourL_VtxProb_b = 0;
   FourL_pt_b = 0;
@@ -216,34 +213,21 @@ void AnalysisWithIso_final::Loop() {
   //initialize
 
   fTree->Branch("Event", &Events_b);
-  fTree->Branch("B_Ups1_mass", &B_Ups1_mass_b);
-  fTree->Branch("B_Ups2_mass", &B_Ups2_mass_b);
-  fTree->Branch("B_Ups1_VtxProb", &B_Ups1_VtxProb_b);
-  fTree->Branch("B_Ups2_VtxProb", &B_Ups2_VtxProb_b);
-  fTree->Branch("B_Ups1To2dY", &B_Ups1To2dY_b);
-  fTree->Branch("B_Ups1_Pt", &B_Ups1_Pt_b);
-  fTree->Branch("B_Ups2_Pt", &B_Ups2_Pt_b);
-  fTree->Branch("B_Ups1_Eta", &B_Ups1_Eta_b);
-  fTree->Branch("B_Ups2_Eta", &B_Ups2_Eta_b);
-  fTree->Branch("B_Ups1_Phi", &B_Ups1_Phi_b);
-  fTree->Branch("B_Ups2_Phi", &B_Ups2_Phi_b);
+  fTree->Branch("B_JPsi_mass", &B_JPsi_mass_b);
+  fTree->Branch("B_Z_mass", &B_Z_mass_b);
+  fTree->Branch("B_JPsi_VtxProb", &B_JPsi_VtxProb_b);
+  fTree->Branch("B_Z_VtxProb", &B_Z_VtxProb_b);
+  fTree->Branch("B_JpsiTo2dy", &B_JpsiTo2dy_b);
+  fTree->Branch("B_JPsi_Pt", &B_JPsi_Pt_b);
+  fTree->Branch("B_Z_Pt", &B_Z_Pt_b);
+  fTree->Branch("B_JPsi_Eta", &B_JPsi_Eta_b);
+  fTree->Branch("B_Z_Eta", &B_Z_Eta_b);
+  fTree->Branch("B_JPsi_Phi", &B_JPsi_Phi_b);
+  fTree->Branch("B_Z_Phi", &B_Z_Phi_b);
   fTree->Branch("B_J1_mass", &B_J1_mass_b);
   fTree->Branch("B_J2_mass", &B_J2_mass_b);
   fTree->Branch("B_J3_mass", &B_J3_mass_b);
   fTree->Branch("B_J4_mass", &B_J4_mass_b);
-  //fTree->Branch("B_Z_pt1",             &B_Z_pt1_b);
-  //fTree->Branch("B_Z_pt2",             &B_Z_pt2_b);
-  //fTree->Branch("B_Z_eta1",             &B_Z_eta1_b);
-  //fTree->Branch("B_Z_eta2",             &B_Z_eta2_b);
-  //fTree->Branch("B_Z_phi1",             &B_Z_phi1_b);
-  //fTree->Branch("B_Z_phi2",             &B_Z_phi2_b);
-
-  //fTree->Branch("B_J_pt1",             &B_J_pt1_b);
-  //fTree->Branch("B_J_pt2",             &B_J_pt2_b);
-  //fTree->Branch("B_J_eta1",             &B_J_eta1_b);
-  //fTree->Branch("B_J_eta2",             &B_J_eta2_b);
-  //fTree->Branch("B_J_phi1",             &B_J_phi1_b);
-  //fTree->Branch("B_J_phi2",             &B_J_phi2_b);
   fTree->Branch("FourL_VtxProb", &FourL_VtxProb_b);
   fTree->Branch("FourL_mass", &FourL_mass_b);
   fTree->Branch("FourL_pt", &FourL_pt_b);
@@ -366,18 +350,18 @@ void AnalysisWithIso_final::Loop() {
         nevDetector++;
       }
 
-      int UpsVtx = 0;
+      int JPsiVtx = 0;
       if (B_J1_VtxProb->at(i) > 0.01) {
         if (B_J2_VtxProb->at(i) > 0.01) {
-          UpsVtx++;
+          JPsiVtx++;
         }
       }
       if (B_J3_VtxProb->at(i) > 0.01) {
         if (B_J4_VtxProb->at(i) > 0.01) {
-          UpsVtx++;
+          JPsiVtx++;
         }
       }
-      if (UpsVtx < 1)
+      if (JPsiVtx < 1)
         continue;
       if (FourL_VtxProb->at(i) < 0.01)
         continue;
@@ -389,154 +373,158 @@ void AnalysisWithIso_final::Loop() {
         nevLite4Vertex++;
       }
 
-      int check1, check2, UpsMass;
-      UpsMass = check1 = check2 = 0;
+      int check1, check2, JPsiMass;
+      JPsiMass = check1 = check2 = 0;
       if ((B_J1_mass->at(i) > 3.0 && B_J1_mass->at(i) < 3.2) || (B_J1_mass->at(i) > 80.0 && B_J1_mass->at(i) < 100.0)) {
         if ((B_J2_mass->at(i) > 3.0 && B_J2_mass->at(i) < 3.2) || (B_J2_mass->at(i) > 80.0 && B_J2_mass->at(i) < 100.0)) {
-          UpsMass++;
+          JPsiMass++;
           check1++;
         }
       }
       if ((B_J3_mass->at(i) > 3.0 && B_J3_mass->at(i) < 3.2) || (B_J3_mass->at(i) > 80.0 && B_J3_mass->at(i) < 100.0)) {
         if ((B_J4_mass->at(i) > 3.0 && B_J4_mass->at(i) < 3.2) || (B_J4_mass->at(i) > 80.0 && B_J4_mass->at(i) < 100.0)) {
-          UpsMass++;
+          JPsiMass++;
           check2++;
         }
       }
-      //if (UpsMass<1) continue;
+      //if (JPsiMass<1) continue;
 
       //find the Upsilon//
-      float Ups_VtxProb1 = 0;
-      float Ups_VtxProb2 = 0;
-      float Ups_Pt1 = 0;
-      float Ups_Pt2 = 0;
-      float Ups_Phi1 = 0;
-      float Ups_Phi2 = 0;
-      float Ups1_mass = 0;
-      float Ups2_mass = 0;
-      float Ups_Eta1 = 0;
-      float Ups_Eta2 = 0;
-      float Ups_Rapidity1 = 0;
-      float Ups_Rapidity2 = 0;
-      float Ups1To2_dY = 0;
+      float JPsi_VtxProb = 0;
+      float Z_VtxProb = 0;
+      float JPsi_Pt = 0;
+      float Z_Pt = 0;
+      float JPsi_Phi = 0;
+      float Z_Phi = 0;
+      float JPsi_mass = 0;
+      float Z_mass = 0;
+      float JPsi_Eta = 0;
+      float Z_Eta = 0;
+      float JPsi_Rapidity = 0;
+      float Z_Rapidity = 0;
+      float JpsiTo2_dY = 0;
 
       //Now Find
       //if we find 4 Upsilon i.e
       
-      if (UpsMass == 2) {
+      if (JPsiMass == 2) {
         //choose the upsilon having best vertex probability
         //cout<<"Are more than 2 upsilon in a event"<<endl;
         if ((B_J1_VtxProb->at(i) + B_J2_VtxProb->at(i)) > (B_J3_VtxProb->at(i) + B_J4_VtxProb->at(i))) {
           if ((B_J1_mass->at(i) > 3.0 && B_J1_mass->at(i) < 3.2)) {
-            Ups1_mass = B_J1_mass->at(i);
-            Ups_VtxProb1 = B_J1_VtxProb->at(i);
-            Ups_Pt1 = B_J1_pt->at(i);
-            Ups_Eta1 = B_J1_eta->at(i);
-            Ups_Rapidity1 = B_J1_rapidity->at(i);
-            Ups_Phi1 = B_J1_phi->at(i);
-            Ups2_mass = B_J2_mass->at(i);
-            Ups_VtxProb2 = B_J2_VtxProb->at(i);
-            Ups_Pt2 = B_J2_pt->at(i);
-            Ups_Eta2 = B_J2_eta->at(i);
-            Ups_Rapidity2 = B_J2_rapidity->at(i);
-            Ups_Phi2 = B_J2_phi->at(i);
+            JPsi_mass = B_J1_mass->at(i);
+            JPsi_VtxProb = B_J1_VtxProb->at(i);
+            JPsi_Pt = B_J1_pt->at(i);
+            JPsi_Eta = B_J1_eta->at(i);
+            JPsi_Rapidity = B_J1_rapidity->at(i);
+            JPsi_Phi = B_J1_phi->at(i);
+            Z_mass = B_J2_mass->at(i);
+            Z_VtxProb = B_J2_VtxProb->at(i);
+            Z_Pt = B_J2_pt->at(i);
+            Z_Eta = B_J2_eta->at(i);
+            Z_Rapidity = B_J2_rapidity->at(i);
+            Z_Phi = B_J2_phi->at(i);
           } else {
-            Ups1_mass = B_J2_mass->at(i);
-            Ups_VtxProb1 = B_J2_VtxProb->at(i);
-            Ups_Pt1 = B_J2_pt->at(i);
-            Ups_Eta1 = B_J2_eta->at(i);
-            Ups_Rapidity1 = B_J2_rapidity->at(i);
-            Ups_Phi1 = B_J2_phi->at(i);
-            Ups2_mass = B_J1_mass->at(i);
-            Ups_VtxProb2 = B_J1_VtxProb->at(i);
-            Ups_Pt2 = B_J1_pt->at(i);
-            Ups_Eta2 = B_J1_eta->at(i);
-            Ups_Rapidity2 = B_J1_rapidity->at(i);
-            Ups_Phi2 = B_J1_phi->at(i);
+            JPsi_mass = B_J2_mass->at(i);
+            JPsi_VtxProb = B_J2_VtxProb->at(i);
+            JPsi_Pt = B_J2_pt->at(i);
+            JPsi_Eta = B_J2_eta->at(i);
+            JPsi_Rapidity = B_J2_rapidity->at(i);
+            JPsi_Phi = B_J2_phi->at(i);
+            Z_mass = B_J1_mass->at(i);
+            Z_VtxProb = B_J1_VtxProb->at(i);
+            Z_Pt = B_J1_pt->at(i);
+            Z_Eta = B_J1_eta->at(i);
+            Z_Rapidity = B_J1_rapidity->at(i);
+            Z_Phi = B_J1_phi->at(i);
           }
         } else {
           if ((B_J3_mass->at(i) > 3.0 && B_J3_mass->at(i) < 3.2)) {
-            Ups1_mass = B_J3_mass->at(i);
-            Ups_VtxProb1 = B_J3_VtxProb->at(i);
-            Ups_Pt1 = B_J3_pt->at(i);
-            Ups_Eta1 = B_J3_eta->at(i);
-            Ups_Rapidity1 = B_J3_rapidity->at(i);
-            Ups_Phi1 = B_J3_phi->at(i);
-            Ups2_mass = B_J4_mass->at(i);
-            Ups_VtxProb2 = B_J4_VtxProb->at(i);
-            Ups_Pt2 = B_J4_pt->at(i);
-            Ups_Eta2 = B_J4_eta->at(i);
-            Ups_Rapidity2 = B_J4_rapidity->at(i);
-            Ups_Phi2 = B_J4_phi->at(i);
+            JPsi_mass = B_J3_mass->at(i);
+            JPsi_VtxProb = B_J3_VtxProb->at(i);
+            JPsi_Pt = B_J3_pt->at(i);
+            JPsi_Eta = B_J3_eta->at(i);
+            JPsi_Rapidity = B_J3_rapidity->at(i);
+            JPsi_Phi = B_J3_phi->at(i);
+            Z_mass = B_J4_mass->at(i);
+            Z_VtxProb = B_J4_VtxProb->at(i);
+            Z_Pt = B_J4_pt->at(i);
+            Z_Eta = B_J4_eta->at(i);
+            Z_Rapidity = B_J4_rapidity->at(i);
+            Z_Phi = B_J4_phi->at(i);
           } else {
-            Ups1_mass = B_J4_mass->at(i);
-            Ups_VtxProb1 = B_J4_VtxProb->at(i);
-            Ups_Pt1 = B_J4_pt->at(i);
-            Ups_Eta1 = B_J4_eta->at(i);
-            Ups_Rapidity1 = B_J4_rapidity->at(i);
-            Ups_Phi1 = B_J4_phi->at(i);
-            Ups2_mass = B_J3_mass->at(i);
-            Ups_VtxProb2 = B_J3_VtxProb->at(i);
-            Ups_Pt2 = B_J3_pt->at(i);
-            Ups_Eta2 = B_J3_eta->at(i);
-            Ups_Rapidity2 = B_J3_rapidity->at(i);
-            Ups_Phi2 = B_J3_phi->at(i);
+            JPsi_mass = B_J4_mass->at(i);
+            JPsi_VtxProb = B_J4_VtxProb->at(i);
+            JPsi_Pt = B_J4_pt->at(i);
+            JPsi_Eta = B_J4_eta->at(i);
+            JPsi_Rapidity = B_J4_rapidity->at(i);
+            JPsi_Phi = B_J4_phi->at(i);
+            Z_mass = B_J3_mass->at(i);
+            Z_VtxProb = B_J3_VtxProb->at(i);
+            Z_Pt = B_J3_pt->at(i);
+            Z_Eta = B_J3_eta->at(i);
+            Z_Rapidity = B_J3_rapidity->at(i);
+            Z_Phi = B_J3_phi->at(i);
           }
         }
       }
       //if have only one pairs of upsislon
-      else if (UpsMass == 1) {
+      else if (JPsiMass == 1) {
         if (check1 > 0) {
           if (B_J1_mass->at(i) > 3.0 && B_J1_mass->at(i) < 3.2) {
-            Ups1_mass = B_J1_mass->at(i);
-            Ups_VtxProb1 = B_J1_VtxProb->at(i);
-            Ups_Pt1 = B_J1_pt->at(i);
-            Ups_Eta1 = B_J1_eta->at(i);
-            Ups_Rapidity1 = B_J1_rapidity->at(i);
-            Ups_Phi1 = B_J1_phi->at(i);
-            Ups2_mass = B_J2_mass->at(i);
-            Ups_VtxProb2 = B_J2_VtxProb->at(i);
-            Ups_Pt2 = B_J2_pt->at(i);
-            Ups_Eta2 = B_J2_eta->at(i);
-            Ups_Rapidity2 = B_J2_rapidity->at(i);
-            Ups_Phi2 = B_J2_phi->at(i);
+            JPsi_mass = B_J1_mass->at(i);
+            JPsi_VtxProb = B_J1_VtxProb->at(i);
+            JPsi_Pt = B_J1_pt->at(i);
+            JPsi_Eta = B_J1_eta->at(i);
+            JPsi_Rapidity = B_J1_rapidity->at(i);
+            JPsi_Phi = B_J1_phi->at(i);
+            Z_mass = B_J2_mass->at(i);
+            Z_VtxProb = B_J2_VtxProb->at(i);
+            Z_Pt = B_J2_pt->at(i);
+            Z_Eta = B_J2_eta->at(i);
+            Z_Rapidity = B_J2_rapidity->at(i);
+            Z_Phi = B_J2_phi->at(i);
           } else if (B_J2_mass->at(i) > 3.0 && B_J2_mass->at(i) < 3.2) {
-            Ups1_mass = B_J2_mass->at(i);
-            Ups_VtxProb1 = B_J2_VtxProb->at(i);
-            Ups_Pt1 = B_J2_pt->at(i);
-            Ups_Eta1 = B_J2_eta->at(i);
-            Ups_Rapidity1 = B_J2_rapidity->at(i);
-            Ups_Phi1 = B_J2_phi->at(i);
-            Ups2_mass = B_J1_mass->at(i);
-            Ups_VtxProb2 = B_J1_VtxProb->at(i);
-            Ups_Pt2 = B_J1_pt->at(i);
-            Ups_Eta2 = B_J1_eta->at(i);
-            Ups_Rapidity2 = B_J1_rapidity->at(i);
-            Ups_Phi2 = B_J1_phi->at(i);
+            JPsi_mass = B_J2_mass->at(i);
+            JPsi_VtxProb = B_J2_VtxProb->at(i);
+            JPsi_Pt = B_J2_pt->at(i);
+            JPsi_Eta = B_J2_eta->at(i);
+            JPsi_Rapidity = B_J2_rapidity->at(i);
+            JPsi_Phi = B_J2_phi->at(i);
+            Z_mass = B_J1_mass->at(i);
+            Z_VtxProb = B_J1_VtxProb->at(i);
+            Z_Pt = B_J1_pt->at(i);
+            Z_Eta = B_J1_eta->at(i);
+            Z_Rapidity = B_J1_rapidity->at(i);
+            Z_Phi = B_J1_phi->at(i);
           }
         } else if (check2 > 0) {
           if (B_J3_mass->at(i) > 3.0 && B_J3_mass->at(i) < 3.2) {
-            Ups1_mass = B_J3_mass->at(i);
-            Ups_VtxProb1 = B_J3_VtxProb->at(i);
-            Ups_Pt1 = B_J3_pt->at(i);
-            Ups_Rapidity1 = B_J3_rapidity->at(i);
-            Ups_Phi1 = B_J3_phi->at(i);
-            Ups2_mass = B_J4_mass->at(i);
-            Ups_VtxProb2 = B_J4_VtxProb->at(i);
-            Ups_Pt2 = B_J4_pt->at(i);
-            Ups_Rapidity2 = B_J4_rapidity->at(i);
-            Ups_Phi2 = B_J4_phi->at(i);
+            JPsi_mass = B_J3_mass->at(i);
+            JPsi_VtxProb = B_J3_VtxProb->at(i);
+            JPsi_Pt = B_J3_pt->at(i);
+            JPsi_Eta = B_J3_eta->at(i);
+            JPsi_Rapidity = B_J3_rapidity->at(i);
+            JPsi_Phi = B_J3_phi->at(i);
+            Z_mass = B_J4_mass->at(i);
+            Z_VtxProb = B_J4_VtxProb->at(i);
+            Z_Pt = B_J4_pt->at(i);
+            Z_Eta = B_J4_eta->at(i);
+            Z_Rapidity = B_J4_rapidity->at(i);
+            Z_Phi = B_J4_phi->at(i);
           } else if (B_J4_mass->at(i) > 3.0 && B_J4_mass->at(i) < 3.2) {
-            Ups1_mass = B_J4_mass->at(i);
-            Ups_VtxProb1 = B_J4_VtxProb->at(i);
-            Ups_Pt1 = B_J4_pt->at(i);
-            Ups_Rapidity1 = B_J4_rapidity->at(i);
-            Ups_Phi1 = B_J4_phi->at(i);
-            Ups2_mass = B_J3_mass->at(i);
-            Ups_VtxProb2 = B_J3_VtxProb->at(i);
-            Ups_Pt2 = B_J3_pt->at(i);
-            Ups_Rapidity2 = B_J3_rapidity->at(i);
-            Ups_Phi2 = B_J3_phi->at(i);
+            JPsi_mass = B_J4_mass->at(i);
+            JPsi_VtxProb = B_J4_VtxProb->at(i);
+            JPsi_Pt = B_J4_pt->at(i);
+            JPsi_Eta = B_J4_eta->at(i);
+            JPsi_Rapidity = B_J4_rapidity->at(i);
+            JPsi_Phi = B_J4_phi->at(i);
+            Z_mass = B_J3_mass->at(i);
+            Z_VtxProb = B_J3_VtxProb->at(i);
+            Z_Pt = B_J3_pt->at(i);
+            Z_Eta = B_J3_eta->at(i);
+            Z_Rapidity = B_J3_rapidity->at(i);
+            Z_Phi = B_J3_phi->at(i);
           }
           //else continue;
         }
@@ -580,7 +568,7 @@ void AnalysisWithIso_final::Loop() {
       }
 
       // FourL_rapidity=FourMu.Rapidity();
-      // Ups1To2_dY = abs(Ups_Rapidity2-Ups_Rapidity1); // ?
+      // JpsiTo2_dY = abs(Z_Rapidity-JPsi_Rapidity); // ?
 
       //Calculation of Isolation 2
       //Calculate Delta R between the muons
@@ -602,7 +590,7 @@ void AnalysisWithIso_final::Loop() {
       }
 
       // FourL_rapidity=FourMu.Rapidity();
-      // Ups1To2_dY = abs(Ups_Rapidity2-Ups_Rapidity1); // ?
+      // JpsiTo2_dY = abs(Z_Rapidity-JPsi_Rapidity); // ?
 
       /*
       //Calculation of Isolation 3
@@ -625,7 +613,7 @@ void AnalysisWithIso_final::Loop() {
       }
       
       // FourL_rapidity=FourMu.Rapidity();
-      // Ups1To2_dY = abs(Ups_Rapidity2-Ups_Rapidity1); // ?
+      // JpsiTo2_dY = abs(Z_Rapidity-JPsi_Rapidity); // ?
 
 
       //Calculation of Isolation 4
@@ -649,7 +637,7 @@ void AnalysisWithIso_final::Loop() {
       }
       */
       FourL_rapidity = FourMu.Rapidity();
-      Ups1To2_dY = abs(Ups_Rapidity2 - Ups_Rapidity1);
+      JpsiTo2_dY = abs(Z_Rapidity - JPsi_Rapidity);
 
       //isolation cuts
 
@@ -708,7 +696,7 @@ void AnalysisWithIso_final::Loop() {
       //if (FourL_mass->at(i) > 120. && FourL_mass->at(i)  < 130.) continue;
       //if (FourL_mass->at(i) > 80.0. && FourL_mass->at(i)  < 100.) continue;
       //cut 4 Z, J Vtx Prob
-      if (Ups_VtxProb1 < 0.01 || Ups_VtxProb2 < 0.01)
+      if (JPsi_VtxProb < 0.01 || Z_VtxProb < 0.01)
         continue;
 
       ncandiYZVertexing++;
@@ -719,7 +707,7 @@ void AnalysisWithIso_final::Loop() {
       }
       //cut 4 J, Z Pt
 
-      if (Ups_Pt1 < 5. || Ups_Pt2 < 5.)
+      if (JPsi_Pt < 5. || Z_Pt < 5.)
         continue;
 
       ncandiYZPt++;
@@ -730,11 +718,11 @@ void AnalysisWithIso_final::Loop() {
       }
 
       //Dilepton mass cut 5
-      if (Ups1_mass < 3.0 || Ups1_mass > 3.2)
+      if (JPsi_mass < 3.0 || JPsi_mass > 3.2)
         continue;
-      if (Ups2_mass < 80.0 || Ups2_mass > 100)
+      if (Z_mass < 80.0 || Z_mass > 100)
         continue;
-      // if (Ups2_mass < 85.0 || Ups2_mass>100) continue;
+      // if (Z_mass < 85.0 || Z_mass>100) continue;
 
       ncandiYZMass++;
       //Events=Event->at(i);
@@ -744,12 +732,12 @@ void AnalysisWithIso_final::Loop() {
       }
 
       //OnlyUps(1S)
-      //if (Ups1_mass > 3.2) continue;
-      //if (Ups2_mass > 3.2) continue;
+      //if (JPsi_mass > 3.2) continue;
+      //if (Z_mass > 3.2) continue;
       //rapidity cut cut 6
-      // if (Ups1To2_dY > 3.0 ) continue;
+      // if (JpsiTo2_dY > 3.0 ) continue;
       //delta phi cut cut 7
-      // if (abs(Ups_Phi1-Ups_Phi2) < 1) continue;
+      // if (abs(JPsi_Phi-Z_Phi) < 1) continue;
       //4 lepton Vertex Pt cut 8
       if (FourL_pt->at(i) < 5.)
         continue;
@@ -779,7 +767,6 @@ void AnalysisWithIso_final::Loop() {
         continue;
 
       // blinding cut
-
       if (FourL_mass->at(i) > 120 && FourL_mass->at(i) < 130) continue;
 
       ncandi4Mass++;
@@ -807,23 +794,23 @@ void AnalysisWithIso_final::Loop() {
         }
       }
 
-      myfile << Event->at(i) << " " << Ups1_mass << " " << Ups2_mass << " " << FourL_mass->at(i) << " " << FourL_VtxProb->at(i) << endl;
+      myfile << Event->at(i) << " " << JPsi_mass << " " << Z_mass << " " << FourL_mass->at(i) << " " << FourL_VtxProb->at(i) << endl;
 
-      //myfile<<Ups1_mass<<endl;
+      //myfile<<JPsi_mass<<endl;
 
       //if (ncandi>1) continue;
       Events_b->push_back(Events);
-      B_Ups1_mass_b->push_back(Ups1_mass);
-      B_Ups2_mass_b->push_back(Ups2_mass);
-      B_Ups1_VtxProb_b->push_back(Ups_VtxProb1);
-      B_Ups2_VtxProb_b->push_back(Ups_VtxProb2);
-      B_Ups1To2dY_b->push_back(Ups1To2_dY);
-      B_Ups1_Pt_b->push_back(Ups_Pt1);
-      B_Ups1_Eta_b->push_back(Ups_Eta1);
-      B_Ups1_Phi_b->push_back(Ups_Phi1);
-      B_Ups2_Pt_b->push_back(Ups_Pt2);
-      B_Ups2_Eta_b->push_back(Ups_Eta2);
-      B_Ups2_Phi_b->push_back(Ups_Phi2);
+      B_JPsi_mass_b->push_back(JPsi_mass);
+      B_Z_mass_b->push_back(Z_mass);
+      B_JPsi_VtxProb_b->push_back(JPsi_VtxProb);
+      B_Z_VtxProb_b->push_back(Z_VtxProb);
+      B_JpsiTo2dy_b->push_back(JpsiTo2_dY);
+      B_JPsi_Pt_b->push_back(JPsi_Pt);
+      B_JPsi_Eta_b->push_back(JPsi_Eta);
+      B_JPsi_Phi_b->push_back(JPsi_Phi);
+      B_Z_Pt_b->push_back(Z_Pt);
+      B_Z_Eta_b->push_back(Z_Eta);
+      B_Z_Phi_b->push_back(Z_Phi);
       FourL_VtxProb_b->push_back(FourL_VtxProb->at(i));
       B_J1_mass_b->push_back(B_J1_mass->at(i));
       B_J2_mass_b->push_back(B_J2_mass->at(i));
