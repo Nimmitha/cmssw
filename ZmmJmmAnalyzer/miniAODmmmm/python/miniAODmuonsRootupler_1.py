@@ -23,11 +23,13 @@ setupEgammaPostRecoSeq(process,
                        runEnergyCorrections=True,
                        runVID=True,
                        #eleIDModules=['RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Summer16_ID_ISO_cff','RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff'],
-                       era='2018-UL')                       
+                      #  era='2018-UL')                 
+                      #  era='2017-UL')                 
+                       era='2016postVFP-UL')                 
 #                       )  #era is new to select between 2016 / 2017,  it defaults to 2017
 
 
-process.MessageLogger.cerr.FwkReport.reportEvery = 1
+process.MessageLogger.cerr.FwkReport.reportEvery = 500
 process.options = cms.untracked.PSet(
   wantSummary = cms.untracked.bool(True),
   allowUnscheduled = cms.untracked.bool(True),
@@ -37,7 +39,10 @@ process.options = cms.untracked.PSet(
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring( 
-'file:/uscms/home/wkarunar/nobackup/datasets/mc/miniAOD/run2/zmmjmm_2018/zmmjmm_ss/MiniAOD/MiniAOD_10.root'
+# 'file:/uscms/home/wkarunar/nobackup/datasets/mc/miniAOD/run2/zmmjmm_2018/zmmjmm_ss/MiniAOD/MiniAOD_10.root'
+# 'file:/uscms/home/wkarunar/nobackup/datasets/for_temp_comparison_oct25/2018D_000464E1-1144-1641-BE88-4600BD58923C.root' # 2018D test
+# 'file:/uscms/home/wkarunar/nobackup/datasets/for_temp_comparison_oct25/2017E_1591E260-F634-FB49-8D18-8108C2E244BD.root' # 2017E test
+'file:/uscms/home/wkarunar/nobackup/datasets/for_temp_comparison_oct25/2016F_060F0B51-FCEF-F343-890C-3043A4B268C2.root' # 2016Fpost test
  )
 )
 
@@ -49,12 +54,15 @@ process.rootuple = cms.EDAnalyzer('miniAODmmmm',
                           bits = cms.InputTag("TriggerResults::HLT"),
                           objects = cms.InputTag("slimmedPatTrigger"),
                           pruned = cms.InputTag("prunedGenParticles"),
-                          MuonTrigger = cms.string("HLT_IsoMu24_v"),
+                          MuonTrigger = cms.string("HLT_IsoMu24_v"), # 2016 and 18
+                          # MuonTrigger = cms.string("HLT_IsoMu27_v"), # 2017
                           isMC = cms.bool(False),
                           )
 
 process.TFileService = cms.Service("TFileService",
-  fileName = cms.string('preselection/mmmm_mc_2018/mmmm_mc_2018_10.root'),
+  # fileName = cms.string('preselection/testFile_8923C_2018D_Nimmitha.root'),
+  # fileName = cms.string('preselection/testFile_244BD_2017E_Nimmitha.root'),
+  fileName = cms.string('preselection/testFile_8923C_2016Fpost_Nimmitha.root'),
 )
 
 process.p = cms.Path(process.egammaPostRecoSeq+process.rootuple)
