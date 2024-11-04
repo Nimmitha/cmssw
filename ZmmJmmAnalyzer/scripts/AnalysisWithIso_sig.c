@@ -49,14 +49,22 @@ void AnalysisWithIso_sig::Loop() {
   //Define Tree name
   vector<float> *Events_b;
   vector<float> *B_JPsi_mass_b;
-  vector<float> *B_Ups2_mass_b;
+  vector<float> *B_Z_mass_b;
   vector<float> *B_JPsi_VtxProb_b;
   vector<float> *B_Z_VtxProb_b;
   vector<float> *B_JpsiTo2dy_b;
   vector<float> *B_JPsi_Pt_b;
+  vector<float> *B_JPsi_Pt1_b;
+  vector<float> *B_JPsi_Pt2_b;
   vector<float> *B_Z_Pt_b;
+  vector<float> *B_Z_Pt1_b;
+  vector<float> *B_Z_Pt2_b;
   vector<float> *B_JPsi_Eta_b;
+  vector<float> *B_JPsi_Eta1_b;
+  vector<float> *B_JPsi_Eta2_b;
   vector<float> *B_Z_Eta_b;
+  vector<float> *B_Z_Eta1_b;
+  vector<float> *B_Z_Eta2_b;
   vector<float> *B_JPsi_Phi_b;
   vector<float> *B_Z_Phi_b;
   vector<float> *B_Mu1_pt_b;
@@ -117,14 +125,34 @@ void AnalysisWithIso_sig::Loop() {
   vector<float> *FourL_eta_b;
   vector<float> *FourL_phi_b;
   vector<float> *FourL_rapidity_b;
+  vector<float> *B_Z_pt1_b;
+  vector<float> *B_Z_eta1_b;
+  vector<float> *B_Z_phi1_b;
+  vector<float> *B_Z_pt2_b;
+  vector<float> *B_Z_eta2_b;
+  vector<float> *B_Z_phi2_b;
+  vector<float> *B_J_pt1_b;
+  vector<float> *B_J_eta1_b;
+  vector<float> *B_J_phi1_b;
+  vector<float> *B_J_pt2_b;
+  vector<float> *B_J_eta2_b;
+  vector<float> *B_J_phi2_b;
 
   Events_b = 0;
   B_JPsi_mass_b = 0;
-  B_Ups2_mass_b = 0;
+  B_Z_mass_b = 0;
   B_JPsi_Pt_b = 0;
+  B_JPsi_Pt1_b = 0;
+  B_JPsi_Pt2_b = 0;
   B_Z_Pt_b = 0;
+  B_Z_Pt1_b = 0;
+  B_Z_Pt2_b = 0;
   B_JPsi_Eta_b = 0;
+  B_JPsi_Eta1_b = 0;
+  B_JPsi_Eta2_b = 0;
   B_Z_Eta_b = 0;
+  B_Z_Eta1_b = 0;
+  B_Z_Eta2_b = 0;
   B_JPsi_Phi_b = 0;
   B_Z_Phi_b = 0;
   B_JPsi_VtxProb_b = 0;
@@ -185,19 +213,39 @@ void AnalysisWithIso_sig::Loop() {
   B_J2_mass_b = 0;
   B_J3_mass_b = 0;
   B_J4_mass_b = 0;
+  B_Z_pt1_b = 0;
+  B_Z_eta1_b = 0;
+  B_Z_phi1_b = 0;
+  B_Z_pt2_b = 0;
+  B_Z_eta2_b = 0;
+  B_Z_phi2_b = 0;
+  B_J_pt1_b = 0;
+  B_J_eta1_b = 0;
+  B_J_phi1_b = 0;
+  B_J_pt2_b = 0;
+  B_J_eta2_b = 0;
+  B_J_phi2_b = 0;
 
   //initialize
 
   fTree->Branch("Event", &Events_b);
   fTree->Branch("B_JPsi_mass", &B_JPsi_mass_b);
-  fTree->Branch("B_Ups2_mass", &B_Ups2_mass_b);
+  fTree->Branch("B_Z_mass", &B_Z_mass_b);
   fTree->Branch("B_JPsi_VtxProb", &B_JPsi_VtxProb_b);
   fTree->Branch("B_Z_VtxProb", &B_Z_VtxProb_b);
   fTree->Branch("B_JpsiTo2dy", &B_JpsiTo2dy_b);
   fTree->Branch("B_JPsi_Pt", &B_JPsi_Pt_b);
+  fTree->Branch("B_JPsi_Pt1", &B_JPsi_Pt1_b);
+  fTree->Branch("B_JPsi_Pt2", &B_JPsi_Pt2_b);
   fTree->Branch("B_Z_Pt", &B_Z_Pt_b);
+  fTree->Branch("B_Z_Pt1", &B_Z_Pt1_b);
+  fTree->Branch("B_Z_Pt2", &B_Z_Pt2_b);
   fTree->Branch("B_JPsi_Eta", &B_JPsi_Eta_b);
+  fTree->Branch("B_JPsi_Eta1", &B_JPsi_Eta1_b);
+  fTree->Branch("B_JPsi_Eta2", &B_JPsi_Eta2_b);
   fTree->Branch("B_Z_Eta", &B_Z_Eta_b);
+  fTree->Branch("B_Z_Eta1", &B_Z_Eta1_b);
+  fTree->Branch("B_Z_Eta2", &B_Z_Eta2_b);
   fTree->Branch("B_JPsi_Phi", &B_JPsi_Phi_b);
   fTree->Branch("B_Z_Phi", &B_Z_Phi_b);
   fTree->Branch("B_J1_mass", &B_J1_mass_b);
@@ -369,13 +417,21 @@ void AnalysisWithIso_sig::Loop() {
       float JPsi_VtxProb = 0;
       float Z_VtxProb = 0;
       float JPsi_Pt = 0;
+      float JPsi_Pt1 = 0;
+      float JPsi_Pt2 = 0;
       float Z_Pt = 0;
+      float Z_Pt1 = 0;
+      float Z_Pt2 = 0;
       float JPsi_Phi = 0;
       float Z_Phi = 0;
       float JPsi_mass = 0;
-      float Ups2_mass = 0;
+      float Z_mass = 0;
       float JPsi_Eta = 0;
+      float JPsi_Eta1 = 0;
+      float JPsi_Eta2 = 0;
       float Z_Eta = 0;
+      float Z_Eta1 = 0;
+      float Z_Eta2 = 0;
       float JPsi_Rapidity = 0;
       float Z_Rapidity = 0;
       float JpsiTo2_dY = 0;
@@ -391,26 +447,42 @@ void AnalysisWithIso_sig::Loop() {
             JPsi_mass = B_J1_mass->at(i);
             JPsi_VtxProb = B_J1_VtxProb->at(i);
             JPsi_Pt = B_J1_pt->at(i);
+            JPsi_Pt1 = B_Mu1_pt->at(i);
+            JPsi_Pt2 = B_Mu2_pt->at(i);
             JPsi_Eta = B_J1_eta->at(i);
+            JPsi_Eta1 = B_Mu1_eta->at(i);
+            JPsi_Eta2 = B_Mu2_eta->at(i);
             JPsi_Rapidity = B_J1_rapidity->at(i);
             JPsi_Phi = B_J1_phi->at(i);
-            Ups2_mass = B_J2_mass->at(i);
+            Z_mass = B_J2_mass->at(i);
             Z_VtxProb = B_J2_VtxProb->at(i);
             Z_Pt = B_J2_pt->at(i);
+            Z_Pt1 = B_Mu3_pt->at(i);
+            Z_Pt2 = B_Mu4_pt->at(i);
             Z_Eta = B_J2_eta->at(i);
+            Z_Eta1 = B_Mu3_eta->at(i);
+            Z_Eta2 = B_Mu4_eta->at(i);
             Z_Rapidity = B_J2_rapidity->at(i);
             Z_Phi = B_J2_phi->at(i);
           } else {
             JPsi_mass = B_J2_mass->at(i);
             JPsi_VtxProb = B_J2_VtxProb->at(i);
             JPsi_Pt = B_J2_pt->at(i);
+            JPsi_Pt1 = B_Mu3_pt->at(i);
+            JPsi_Pt2 = B_Mu4_pt->at(i);
             JPsi_Eta = B_J2_eta->at(i);
+            JPsi_Eta1 = B_Mu3_eta->at(i);
+            JPsi_Eta2 = B_Mu4_eta->at(i);
             JPsi_Rapidity = B_J2_rapidity->at(i);
             JPsi_Phi = B_J2_phi->at(i);
-            Ups2_mass = B_J1_mass->at(i);
+            Z_mass = B_J1_mass->at(i);
             Z_VtxProb = B_J1_VtxProb->at(i);
             Z_Pt = B_J1_pt->at(i);
+            Z_Pt1 = B_Mu1_pt->at(i);
+            Z_Pt2 = B_Mu2_pt->at(i);
             Z_Eta = B_J1_eta->at(i);
+            Z_Eta1 = B_Mu1_eta->at(i);
+            Z_Eta2 = B_Mu2_eta->at(i);
             Z_Rapidity = B_J1_rapidity->at(i);
             Z_Phi = B_J1_phi->at(i);
           }
@@ -419,26 +491,42 @@ void AnalysisWithIso_sig::Loop() {
             JPsi_mass = B_J3_mass->at(i);
             JPsi_VtxProb = B_J3_VtxProb->at(i);
             JPsi_Pt = B_J3_pt->at(i);
+            JPsi_Pt1 = B_Mu2_pt->at(i);
+            JPsi_Pt2 = B_Mu3_pt->at(i);
             JPsi_Eta = B_J3_eta->at(i);
+            JPsi_Eta1 = B_Mu2_eta->at(i);
+            JPsi_Eta2 = B_Mu3_eta->at(i);
             JPsi_Rapidity = B_J3_rapidity->at(i);
             JPsi_Phi = B_J3_phi->at(i);
-            Ups2_mass = B_J4_mass->at(i);
+            Z_mass = B_J4_mass->at(i);
             Z_VtxProb = B_J4_VtxProb->at(i);
             Z_Pt = B_J4_pt->at(i);
+            Z_Pt1 = B_Mu1_pt->at(i);
+            Z_Pt2 = B_Mu4_pt->at(i);
             Z_Eta = B_J4_eta->at(i);
+            Z_Eta1 = B_Mu1_eta->at(i);
+            Z_Eta2 = B_Mu4_eta->at(i);
             Z_Rapidity = B_J4_rapidity->at(i);
             Z_Phi = B_J4_phi->at(i);
           } else {
             JPsi_mass = B_J4_mass->at(i);
             JPsi_VtxProb = B_J4_VtxProb->at(i);
             JPsi_Pt = B_J4_pt->at(i);
+            JPsi_Pt1 = B_Mu1_pt->at(i);
+            JPsi_Pt2 = B_Mu4_pt->at(i);
             JPsi_Eta = B_J4_eta->at(i);
+            JPsi_Eta1 = B_Mu1_eta->at(i);
+            JPsi_Eta2 = B_Mu4_eta->at(i);
             JPsi_Rapidity = B_J4_rapidity->at(i);
             JPsi_Phi = B_J4_phi->at(i);
-            Ups2_mass = B_J3_mass->at(i);
+            Z_mass = B_J3_mass->at(i);
             Z_VtxProb = B_J3_VtxProb->at(i);
             Z_Pt = B_J3_pt->at(i);
+            Z_Pt1 = B_Mu2_pt->at(i);
+            Z_Pt2 = B_Mu3_pt->at(i);
             Z_Eta = B_J3_eta->at(i);
+            Z_Eta1 = B_Mu2_eta->at(i);
+            Z_Eta2 = B_Mu3_eta->at(i);
             Z_Rapidity = B_J3_rapidity->at(i);
             Z_Phi = B_J3_phi->at(i);
           }
@@ -451,26 +539,42 @@ void AnalysisWithIso_sig::Loop() {
             JPsi_mass = B_J1_mass->at(i);
             JPsi_VtxProb = B_J1_VtxProb->at(i);
             JPsi_Pt = B_J1_pt->at(i);
+            JPsi_Pt1 = B_Mu1_pt->at(i);
+            JPsi_Pt2 = B_Mu2_pt->at(i);
             JPsi_Eta = B_J1_eta->at(i);
+            JPsi_Eta1 = B_Mu1_eta->at(i);
+            JPsi_Eta2 = B_Mu2_eta->at(i);
             JPsi_Rapidity = B_J1_rapidity->at(i);
             JPsi_Phi = B_J1_phi->at(i);
-            Ups2_mass = B_J2_mass->at(i);
+            Z_mass = B_J2_mass->at(i);
             Z_VtxProb = B_J2_VtxProb->at(i);
             Z_Pt = B_J2_pt->at(i);
+            Z_Pt1 = B_Mu3_pt->at(i);
+            Z_Pt2 = B_Mu4_pt->at(i);
             Z_Eta = B_J2_eta->at(i);
+            Z_Eta1 = B_Mu3_eta->at(i);
+            Z_Eta2 = B_Mu4_eta->at(i);
             Z_Rapidity = B_J2_rapidity->at(i);
             Z_Phi = B_J2_phi->at(i);
           } else if (B_J2_mass->at(i) > 3.0 && B_J2_mass->at(i) < 3.2) {
             JPsi_mass = B_J2_mass->at(i);
             JPsi_VtxProb = B_J2_VtxProb->at(i);
             JPsi_Pt = B_J2_pt->at(i);
+            JPsi_Pt1 = B_Mu3_pt->at(i);
+            JPsi_Pt2 = B_Mu4_pt->at(i);
             JPsi_Eta = B_J2_eta->at(i);
+            JPsi_Eta1 = B_Mu3_eta->at(i);
+            JPsi_Eta2 = B_Mu4_eta->at(i);
             JPsi_Rapidity = B_J2_rapidity->at(i);
             JPsi_Phi = B_J2_phi->at(i);
-            Ups2_mass = B_J1_mass->at(i);
+            Z_mass = B_J1_mass->at(i);
             Z_VtxProb = B_J1_VtxProb->at(i);
             Z_Pt = B_J1_pt->at(i);
+            Z_Pt1 = B_Mu1_pt->at(i);
+            Z_Pt2 = B_Mu2_pt->at(i);
             Z_Eta = B_J1_eta->at(i);
+            Z_Eta1 = B_Mu1_eta->at(i);
+            Z_Eta2 = B_Mu2_eta->at(i);
             Z_Rapidity = B_J1_rapidity->at(i);
             Z_Phi = B_J1_phi->at(i);
           }
@@ -479,26 +583,42 @@ void AnalysisWithIso_sig::Loop() {
             JPsi_mass = B_J3_mass->at(i);
             JPsi_VtxProb = B_J3_VtxProb->at(i);
             JPsi_Pt = B_J3_pt->at(i);
+            JPsi_Pt1 = B_Mu2_pt->at(i);
+            JPsi_Pt2 = B_Mu3_pt->at(i);
             JPsi_Eta = B_J3_eta->at(i);
+            JPsi_Eta1 = B_Mu2_eta->at(i);
+            JPsi_Eta2 = B_Mu3_eta->at(i);
             JPsi_Rapidity = B_J3_rapidity->at(i);
             JPsi_Phi = B_J3_phi->at(i);
-            Ups2_mass = B_J4_mass->at(i);
+            Z_mass = B_J4_mass->at(i);
             Z_VtxProb = B_J4_VtxProb->at(i);
             Z_Pt = B_J4_pt->at(i);
+            Z_Pt1 = B_Mu1_pt->at(i);
+            Z_Pt2 = B_Mu4_pt->at(i);
             Z_Eta = B_J4_eta->at(i);
+            Z_Eta1 = B_Mu1_eta->at(i);
+            Z_Eta2 = B_Mu4_eta->at(i);
             Z_Rapidity = B_J4_rapidity->at(i);
             Z_Phi = B_J4_phi->at(i);
           } else if (B_J4_mass->at(i) > 3.0 && B_J4_mass->at(i) < 3.2) {
             JPsi_mass = B_J4_mass->at(i);
             JPsi_VtxProb = B_J4_VtxProb->at(i);
             JPsi_Pt = B_J4_pt->at(i);
+            JPsi_Pt1 = B_Mu1_pt->at(i);
+            JPsi_Pt2 = B_Mu4_pt->at(i);
             JPsi_Eta = B_J4_eta->at(i);
+            JPsi_Eta1 = B_Mu1_eta->at(i);
+            JPsi_Eta2 = B_Mu4_eta->at(i);
             JPsi_Rapidity = B_J4_rapidity->at(i);
             JPsi_Phi = B_J4_phi->at(i);
-            Ups2_mass = B_J3_mass->at(i);
+            Z_mass = B_J3_mass->at(i);
             Z_VtxProb = B_J3_VtxProb->at(i);
             Z_Pt = B_J3_pt->at(i);
+            Z_Pt1 = B_Mu2_pt->at(i);
+            Z_Pt2 = B_Mu3_pt->at(i);
             Z_Eta = B_J3_eta->at(i);
+            Z_Eta1 = B_Mu2_eta->at(i);
+            Z_Eta2 = B_Mu3_eta->at(i);
             Z_Rapidity = B_J3_rapidity->at(i);
             Z_Phi = B_J3_phi->at(i);
           }
@@ -696,9 +816,9 @@ void AnalysisWithIso_sig::Loop() {
       //Dilepton mass cut 5
       if (JPsi_mass < 3.0 || JPsi_mass > 3.2)
         continue;
-      if (Ups2_mass < 80.0 || Ups2_mass > 100)
+      if (Z_mass < 80.0 || Z_mass > 100)
         continue;
-      // if (Ups2_mass < 85.0 || Ups2_mass>100) continue;
+      // if (Z_mass < 85.0 || Z_mass>100) continue;
 
       ncandiYZMass++;
       //Events=Event->at(i);
@@ -709,7 +829,7 @@ void AnalysisWithIso_sig::Loop() {
 
       //OnlyUps(1S)
       //if (JPsi_mass > 3.2) continue;
-      //if (Ups2_mass > 3.2) continue;
+      //if (Z_mass > 3.2) continue;
       //rapidity cut cut 6
       // if (JpsiTo2_dY > 3.0 ) continue;
       //delta phi cut cut 7
@@ -743,8 +863,7 @@ void AnalysisWithIso_sig::Loop() {
         continue;
 
       // blinding cut
-
-      // if (FourL_mass->at(i) < 120 || FourL_mass->at(i) > 130) continue;
+      // if (FourL_mass->at(i) > 120 && FourL_mass->at(i) < 130) continue;
 
       ncandi4Mass++;
       //Events=Event->at(i);
@@ -771,22 +890,30 @@ void AnalysisWithIso_sig::Loop() {
         }
       }
 
-      myfile << Event->at(i) << " " << JPsi_mass << " " << Ups2_mass << " " << FourL_mass->at(i) << " " << FourL_VtxProb->at(i) << endl;
+      myfile << Event->at(i) << " " << JPsi_mass << " " << Z_mass << " " << FourL_mass->at(i) << " " << FourL_VtxProb->at(i) << endl;
 
       //myfile<<JPsi_mass<<endl;
 
       //if (ncandi>1) continue;
       Events_b->push_back(Events);
       B_JPsi_mass_b->push_back(JPsi_mass);
-      B_Ups2_mass_b->push_back(Ups2_mass);
+      B_Z_mass_b->push_back(Z_mass);
       B_JPsi_VtxProb_b->push_back(JPsi_VtxProb);
       B_Z_VtxProb_b->push_back(Z_VtxProb);
       B_JpsiTo2dy_b->push_back(JpsiTo2_dY);
       B_JPsi_Pt_b->push_back(JPsi_Pt);
+      B_JPsi_Pt1_b->push_back(JPsi_Pt1);
+      B_JPsi_Pt2_b->push_back(JPsi_Pt2);
       B_JPsi_Eta_b->push_back(JPsi_Eta);
+      B_JPsi_Eta1_b->push_back(JPsi_Eta1);
+      B_JPsi_Eta2_b->push_back(JPsi_Eta2);
       B_JPsi_Phi_b->push_back(JPsi_Phi);
       B_Z_Pt_b->push_back(Z_Pt);
+      B_Z_Pt1_b->push_back(Z_Pt1);
+      B_Z_Pt2_b->push_back(Z_Pt2);
       B_Z_Eta_b->push_back(Z_Eta);
+      B_Z_Eta1_b->push_back(Z_Eta1);
+      B_Z_Eta2_b->push_back(Z_Eta2);
       B_Z_Phi_b->push_back(Z_Phi);
       FourL_VtxProb_b->push_back(FourL_VtxProb->at(i));
       B_J1_mass_b->push_back(B_J1_mass->at(i));
@@ -844,6 +971,20 @@ void AnalysisWithIso_sig::Loop() {
       B_J_xyM2_b->push_back(B_J_xyM2->at(i));
       B_J_zP2_b->push_back(B_J_zP2->at(i));
       B_J_zM2_b->push_back(B_J_zM2->at(i));
+
+      //B_Z_pt1_b->push_back(B_Z_pt1->at(i));
+      //B_Z_pt2_b->push_back(B_Z_pt2->at(i));
+      //B_Z_eta1_b->push_back(B_Z_eta1->at(i));
+      //B_Z_eta2_b->push_back(B_Z_eta2->at(i));
+      //B_Z_phi1_b->push_back(B_Z_phi1->at(i));
+      //B_Z_phi2_b->push_back(B_Z_phi2->at(i));
+
+      //B_J_pt1_b->push_back(B_J_pt1->at(i));
+      //B_J_pt2_b->push_back(B_J_pt2->at(i));
+      //B_J_eta1_b->push_back(B_J_eta1->at(i));
+      //B_J_eta2_b->push_back(B_J_eta2->at(i));
+      //B_J_phi1_b->push_back(B_J_phi1->at(i));
+      //B_J_phi2_b->push_back(B_J_phi2->at(i));
     }
   }
   cout << "Number of event Preselection=" << nevPreSelection << endl;
