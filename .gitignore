@@ -10,11 +10,6 @@ __init__.py
 *.rej
 *.orig
 
-# ignore files under the top level $CMSSW_BASE/src directory, but not its subdirectories
-/*
-!/*/
-
-
 # ignore the following directories
 ZmmJmmAnalyzer/dataSubmit/**/crab_TTree_13TeV*/inputs/
 ZmmJmmAnalyzer/dataSubmit/**/crab.log
