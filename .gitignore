@@ -20,6 +20,6 @@ ZeeJmmAnalyzer/dataSubmit/**/crab.log
 ZeeJmmAnalyzer/dataSubmit/**/*.gz
 ZeeJmmAnalyzer/dataSubmit/**/.requestcache
 
-ZeeJmmAnalyzer/outputs
-ZeeJmmAnalyzer/inputFiles
+ZeeJmmAnalyzer/selection
+ZeeJmmAnalyzer/preselection
 ZeeJmmAnalyzer/scripts/plots
