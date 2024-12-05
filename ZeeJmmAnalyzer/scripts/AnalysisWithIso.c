@@ -45,6 +45,7 @@ void AnalysisWithIso::Loop() {
   vector<float> *B_TriggerDelta_pt_b;
 
   vector<float> *Events_b;
+  vector<float> *Run_b;
   vector<float> *B_Ups1_mass_b;
   vector<float> *B_Ups2_mass_b;
   vector<float> *B_Ups1_VtxProb_b;
@@ -132,6 +133,7 @@ void AnalysisWithIso::Loop() {
 
   B_TriggerDelta_pt_b = 0;
   Events_b = 0;
+  Run_b = 0;
   B_Ups1_mass_b = 0;
   B_Ups2_mass_b = 0;
   B_Ups1_Pt_b = 0;
@@ -215,8 +217,8 @@ void AnalysisWithIso::Loop() {
 
   //initialize
   fTree->Branch("B_TriggerDelta_pt", &B_TriggerDelta_pt_b);
-
   fTree->Branch("Event", &Events_b);
+  fTree->Branch("Run", &Run_b);
   fTree->Branch("B_Ups1_mass", &B_Ups1_mass_b);
   fTree->Branch("B_Ups2_mass", &B_Ups2_mass_b);
   fTree->Branch("B_Ups1_VtxProb", &B_Ups1_VtxProb_b);
@@ -679,7 +681,7 @@ if ( (B_Mu_IsoTrackCorr1/B_Mu1_pt->at(i) ) >0.50) continue;
 
       // if (FourL_mass->at(i) > 120 && FourL_mass->at(i) < 130) continue;
 
-      cout << B_Z_TriggerPt1->at(i) - B_Z_pt1->at(i) << endl;
+      // cout << B_Z_TriggerPt1->at(i) - B_Z_pt1->at(i) << endl;
 
       ncandi4Mass++;
       //Events=Event->at(i);
@@ -712,6 +714,7 @@ if ( (B_Mu_IsoTrackCorr1/B_Mu1_pt->at(i) ) >0.50) continue;
 
       //if (ncandi>1) continue;
       Events_b->push_back(Events);
+      Run_b->push_back(Run->at(i));
       B_Ups1_mass_b->push_back(Ups1_mass);
       B_Ups2_mass_b->push_back(Ups2_mass);
       B_Ups1_VtxProb_b->push_back(Ups_VtxProb1);
