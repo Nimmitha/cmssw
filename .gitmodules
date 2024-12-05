@@ -1,0 +1,3 @@
+[submodule "ZeeJmmAnalyzer/scripts/cutBasedAnalyzer"]
+	path = ZeeJmmAnalyzer/scripts/cutBasedAnalyzer
+	url = ssh://git@gitlab.cern.ch:7999/nkarunar/cutbasedanalyzer.git
