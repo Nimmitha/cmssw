@@ -48,6 +48,7 @@ void AnalysisWithIso_final::Loop() {
   //Now create the branches on tree
   //Define Tree name
   vector<float> *Events_b;
+  vector<float> *Run_b;
   vector<float> *B_JPsi_mass_b;
   vector<float> *B_Z_mass_b;
   vector<float> *B_JPsi_VtxProb_b;
@@ -139,6 +140,7 @@ void AnalysisWithIso_final::Loop() {
   vector<float> *B_J_phi2_b;
 
   Events_b = 0;
+  Run_b = 0;
   B_JPsi_mass_b = 0;
   B_Z_mass_b = 0;
   B_JPsi_Pt_b = 0;
@@ -229,6 +231,7 @@ void AnalysisWithIso_final::Loop() {
   //initialize
 
   fTree->Branch("Event", &Events_b);
+  fTree->Branch("Run", &Run_b);
   fTree->Branch("B_JPsi_mass", &B_JPsi_mass_b);
   fTree->Branch("B_Z_mass", &B_Z_mass_b);
   fTree->Branch("B_JPsi_VtxProb", &B_JPsi_VtxProb_b);
@@ -896,6 +899,7 @@ void AnalysisWithIso_final::Loop() {
 
       //if (ncandi>1) continue;
       Events_b->push_back(Events);
+      Run_b->push_back(Run->at(i));
       B_JPsi_mass_b->push_back(JPsi_mass);
       B_Z_mass_b->push_back(Z_mass);
       B_JPsi_VtxProb_b->push_back(JPsi_VtxProb);
