@@ -941,7 +941,7 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
             //B_J_pz->push_back( psi_vFit_noMC->currentState().globalMomentum().z() );
           }
           //cout<<JPsi_mom.mass()<<" : Is JPsi Vtx Mass "<<MM.M()<<"Is JPsi mass"<<endl;
-          cout << iMuon1->dB(pat::Muon::PV3D) / iMuon1->edB(pat::Muon::PV3D) << endl;
+          // cout << iMuon1->dB(pat::Muon::PV3D) / iMuon1->edB(pat::Muon::PV3D) << endl;
           //Event Information
           Run->push_back(iEvent.id().run());
           LumiBlock->push_back(iEvent.luminosityBlock());
