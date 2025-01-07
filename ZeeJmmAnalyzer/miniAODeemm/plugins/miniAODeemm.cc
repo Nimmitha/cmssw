@@ -692,7 +692,7 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
             // cout<<"B_Prob_tmp4L "<<B_Prob_tmp4L<<endl;
             continue;
           }
-          std::cout << "FINAL VERTEX 4L" << std::endl;
+          // std::cout << "FINAL VERTEX 4L" << std::endl;
 
           // ******   Let's check the vertex and mass ****
 
@@ -988,7 +988,7 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   }
 
   if ((nB + nG1 + nG2) > 0) {
-    std::cout << "filling tree" << endl;
+    // std::cout << "filling tree" << endl;
     tree_->Fill();
   }
 
