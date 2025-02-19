@@ -422,7 +422,7 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           }
 
           // Remove events with mass outside J/Psi or Z mass window
-          if ((MM1.M() < 2.5 || MM1.M() > 3.5)){
+          if ((MM1.M() < 2.6 || MM1.M() > 3.6)){
             continue;
           }
 
