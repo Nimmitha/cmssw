@@ -100,15 +100,13 @@ private:
   bool isMC_;
 
   TTree *tree_;
+  TTree *triggerTree;
+
+  bool triggerNamesSaved;
+  std::vector<std::string> triggerNames;
+  std::vector<bool> *triggerStatus;
 
   std::vector<float> *Run, *LumiBlock, *Event;
-
-  std::vector<bool> *Mu_TriggerPath;
-  std::vector<float> *B_U_TriggerPt1, *B_U_TriggerEta1, *B_U_TriggerPhi1;
-  std::vector<float> *B_U_TriggerPt2, *B_U_TriggerEta2, *B_U_TriggerPhi2;
-  std::vector<float> *B_U_TriggerPt3, *B_U_TriggerEta3, *B_U_TriggerPhi3;
-  std::vector<float> *B_U_TriggerPt4, *B_U_TriggerEta4, *B_U_TriggerPhi4;
-  std::vector<float> *B_U_TriggerPt5, *B_U_TriggerEta5, *B_U_TriggerPhi5;
 
   std::vector<float> *B_J1_mass, *B_J1_px, *B_J1_py, *B_J1_pz;
   std::vector<float> *B_J1_pt, *B_J1_eta, *B_J1_phi, *B_J1_rapidity;
@@ -127,7 +125,14 @@ private:
   std::vector<float> *B_Mu1_PaperIsoTrackRF04, *B_Mu1_PaperIsoTrackRF03;
   std::vector<float> *B_Mu1_Paper3DIP;
 
-  std::vector<int> *B_Mu1_charge;
+  std::vector<float> *B_Mu2_px, *B_Mu2_py, *B_Mu2_pz;
+  std::vector<float> *B_Mu2_pt, *B_Mu2_eta, *B_Mu2_phi;
+  std::vector<int> *B_Mu1_charge, *B_Mu2_charge;
+  std::vector<bool> *B_Mu2_soft, *B_Mu2_tight, *B_Mu2_loose;
+  std::vector<float> *B_Mu2_IsoTrack, *B_Mu2_IsoHcal, *B_Mu2_IsoEcal, *B_Mu2_IsoCalo;
+
+  std::vector<float> *B_Mu2_PaperIsoTrackRF04, *B_Mu2_PaperIsoTrackRF03;
+  std::vector<float> *B_Mu2_Paper3DIP;
 
   std::vector<float> *B_J1_VtxProb, *B_J2_VtxProb, *B_J3_VtxProb, *B_J4_VtxProb;
   std::vector<float> *B_J_xyP1, *B_J_xyM1, *B_J_zP1, *B_J_zM1;
@@ -137,8 +142,14 @@ private:
   std::vector<int> *mu1mNHits, *mu1mNPHits;
   std::vector<float> *mu1pC2;
   std::vector<int> *mu1pNHits, *mu1pNPHits;
+  std::vector<float> *mu2mC2;
+  std::vector<int> *mu2mNHits, *mu2mNPHits;
+  std::vector<float> *mu2pC2;
+  std::vector<int> *mu2pNHits, *mu2pNPHits;
   std::vector<float> *B_M1_pt, *B_M1_eta, *B_M1_phi;
   std::vector<float> *B_M1_px, *B_M1_py, *B_M1_pz;
+  std::vector<float> *B_M2_pt, *B_M2_eta, *B_M2_phi;
+  std::vector<float> *B_M2_px, *B_M2_py, *B_M2_pz;
   std::vector<float> *B_J_GenMuonPt, *B_J_GenMuonEta, *B_J_GenMuonPhi;
   std::vector<float> *B_Z_GenMuonPt, *B_Z_GenMuonEta, *B_Z_GenMuonPhi;
   unsigned int nB;
