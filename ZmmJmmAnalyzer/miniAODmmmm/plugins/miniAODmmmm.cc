@@ -287,7 +287,6 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   for (unsigned int i = 0; i < triggerBits->size(); ++i) {
     triggerStatus->push_back(triggerBits->accept(i));  // Save trigger fired status
   }
-  cout << "Length of triggerStatus: " << triggerStatus->size() << endl;
 
   //*********************************
   //Now we get the primary vertex
@@ -322,9 +321,9 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
           if (!((iMuon1->charge()) + (iMuon2->charge())) == 0)
             continue;
-          if (iMuon1->pt() < 2.0)
+          if (iMuon1->pt() < 3.0)
             continue;
-          if (iMuon2->pt() < 2.0)
+          if (iMuon2->pt() < 3.0)
             continue;
             
           TrackRef glbTrackP1;
