@@ -27,7 +27,8 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 500
 process.options = cms.untracked.PSet(
   wantSummary = cms.untracked.bool(True),
   allowUnscheduled = cms.untracked.bool(True),
-  SkipEvent = cms.untracked.vstring('ProductNotFound') )
+  # SkipEvent = cms.untracked.vstring('ProductNotFound')
+  )
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
