@@ -34,32 +34,32 @@ process.options = cms.untracked.PSet(
   # SkipEvent = cms.untracked.vstring('ProductNotFound')
   )
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10000))
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(       
+        'file:miniAODs/ccef7898-f14c-45b5-9661-39aab122333e.root'
 #  '/store/data/Run2022B/SingleMuon/MINIAOD/22Sep2023-v1/50000/2ad62630-b826-4686-a441-2099de25476a.root'
 #  '/store/data/Run2023D/Muon0/MINIAOD/22Sep2023_v1-v1/2530000/0fa55ced-a7cc-4a8a-a0e5-0381c3ac8e37.root'
 # 'file:/uscms/home/wkarunar/nobackup/datasets/mc/zmmymm_run3/mmmm_v1/MiniAOD/MiniAOD_10.root'
 # 'file:/uscms/home/wkarunar/nobackup/datasets/mc/run3_zmmJpsimm/ZmmJpsimm/MiniAOD/MiniAOD_10.root'
-'/store/data/Run2022D/Muon/MINIAOD/22Sep2023-v1/2520000/00242360-6d04-4eb0-b75c-0d743850f2fc.root'
+# '/store/data/Run2022D/Muon/MINIAOD/22Sep2023-v1/2520000/00242360-6d04-4eb0-b75c-0d743850f2fc.root'
 #'file:../../../../datasets/ZmmYee/Y1S/MiniAOD/MiniAOD_1.root' 
  )
 )
 
 process.rootuple = cms.EDAnalyzer('miniAODmmmm',
                           muons = cms.InputTag("slimmedMuons"),
-                          # dielectron = cms.InputTag("slimmedElectrons"),
-                          # Trak = cms.InputTag("packedPFCandidates"),
                           primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
                           bits = cms.InputTag("TriggerResults::HLT"),
                           objects = cms.InputTag("slimmedPatTrigger"),
+                          prescales = cms.InputTag("patTrigger"),
                           pruned = cms.InputTag("prunedGenParticles"),
-                          MuonTrigger = cms.string("HLT_IsoMu24_v"),
-                          isMC = cms.bool(True),
+                          MuonTrigger = cms.string("pass"),
+                          isMC = cms.bool(False),
                           )
 
 process.TFileService = cms.Service("TFileService",
-  fileName = cms.string('preselection/testout_2fc.root'),
+  fileName = cms.string('preselection/testout_333e.root'),
 )
 
 process.p = cms.Path(process.rootuple)

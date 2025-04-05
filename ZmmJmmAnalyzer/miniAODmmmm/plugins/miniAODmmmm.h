@@ -29,6 +29,7 @@
 #include "RecoVertex/KinematicFitPrimitives/interface/KinematicParticleFactoryFromTransientTrack.h"
 
 // trigger
+#include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
@@ -77,9 +78,10 @@ private:
 
   // ----------member data ---------------------------
   edm::EDGetTokenT<pat::MuonCollection> muonsToken_;
-  edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
+  edm::EDGetTokenT<edm::TriggerResults> TriggerResultsToken_;
   edm::EDGetTokenT<reco::GenParticleCollection> prunedGenToken_;
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
+  edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescales_;
   edm::EDGetTokenT<reco::VertexCollection> primaryVertices_Label;
 
   // edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> estoken_TTB;
@@ -88,15 +90,13 @@ private:
   // const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> estoken_MF;
   const edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> estoken_TTB;
   std::string MuonTriggerString;
-
   bool isMC_;
 
   TTree *tree_;
-  TTree *triggerTree;
 
-  bool triggerNamesSaved;
-  std::vector<std::string> triggerNames;
-  std::vector<bool> *triggerStatus;
+  std::vector<std::string> savedtriggerNames;
+  std::vector<bool> *savedtriggerBits;
+  std::vector<double> *savedtriggerPrescales;
 
   std::vector<float> *Run, *LumiBlock, *Event;
 

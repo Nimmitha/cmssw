@@ -44,6 +44,7 @@
 #include "RecoVertex/KinematicFitPrimitives/interface/KinematicParticleFactoryFromTransientTrack.h"
 
 // // trigger
+#include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
@@ -88,9 +89,10 @@ typedef math::Error<3>::type CovarianceMatrix;
 
 miniAODmmmm::miniAODmmmm(const edm::ParameterSet &iConfig)
     : muonsToken_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"))),
-      triggerBits_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("bits"))),
+      TriggerResultsToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("bits"))),
       prunedGenToken_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("pruned"))),
       triggerObjects_(consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("objects"))),
+      triggerPrescales_(consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("prescales"))),
       primaryVertices_Label(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("primaryVertices"))),
       // estoken_MF(esConsumes()),
       // estoken_TTB(esConsumes<TransientTrackBuilder, TransientTrackRecord>()),
@@ -100,10 +102,9 @@ miniAODmmmm::miniAODmmmm(const edm::ParameterSet &iConfig)
       isMC_(iConfig.getParameter<bool>("isMC")),
 
       tree_(0),
-      triggerTree(0),
-      triggerNamesSaved(false),
-      triggerNames(0),
-      triggerStatus(0),
+      savedtriggerNames(0),
+      savedtriggerBits(0),
+      savedtriggerPrescales(0),
 
       Run(0),
       LumiBlock(0),
@@ -241,36 +242,44 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
   edm::Handle<pat::MuonCollection> thePATMuonHandle;
   iEvent.getByToken(muonsToken_, thePATMuonHandle);
 
-  edm::Handle<edm::TriggerResults> triggerBits;
-  iEvent.getByToken(triggerBits_, triggerBits);
+  edm::Handle<edm::TriggerResults> TriggerResults;
+  iEvent.getByToken(TriggerResultsToken_, TriggerResults);
 
   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
   iEvent.getByToken(triggerObjects_, triggerObjects);
+
+  edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
+  iEvent.getByToken(triggerPrescales_, triggerPrescales);
   if (!thePATMuonHandle.isValid()) {
     edm::LogWarning("miniAODmmmm") << "No pat::Muon found on Event!";
     return;
   }
-  if (!triggerBits.isValid()) {
+  if (!TriggerResults.isValid()) {
     edm::LogWarning("miniAODmmmm") << "No TriggerResults found on Event!";
     return;
   }
-  if (!triggerObjects.isValid()) {
-    edm::LogWarning("miniAODmmmm") << "No TriggerObjectStandAlone found on Event!";
+  if (!triggerPrescales.isValid()) {
+    edm::LogWarning("miniAODmmmm") << "no Trigger prescale in event!";
     return;
   }
 
-  if (!triggerNamesSaved) {
-    const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
+  const edm::TriggerNames &names = iEvent.triggerNames(*TriggerResults);
 
-    for (unsigned int i = 0; i < triggerBits->size(); ++i) {
-      triggerNames.push_back(names.triggerName(i));
+  // Only save info if the trigger fired.
+  if (MuonTriggerString != "pass") {
+    bool triggerFired = false;
+    // Loop over all triggers to see if the desired one fired
+    for (unsigned int i = 0; i < TriggerResults->size(); ++i) {
+      if (names.triggerName(i).find(MuonTriggerString.c_str()) != string::npos) {
+        if (TriggerResults->accept(i)) {
+          triggerFired = true;  // Trigger fired!
+        }
+        break;  // No need to check further if we already found the trigger
+      }
     }
-    triggerTree->Fill();
-    triggerNamesSaved = true;
-  }
-
-  for (unsigned int i = 0; i < triggerBits->size(); ++i) {
-    triggerStatus->push_back(triggerBits->accept(i));  // Save trigger fired status
+    if (!triggerFired) {
+      return;
+    }
   }
 
   //*********************************
@@ -287,8 +296,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
   //*********Now we get the muons***********************
   //****************************************************
 
-  for (pat::MuonCollection::const_iterator iMuon1 = thePATMuonHandle->begin(); iMuon1 != thePATMuonHandle->end();
-       ++iMuon1) {
+  for (pat::MuonCollection::const_iterator iMuon1 = thePATMuonHandle->begin(); iMuon1 != thePATMuonHandle->end(); ++iMuon1) {
     for (pat::MuonCollection::const_iterator iMuon2 = iMuon1 + 1; iMuon2 != thePATMuonHandle->end(); ++iMuon2) {
       //make sure all muons are diferent
       if (iMuon1 == iMuon2)
@@ -304,9 +312,9 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 
       if (!((iMuon1->charge()) + (iMuon2->charge())) == 0)
         continue;
-      if (iMuon1->pt() < 2.0)
+      if (iMuon1->pt() < 3.0)
         continue;
-      if (iMuon2->pt() < 2.0)
+      if (iMuon2->pt() < 3.0)
         continue;
 
       TrackRef glbTrackP1;
@@ -398,6 +406,12 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       LumiBlock->push_back(iEvent.luminosityBlock());
       Event->push_back(iEvent.id().event());
 
+      for (unsigned int i = 0; i < TriggerResults->size(); ++i) {
+        savedtriggerNames.push_back(names.triggerName(i));
+        savedtriggerBits->push_back(TriggerResults->accept(i));
+        savedtriggerPrescales->push_back(triggerPrescales->getPrescaleForIndex<double>(i));
+      }
+
       B_J1_mass->push_back(MM1.M());
       B_J1_px->push_back(MM1.Px());
       B_J1_py->push_back(MM1.Py());
@@ -442,16 +456,10 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       B_Mu1_IsoCalo->push_back(iMuon1->caloIso());
 
       B_Mu1_PaperIsoTrackRF04->push_back(
-          (iMuon1->pfIsolationR04().sumChargedHadronPt +
-           std::max(0.,
-                    iMuon1->pfIsolationR04().sumNeutralHadronEt + iMuon1->pfIsolationR04().sumPhotonEt -
-                        iMuon1->pfIsolationR04().sumPUPt * 0.5)) /
+          (iMuon1->pfIsolationR04().sumChargedHadronPt + std::max(0., iMuon1->pfIsolationR04().sumNeutralHadronEt + iMuon1->pfIsolationR04().sumPhotonEt - iMuon1->pfIsolationR04().sumPUPt * 0.5)) /
           iMuon1->pt());
       B_Mu1_PaperIsoTrackRF03->push_back(
-          (iMuon1->pfIsolationR03().sumChargedHadronPt +
-           std::max(0.,
-                    iMuon1->pfIsolationR03().sumNeutralHadronEt + iMuon1->pfIsolationR03().sumPhotonEt -
-                        iMuon1->pfIsolationR03().sumPUPt * 0.5)) /
+          (iMuon1->pfIsolationR03().sumChargedHadronPt + std::max(0., iMuon1->pfIsolationR03().sumNeutralHadronEt + iMuon1->pfIsolationR03().sumPhotonEt - iMuon1->pfIsolationR03().sumPUPt * 0.5)) /
           iMuon1->pt());
 
       B_Mu1_Paper3DIP->push_back(iMuon1->dB(pat::Muon::PV3D) / iMuon1->edB(pat::Muon::PV3D));
@@ -471,16 +479,10 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       B_Mu2_IsoCalo->push_back(iMuon2->caloIso());
 
       B_Mu2_PaperIsoTrackRF04->push_back(
-          (iMuon2->pfIsolationR04().sumChargedHadronPt +
-           std::max(0.,
-                    iMuon2->pfIsolationR04().sumNeutralHadronEt + iMuon2->pfIsolationR04().sumPhotonEt -
-                        iMuon2->pfIsolationR04().sumPUPt * 0.5)) /
+          (iMuon2->pfIsolationR04().sumChargedHadronPt + std::max(0., iMuon2->pfIsolationR04().sumNeutralHadronEt + iMuon2->pfIsolationR04().sumPhotonEt - iMuon2->pfIsolationR04().sumPUPt * 0.5)) /
           iMuon2->pt());
       B_Mu2_PaperIsoTrackRF03->push_back(
-          (iMuon2->pfIsolationR03().sumChargedHadronPt +
-           std::max(0.,
-                    iMuon2->pfIsolationR03().sumNeutralHadronEt + iMuon2->pfIsolationR03().sumPhotonEt -
-                        iMuon2->pfIsolationR03().sumPUPt * 0.5)) /
+          (iMuon2->pfIsolationR03().sumChargedHadronPt + std::max(0., iMuon2->pfIsolationR03().sumNeutralHadronEt + iMuon2->pfIsolationR03().sumPhotonEt - iMuon2->pfIsolationR03().sumPUPt * 0.5)) /
           iMuon2->pt());
 
       B_Mu2_Paper3DIP->push_back(iMuon2->dB(pat::Muon::PV3D) / iMuon2->edB(pat::Muon::PV3D));
@@ -513,112 +515,113 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       B_M2_px->push_back(M2.Px());
       B_M2_py->push_back(M2.Py());
       B_M2_pz->push_back(M2.Pz());
-      nB++;
+
+      // nB++;
+      // if (nB > 0) {
+      //   // std::cout << "filling tree" << endl;
+      // }
+      tree_->Fill();
+
+      nB = 0;
+      savedtriggerNames.clear();
+      savedtriggerBits->clear();
+      savedtriggerPrescales->clear();
+      Run->clear();
+      LumiBlock->clear();
+      Event->clear();
+
+      B_J1_mass->clear();
+      B_J1_px->clear();
+      B_J1_py->clear();
+      B_J1_pz->clear();
+      B_J1_pt->clear();
+      B_J1_eta->clear();
+      B_J1_phi->clear();
+      B_J1_rapidity->clear();
+
+      B_J1_VtxPx->clear();
+      B_J1_VtxPy->clear();
+      B_J1_VtxPz->clear();
+      B_J1_VtxPt->clear();
+      B_J1_VtxEta->clear();
+      B_J1_VtxPhi->clear();
+      B_J1_VtxRapidity->clear();
+      B_J1_VtxMass->clear();
+      B_J1_PVx->clear();
+      B_J1_PVy->clear();
+      B_J1_PVz->clear();
+      B_J1_PVxError->clear();
+      B_J1_PVyError->clear();
+      B_J1_PVzError->clear();
+
+      B_Mu1_px->clear();
+      B_Mu1_py->clear();
+      B_Mu1_pz->clear();
+      B_Mu1_charge->clear();
+      B_Mu1_pt->clear();
+      B_Mu1_eta->clear();
+      B_Mu1_phi->clear();
+      B_Mu1_soft->clear();
+      B_Mu1_tight->clear();
+      B_Mu1_loose->clear();
+      B_Mu1_IsoTrack->clear();
+      B_Mu1_IsoHcal->clear();
+      B_Mu1_IsoEcal->clear();
+      B_Mu1_IsoCalo->clear();
+      B_Mu2_px->clear();
+      B_Mu2_py->clear();
+      B_Mu2_pz->clear();
+      B_Mu2_charge->clear();
+      B_Mu2_pt->clear();
+      B_Mu2_eta->clear();
+      B_Mu2_phi->clear();
+      B_J1_VtxProb->clear();
+      B_Mu2_soft->clear();
+      B_Mu2_tight->clear();
+      B_Mu2_loose->clear();
+      B_Mu2_IsoTrack->clear();
+      B_Mu2_IsoHcal->clear();
+      B_Mu2_IsoEcal->clear();
+      B_Mu2_IsoCalo->clear();
+      B_J_xyP1->clear();
+      B_J_xyM1->clear();
+      B_J_zP1->clear();
+      B_J_zM1->clear();
+      B_Mu1_PaperIsoTrackRF04->clear();
+      B_Mu1_PaperIsoTrackRF03->clear();
+      B_Mu2_PaperIsoTrackRF04->clear();
+      B_Mu2_PaperIsoTrackRF03->clear();
+
+      B_Mu1_Paper3DIP->clear();
+      B_Mu2_Paper3DIP->clear();
+
+      mu1mC2->clear();
+      mu1mNHits->clear();
+      mu1mNPHits->clear();
+      mu1pC2->clear();
+      mu1pNHits->clear();
+      mu1pNPHits->clear();
+      mu2mC2->clear();
+      mu2mNHits->clear();
+      mu2mNPHits->clear();
+      mu2pC2->clear();
+      mu2pNHits->clear();
+      mu2pNPHits->clear();
+
+      B_M1_pt->clear();
+      B_M1_eta->clear();
+      B_M1_phi->clear();
+      B_M1_px->clear();
+      B_M1_px->clear();
+      B_M1_pz->clear();
+      B_M2_pt->clear();
+      B_M2_eta->clear();
+      B_M2_phi->clear();
+      B_M2_px->clear();
+      B_M2_px->clear();
+      B_M2_pz->clear();
     }
   }
-
-  if (nB > 0) {
-    //std::cout << "filling tree" << endl;
-    tree_->Fill();
-  }
-
-  nB = 0;
-  triggerStatus->clear();
-  Run->clear();
-  LumiBlock->clear();
-  Event->clear();
-
-  B_J1_mass->clear();
-  B_J1_px->clear();
-  B_J1_py->clear();
-  B_J1_pz->clear();
-  B_J1_pt->clear();
-  B_J1_eta->clear();
-  B_J1_phi->clear();
-  B_J1_rapidity->clear();
-
-  B_J1_VtxPx->clear();
-  B_J1_VtxPy->clear();
-  B_J1_VtxPz->clear();
-  B_J1_VtxPt->clear();
-  B_J1_VtxEta->clear();
-  B_J1_VtxPhi->clear();
-  B_J1_VtxRapidity->clear();
-  B_J1_VtxMass->clear();
-  B_J1_PVx->clear();
-  B_J1_PVy->clear();
-  B_J1_PVz->clear();
-  B_J1_PVxError->clear();
-  B_J1_PVyError->clear();
-  B_J1_PVzError->clear();
-
-  B_Mu1_px->clear();
-  B_Mu1_py->clear();
-  B_Mu1_pz->clear();
-  B_Mu1_charge->clear();
-  B_Mu1_pt->clear();
-  B_Mu1_eta->clear();
-  B_Mu1_phi->clear();
-  B_Mu1_soft->clear();
-  B_Mu1_tight->clear();
-  B_Mu1_loose->clear();
-  B_Mu1_IsoTrack->clear();
-  B_Mu1_IsoHcal->clear();
-  B_Mu1_IsoEcal->clear();
-  B_Mu1_IsoCalo->clear();
-  B_Mu2_px->clear();
-  B_Mu2_py->clear();
-  B_Mu2_pz->clear();
-  B_Mu2_charge->clear();
-  B_Mu2_pt->clear();
-  B_Mu2_eta->clear();
-  B_Mu2_phi->clear();
-  B_J1_VtxProb->clear();
-  B_Mu2_soft->clear();
-  B_Mu2_tight->clear();
-  B_Mu2_loose->clear();
-  B_Mu2_IsoTrack->clear();
-  B_Mu2_IsoHcal->clear();
-  B_Mu2_IsoEcal->clear();
-  B_Mu2_IsoCalo->clear();
-  B_J_xyP1->clear();
-  B_J_xyM1->clear();
-  B_J_zP1->clear();
-  B_J_zM1->clear();
-  B_Mu1_PaperIsoTrackRF04->clear();
-  B_Mu1_PaperIsoTrackRF03->clear();
-  B_Mu2_PaperIsoTrackRF04->clear();
-  B_Mu2_PaperIsoTrackRF03->clear();
-
-  B_Mu1_Paper3DIP->clear();
-  B_Mu2_Paper3DIP->clear();
-
-  mu1mC2->clear();
-  mu1mNHits->clear();
-  mu1mNPHits->clear();
-  mu1pC2->clear();
-  mu1pNHits->clear();
-  mu1pNPHits->clear();
-  mu2mC2->clear();
-  mu2mNHits->clear();
-  mu2mNPHits->clear();
-  mu2pC2->clear();
-  mu2pNHits->clear();
-  mu2pNPHits->clear();
-
-  B_M1_pt->clear();
-  B_M1_eta->clear();
-  B_M1_phi->clear();
-  B_M1_px->clear();
-  B_M1_px->clear();
-  B_M1_pz->clear();
-  B_M2_pt->clear();
-  B_M2_eta->clear();
-  B_M2_phi->clear();
-  B_M2_px->clear();
-  B_M2_px->clear();
-  B_M2_pz->clear();
-
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   // if the SetupData is always needed
   auto setup = iSetup.getData(setupToken_);
@@ -635,13 +638,12 @@ void miniAODmmmm::beginJob() {
   //edm::Service<TFileService> fs;
   //tree_ = fs->make<TTree>("ntuple"," J/psi ntuple");
 
-  triggerTree = new TTree("triggerTree", "triggerTree");
-  triggerTree->Branch("triggerNames", &triggerNames);
-
   tree_ = new TTree("ntuple", "ntuple");
 
   tree_->Branch("nB", &nB, "nB/i");
-  tree_->Branch("triggerStatus", &triggerStatus);
+  tree_->Branch("savedtriggerNames", &savedtriggerNames);
+  tree_->Branch("savedtriggerBits", &savedtriggerBits);
+  tree_->Branch("savedtriggerPrescales", &savedtriggerPrescales);
   tree_->Branch("Run", &Run);
   tree_->Branch("LumiBlock", &LumiBlock);
   tree_->Branch("Event", &Event);
