@@ -98,52 +98,33 @@ private:
   std::vector<bool> *savedtriggerBits;
   std::vector<double> *savedtriggerPrescales;
 
-  std::vector<float> *Run, *LumiBlock, *Event;
+  float Run, LumiBlock, Event;
 
-  std::vector<float> *B_J1_mass, *B_J1_px, *B_J1_py, *B_J1_pz;
-  std::vector<float> *B_J1_pt, *B_J1_eta, *B_J1_phi, *B_J1_rapidity;
+  float B_J1_mass, B_J1_px, B_J1_py, B_J1_pz;
+  float B_J1_pt, B_J1_eta, B_J1_phi, B_J1_rapidity;
 
-  std::vector<float> *B_J1_VtxPx, *B_J1_VtxPy, *B_J1_VtxPz;
-  std::vector<float> *B_J1_VtxPt, *B_J1_VtxEta, *B_J1_VtxPhi, *B_J1_VtxRapidity, *B_J1_VtxMass;
+  float B_J1_VtxPx, B_J1_VtxPy, B_J1_VtxPz;
+  float B_J1_VtxPt, B_J1_VtxEta, B_J1_VtxPhi, B_J1_VtxRapidity, B_J1_VtxMass;
 
-  std::vector<float> *B_J1_PVx, *B_J1_PVy, *B_J1_PVz;
-  std::vector<float> *B_J1_PVxError, *B_J1_PVyError, *B_J1_PVzError;
+  float B_J1_PVx, B_J1_PVy, B_J1_PVz;
+  float B_J1_PVxError, B_J1_PVyError, B_J1_PVzError;
 
-  std::vector<float> *B_Mu1_px, *B_Mu1_py, *B_Mu1_pz;
-  std::vector<float> *B_Mu1_pt, *B_Mu1_eta, *B_Mu1_phi;
-  std::vector<bool> *B_Mu1_soft, *B_Mu1_tight, *B_Mu1_loose;
-  std::vector<float> *B_Mu1_IsoTrack, *B_Mu1_IsoHcal, *B_Mu1_IsoEcal, *B_Mu1_IsoCalo;
+  float B_J1_VtxProb;
 
-  std::vector<float> *B_Mu1_PaperIsoTrackRF04, *B_Mu1_PaperIsoTrackRF03;
-  std::vector<float> *B_Mu1_Paper3DIP;
+  float B_Mu1_px, B_Mu1_py, B_Mu1_pz;
+  float B_Mu1_pt, B_Mu1_eta, B_Mu1_phi;
+  bool B_Mu1_soft, B_Mu1_tight, B_Mu1_loose;
+  int B_Mu1_charge;
 
-  std::vector<float> *B_Mu2_px, *B_Mu2_py, *B_Mu2_pz;
-  std::vector<float> *B_Mu2_pt, *B_Mu2_eta, *B_Mu2_phi;
-  std::vector<int> *B_Mu1_charge, *B_Mu2_charge;
-  std::vector<bool> *B_Mu2_soft, *B_Mu2_tight, *B_Mu2_loose;
-  std::vector<float> *B_Mu2_IsoTrack, *B_Mu2_IsoHcal, *B_Mu2_IsoEcal, *B_Mu2_IsoCalo;
+  float B_Mu2_px, B_Mu2_py, B_Mu2_pz;
+  float B_Mu2_pt, B_Mu2_eta, B_Mu2_phi;
+  bool B_Mu2_soft, B_Mu2_tight, B_Mu2_loose;
+  int B_Mu2_charge;
 
-  std::vector<float> *B_Mu2_PaperIsoTrackRF04, *B_Mu2_PaperIsoTrackRF03;
-  std::vector<float> *B_Mu2_Paper3DIP;
-
-  std::vector<float> *B_J1_VtxProb, *B_J2_VtxProb, *B_J3_VtxProb, *B_J4_VtxProb;
-  std::vector<float> *B_J_xyP1, *B_J_xyM1, *B_J_zP1, *B_J_zM1;
-  std::vector<float> *B_J_xyP2, *B_J_xyM2, *B_J_zP2, *B_J_zM2;
-
-  std::vector<float> *mu1mC2;
-  std::vector<int> *mu1mNHits, *mu1mNPHits;
-  std::vector<float> *mu1pC2;
-  std::vector<int> *mu1pNHits, *mu1pNPHits;
-  std::vector<float> *mu2mC2;
-  std::vector<int> *mu2mNHits, *mu2mNPHits;
-  std::vector<float> *mu2pC2;
-  std::vector<int> *mu2pNHits, *mu2pNPHits;
-  std::vector<float> *B_M1_pt, *B_M1_eta, *B_M1_phi;
-  std::vector<float> *B_M1_px, *B_M1_py, *B_M1_pz;
-  std::vector<float> *B_M2_pt, *B_M2_eta, *B_M2_phi;
-  std::vector<float> *B_M2_px, *B_M2_py, *B_M2_pz;
-  std::vector<float> *B_J_GenMuonPt, *B_J_GenMuonEta, *B_J_GenMuonPhi;
-  std::vector<float> *B_Z_GenMuonPt, *B_Z_GenMuonEta, *B_Z_GenMuonPhi;
+  float B_M1_pt, B_M1_eta, B_M1_phi;
+  float B_M1_px, B_M1_py, B_M1_pz;
+  float B_M2_pt, B_M2_eta, B_M2_phi;
+  float B_M2_px, B_M2_py, B_M2_pz;
   unsigned int nB;
 
   // #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE

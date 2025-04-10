@@ -134,6 +134,8 @@ miniAODmmmm::miniAODmmmm(const edm::ParameterSet &iConfig)
       B_J1_PVyError(0),
       B_J1_PVzError(0),
 
+      B_J1_VtxProb(0),
+
       B_Mu1_px(0),
       B_Mu1_py(0),
       B_Mu1_pz(0),
@@ -143,14 +145,7 @@ miniAODmmmm::miniAODmmmm(const edm::ParameterSet &iConfig)
       B_Mu1_soft(0),
       B_Mu1_tight(0),
       B_Mu1_loose(0),
-      B_Mu1_IsoTrack(0),
-      B_Mu1_IsoHcal(0),
-      B_Mu1_IsoEcal(0),
-      B_Mu1_IsoCalo(0),
-
-      B_Mu1_PaperIsoTrackRF04(0),
-      B_Mu1_PaperIsoTrackRF03(0),
-      B_Mu1_Paper3DIP(0),
+      B_Mu1_charge(0),
 
       B_Mu2_px(0),
       B_Mu2_py(0),
@@ -158,65 +153,26 @@ miniAODmmmm::miniAODmmmm(const edm::ParameterSet &iConfig)
       B_Mu2_pt(0),
       B_Mu2_eta(0),
       B_Mu2_phi(0),
-      B_Mu1_charge(0),
-      B_Mu2_charge(0),
       B_Mu2_soft(0),
       B_Mu2_tight(0),
       B_Mu2_loose(0),
-      B_Mu2_IsoTrack(0),
-      B_Mu2_IsoHcal(0),
-      B_Mu2_IsoEcal(0),
-      B_Mu2_IsoCalo(0),
-
-      B_Mu2_PaperIsoTrackRF04(0),
-      B_Mu2_PaperIsoTrackRF03(0),
-      B_Mu2_Paper3DIP(0),
-
-      B_J1_VtxProb(0),
-      B_J_xyP1(0),
-      B_J_xyM1(0),
-      B_J_zP1(0),
-      B_J_zM1(0),
-      B_J_xyP2(0),
-      B_J_xyM2(0),
-      B_J_zP2(0),
-      B_J_zM2(0),
-
-      mu1mC2(0),
-      mu1mNHits(0),
-      mu1mNPHits(0),
-      mu1pC2(0),
-      mu1pNHits(0),
-      mu1pNPHits(0),
-
-      mu2mC2(0),
-      mu2mNHits(0),
-      mu2mNPHits(0),
-      mu2pC2(0),
-      mu2pNHits(0),
-      mu2pNPHits(0),
-
+      B_Mu2_charge(0),
+      
       B_M1_pt(0),
       B_M1_eta(0),
       B_M1_phi(0),
       B_M1_px(0),
       B_M1_py(0),
       B_M1_pz(0),
+  
       B_M2_pt(0),
       B_M2_eta(0),
       B_M2_phi(0),
       B_M2_px(0),
       B_M2_py(0),
       B_M2_pz(0),
-      B_J_GenMuonPt(0),
-      B_J_GenMuonEta(0),
-      B_J_GenMuonPhi(0),
-      B_Z_GenMuonPt(0),
-      B_Z_GenMuonEta(0),
-      B_Z_GenMuonPhi(0),
 
       nB(0)
-
 {
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   setupDataToken_ = esConsumes<SetupData, SetupRecord>();
@@ -402,9 +358,9 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 
       //****************************************************************************************
       //Event Information
-      Run->push_back(iEvent.id().run());
-      LumiBlock->push_back(iEvent.luminosityBlock());
-      Event->push_back(iEvent.id().event());
+      Run = iEvent.id().run();
+      LumiBlock = iEvent.luminosityBlock();
+      Event = iEvent.id().event();
 
       for (unsigned int i = 0; i < TriggerResults->size(); ++i) {
         savedtriggerNames.push_back(names.triggerName(i));
@@ -412,214 +368,142 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
         savedtriggerPrescales->push_back(triggerPrescales->getPrescaleForIndex<double>(i));
       }
 
-      B_J1_mass->push_back(MM1.M());
-      B_J1_px->push_back(MM1.Px());
-      B_J1_py->push_back(MM1.Py());
-      B_J1_pz->push_back(MM1.Pz());
-      B_J1_pt->push_back(MM1.Pt());
-      B_J1_eta->push_back(MM1.Eta());
-      B_J1_phi->push_back(MM1.Phi());
-      B_J1_rapidity->push_back(MM1.Rapidity());
+      B_J1_mass = MM1.M();
+      B_J1_px = MM1.Px();
+      B_J1_py = MM1.Py();
+      B_J1_pz = MM1.Pz();
+      B_J1_pt = MM1.Pt();
+      B_J1_eta = MM1.Eta();
+      B_J1_phi = MM1.Phi();
+      B_J1_rapidity = MM1.Rapidity();
 
-      B_J1_VtxPx->push_back(JPsi_mom1.Px());
-      B_J1_VtxPy->push_back(JPsi_mom1.Py());
-      B_J1_VtxPz->push_back(JPsi_mom1.Pz());
-      B_J1_VtxPt->push_back(JPsi_mom1.Pt());
-      B_J1_VtxEta->push_back(JPsi_mom1.Eta());
-      B_J1_VtxPhi->push_back(JPsi_mom1.Phi());
-      B_J1_VtxRapidity->push_back(JPsi_mom1.Rapidity());
-      B_J1_VtxMass->push_back(JPsi_mom1.mass());
-      B_J1_PVx->push_back(JPsi_Vtx1.x());
-      B_J1_PVy->push_back(JPsi_Vtx1.y());
-      B_J1_PVz->push_back(JPsi_Vtx1.z());
-      B_J1_PVxError->push_back(JPsi_Vtx1.xError());
-      B_J1_PVyError->push_back(JPsi_Vtx1.yError());
-      B_J1_PVzError->push_back(JPsi_Vtx1.zError());
+      B_J1_VtxPx = JPsi_mom1.Px();
+      B_J1_VtxPy = JPsi_mom1.Py();
+      B_J1_VtxPz = JPsi_mom1.Pz();
+      B_J1_VtxPt = JPsi_mom1.Pt();
+      B_J1_VtxEta = JPsi_mom1.Eta();
+      B_J1_VtxPhi = JPsi_mom1.Phi();
+      B_J1_VtxRapidity = JPsi_mom1.Rapidity();
+      B_J1_VtxMass = JPsi_mom1.mass();
+      B_J1_PVx = JPsi_Vtx1.x();
+      B_J1_PVy = JPsi_Vtx1.y();
+      B_J1_PVz = JPsi_Vtx1.z();
+      B_J1_PVxError = JPsi_Vtx1.xError();
+      B_J1_PVyError = JPsi_Vtx1.yError();
+      B_J1_PVzError = JPsi_Vtx1.zError();
 
       //dimuon vtx prob
-      B_J1_VtxProb->push_back(B_Prob_tmp1);
+      B_J1_VtxProb = B_Prob_tmp1;
 
       //new branch defn for muons
-      B_Mu1_px->push_back(iMuon1->px());
-      B_Mu1_py->push_back(iMuon1->py());
-      B_Mu1_pz->push_back(iMuon1->pz());
-      B_Mu1_pt->push_back(iMuon1->pt());
-      B_Mu1_eta->push_back(iMuon1->eta());
-      B_Mu1_phi->push_back(iMuon1->phi());
-      B_Mu1_charge->push_back(iMuon1->charge());
-      B_Mu1_soft->push_back(iMuon1->isSoftMuon(bestVtx));
-      B_Mu1_tight->push_back(iMuon1->isTightMuon(bestVtx));
-      B_Mu1_loose->push_back(muon::isLooseMuon(*iMuon1));
-      B_Mu1_IsoTrack->push_back(iMuon1->trackIso());
-      B_Mu1_IsoEcal->push_back(iMuon1->ecalIso());
-      B_Mu1_IsoHcal->push_back(iMuon1->hcalIso());
-      B_Mu1_IsoCalo->push_back(iMuon1->caloIso());
+      B_Mu1_px = iMuon1->px();
+      B_Mu1_py = iMuon1->py();
+      B_Mu1_pz = iMuon1->pz();
+      B_Mu1_pt = iMuon1->pt();
+      B_Mu1_eta = iMuon1->eta();
+      B_Mu1_phi = iMuon1->phi();
+      B_Mu1_soft = iMuon1->isSoftMuon(bestVtx);
+      B_Mu1_tight = iMuon1->isTightMuon(bestVtx);
+      B_Mu1_loose = muon::isLooseMuon(*iMuon1);
+      B_Mu1_charge = iMuon1->charge();
 
-      B_Mu1_PaperIsoTrackRF04->push_back(
-          (iMuon1->pfIsolationR04().sumChargedHadronPt + std::max(0., iMuon1->pfIsolationR04().sumNeutralHadronEt + iMuon1->pfIsolationR04().sumPhotonEt - iMuon1->pfIsolationR04().sumPUPt * 0.5)) /
-          iMuon1->pt());
-      B_Mu1_PaperIsoTrackRF03->push_back(
-          (iMuon1->pfIsolationR03().sumChargedHadronPt + std::max(0., iMuon1->pfIsolationR03().sumNeutralHadronEt + iMuon1->pfIsolationR03().sumPhotonEt - iMuon1->pfIsolationR03().sumPUPt * 0.5)) /
-          iMuon1->pt());
+      B_Mu2_px = iMuon2->px();
+      B_Mu2_py = iMuon2->py();
+      B_Mu2_pz = iMuon2->pz();
+      B_Mu2_pt = iMuon2->pt();
+      B_Mu2_eta = iMuon2->eta();
+      B_Mu2_phi = iMuon2->phi();
+      B_Mu2_soft = iMuon2->isSoftMuon(bestVtx);
+      B_Mu2_tight = iMuon2->isTightMuon(bestVtx);
+      B_Mu2_loose = muon::isLooseMuon(*iMuon2);
+      B_Mu2_charge = iMuon2->charge();
 
-      B_Mu1_Paper3DIP->push_back(iMuon1->dB(pat::Muon::PV3D) / iMuon1->edB(pat::Muon::PV3D));
-      B_Mu2_px->push_back(iMuon2->px());
-      B_Mu2_py->push_back(iMuon2->py());
-      B_Mu2_pz->push_back(iMuon2->pz());
-      B_Mu2_pt->push_back(iMuon2->pt());
-      B_Mu2_eta->push_back(iMuon2->eta());
-      B_Mu2_phi->push_back(iMuon2->phi());
-      B_Mu2_charge->push_back(iMuon2->charge());
-      B_Mu2_soft->push_back(iMuon2->isSoftMuon(bestVtx));
-      B_Mu2_tight->push_back(iMuon2->isTightMuon(bestVtx));
-      B_Mu2_loose->push_back(muon::isLooseMuon(*iMuon2));
-      B_Mu2_IsoTrack->push_back(iMuon2->trackIso());
-      B_Mu2_IsoEcal->push_back(iMuon2->ecalIso());
-      B_Mu2_IsoHcal->push_back(iMuon2->hcalIso());
-      B_Mu2_IsoCalo->push_back(iMuon2->caloIso());
+      B_M1_pt = M1.Pt();
+      B_M1_eta = M1.Eta();
+      B_M1_phi = M1.Phi();
+      B_M1_px = M1.Px();
+      B_M1_py = M1.Py();
+      B_M1_pz = M1.Pz();
 
-      B_Mu2_PaperIsoTrackRF04->push_back(
-          (iMuon2->pfIsolationR04().sumChargedHadronPt + std::max(0., iMuon2->pfIsolationR04().sumNeutralHadronEt + iMuon2->pfIsolationR04().sumPhotonEt - iMuon2->pfIsolationR04().sumPUPt * 0.5)) /
-          iMuon2->pt());
-      B_Mu2_PaperIsoTrackRF03->push_back(
-          (iMuon2->pfIsolationR03().sumChargedHadronPt + std::max(0., iMuon2->pfIsolationR03().sumNeutralHadronEt + iMuon2->pfIsolationR03().sumPhotonEt - iMuon2->pfIsolationR03().sumPUPt * 0.5)) /
-          iMuon2->pt());
+      B_M2_pt = M2.Pt();
+      B_M2_eta = M2.Eta();
+      B_M2_phi = M2.Phi();
+      B_M2_px = M2.Px();
+      B_M2_py = M2.Py();
+      B_M2_pz = M2.Pz();
 
-      B_Mu2_Paper3DIP->push_back(iMuon2->dB(pat::Muon::PV3D) / iMuon2->edB(pat::Muon::PV3D));
-
-      B_J_xyP1->push_back(glbTrackP1->dxy(bestVtx.position()));
-      B_J_xyM1->push_back(glbTrackM1->dxy(bestVtx.position()));
-      B_J_zP1->push_back(glbTrackM1->dz(bestVtx.position()));
-      B_J_zM1->push_back(glbTrackP1->dz(bestVtx.position()));
-
-      //cout<<"End of all loop"<<endl;
-
-      mu1mC2->push_back(glbTrackM1->normalizedChi2());
-      //mumAngT->push_back( muon::isGoodMuon(*iMuon1,muon::TMLastStationAngTight) ); //
-      mu1mNHits->push_back(glbTrackM1->numberOfValidHits());
-      mu1mNPHits->push_back(glbTrackM1->hitPattern().numberOfValidPixelHits());
-      mu1pC2->push_back(glbTrackP1->normalizedChi2());
-      //mupAngT->push_back( muon::isGoodMuon(*iMuon2,muon::TMLastStationAngTight) );  //
-      mu1pNHits->push_back(glbTrackP1->numberOfValidHits());
-      mu1pNPHits->push_back(glbTrackP1->hitPattern().numberOfValidPixelHits());
-
-      B_M1_pt->push_back(M1.Pt());
-      B_M1_eta->push_back(M1.Eta());
-      B_M1_phi->push_back(M1.Phi());
-      B_M1_px->push_back(M1.Px());
-      B_M1_py->push_back(M1.Py());
-      B_M1_pz->push_back(M1.Pz());
-      B_M2_pt->push_back(M2.Pt());
-      B_M2_eta->push_back(M2.Eta());
-      B_M2_phi->push_back(M2.Phi());
-      B_M2_px->push_back(M2.Px());
-      B_M2_py->push_back(M2.Py());
-      B_M2_pz->push_back(M2.Pz());
-
-      // nB++;
-      // if (nB > 0) {
-      //   // std::cout << "filling tree" << endl;
-      // }
       tree_->Fill();
 
       nB = 0;
       savedtriggerNames.clear();
       savedtriggerBits->clear();
       savedtriggerPrescales->clear();
-      Run->clear();
-      LumiBlock->clear();
-      Event->clear();
 
-      B_J1_mass->clear();
-      B_J1_px->clear();
-      B_J1_py->clear();
-      B_J1_pz->clear();
-      B_J1_pt->clear();
-      B_J1_eta->clear();
-      B_J1_phi->clear();
-      B_J1_rapidity->clear();
+      Run = -999;
+      LumiBlock = -999;
+      Event = -999;
 
-      B_J1_VtxPx->clear();
-      B_J1_VtxPy->clear();
-      B_J1_VtxPz->clear();
-      B_J1_VtxPt->clear();
-      B_J1_VtxEta->clear();
-      B_J1_VtxPhi->clear();
-      B_J1_VtxRapidity->clear();
-      B_J1_VtxMass->clear();
-      B_J1_PVx->clear();
-      B_J1_PVy->clear();
-      B_J1_PVz->clear();
-      B_J1_PVxError->clear();
-      B_J1_PVyError->clear();
-      B_J1_PVzError->clear();
+      B_J1_mass = -999;
+      B_J1_px = -999;
+      B_J1_py = -999;
+      B_J1_pz = -999;
+      B_J1_pt = -999;
+      B_J1_eta = -999;
+      B_J1_phi = -999;
+      B_J1_rapidity = -999;
 
-      B_Mu1_px->clear();
-      B_Mu1_py->clear();
-      B_Mu1_pz->clear();
-      B_Mu1_charge->clear();
-      B_Mu1_pt->clear();
-      B_Mu1_eta->clear();
-      B_Mu1_phi->clear();
-      B_Mu1_soft->clear();
-      B_Mu1_tight->clear();
-      B_Mu1_loose->clear();
-      B_Mu1_IsoTrack->clear();
-      B_Mu1_IsoHcal->clear();
-      B_Mu1_IsoEcal->clear();
-      B_Mu1_IsoCalo->clear();
-      B_Mu2_px->clear();
-      B_Mu2_py->clear();
-      B_Mu2_pz->clear();
-      B_Mu2_charge->clear();
-      B_Mu2_pt->clear();
-      B_Mu2_eta->clear();
-      B_Mu2_phi->clear();
-      B_J1_VtxProb->clear();
-      B_Mu2_soft->clear();
-      B_Mu2_tight->clear();
-      B_Mu2_loose->clear();
-      B_Mu2_IsoTrack->clear();
-      B_Mu2_IsoHcal->clear();
-      B_Mu2_IsoEcal->clear();
-      B_Mu2_IsoCalo->clear();
-      B_J_xyP1->clear();
-      B_J_xyM1->clear();
-      B_J_zP1->clear();
-      B_J_zM1->clear();
-      B_Mu1_PaperIsoTrackRF04->clear();
-      B_Mu1_PaperIsoTrackRF03->clear();
-      B_Mu2_PaperIsoTrackRF04->clear();
-      B_Mu2_PaperIsoTrackRF03->clear();
+      B_J1_VtxPx = -999;
+      B_J1_VtxPy = -999;
+      B_J1_VtxPz = -999;
+      B_J1_VtxPt = -999;
+      B_J1_VtxEta = -999;
+      B_J1_VtxPhi = -999;
+      B_J1_VtxRapidity = -999;
+      B_J1_VtxMass = -999;
+      B_J1_PVx = -999;
+      B_J1_PVy = -999;
+      B_J1_PVz = -999;
+      B_J1_PVxError = -999;
+      B_J1_PVyError = -999;
+      B_J1_PVzError = -999;
+      
+      B_J1_VtxProb = -999;
 
-      B_Mu1_Paper3DIP->clear();
-      B_Mu2_Paper3DIP->clear();
+      B_Mu1_px = -999;
+      B_Mu1_py = -999;
+      B_Mu1_pz = -999;
+      B_Mu1_pt = -999;
+      B_Mu1_eta = -999;
+      B_Mu1_phi = -999;
+      B_Mu1_soft = -999;
+      B_Mu1_tight = -999;
+      B_Mu1_loose = -999;
+      B_Mu1_charge = -999;
+      
+      B_Mu2_px = -999;
+      B_Mu2_py = -999;
+      B_Mu2_pz = -999;
+      B_Mu2_pt = -999;
+      B_Mu2_eta = -999;
+      B_Mu2_phi = -999;
+      B_Mu2_soft = -999;
+      B_Mu2_tight = -999;
+      B_Mu2_loose = -999;
+      B_Mu2_charge = -999;
 
-      mu1mC2->clear();
-      mu1mNHits->clear();
-      mu1mNPHits->clear();
-      mu1pC2->clear();
-      mu1pNHits->clear();
-      mu1pNPHits->clear();
-      mu2mC2->clear();
-      mu2mNHits->clear();
-      mu2mNPHits->clear();
-      mu2pC2->clear();
-      mu2pNHits->clear();
-      mu2pNPHits->clear();
+      B_M1_pt = -999;
+      B_M1_eta = -999;
+      B_M1_phi = -999;
+      B_M1_px = -999;
+      B_M1_px = -999;
+      B_M1_pz = -999;
 
-      B_M1_pt->clear();
-      B_M1_eta->clear();
-      B_M1_phi->clear();
-      B_M1_px->clear();
-      B_M1_px->clear();
-      B_M1_pz->clear();
-      B_M2_pt->clear();
-      B_M2_eta->clear();
-      B_M2_phi->clear();
-      B_M2_px->clear();
-      B_M2_px->clear();
-      B_M2_pz->clear();
+      B_M2_pt = -999;
+      B_M2_eta = -999;
+      B_M2_phi = -999;
+      B_M2_px = -999;
+      B_M2_px = -999;
+      B_M2_pz = -999;
     }
   }
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
@@ -644,6 +528,7 @@ void miniAODmmmm::beginJob() {
   tree_->Branch("savedtriggerNames", &savedtriggerNames);
   tree_->Branch("savedtriggerBits", &savedtriggerBits);
   tree_->Branch("savedtriggerPrescales", &savedtriggerPrescales);
+
   tree_->Branch("Run", &Run);
   tree_->Branch("LumiBlock", &LumiBlock);
   tree_->Branch("Event", &Event);
@@ -672,25 +557,18 @@ void miniAODmmmm::beginJob() {
   tree_->Branch("B_J1_PVyError", &B_J1_PVyError);
   tree_->Branch("B_J1_PVzError", &B_J1_PVzError);
 
+  tree_->Branch("B_J1_VtxProb", &B_J1_VtxProb);
+
   tree_->Branch("B_Mu1_px", &B_Mu1_px);
   tree_->Branch("B_Mu1_py", &B_Mu1_py);
   tree_->Branch("B_Mu1_pz", &B_Mu1_pz);
   tree_->Branch("B_Mu1_pt", &B_Mu1_pt);
   tree_->Branch("B_Mu1_eta", &B_Mu1_eta);
   tree_->Branch("B_Mu1_phi", &B_Mu1_phi);
-  tree_->Branch("B_Mu1_charge", &B_Mu1_charge);
   tree_->Branch("B_Mu1_soft", &B_Mu1_soft);
   tree_->Branch("B_Mu1_tight", &B_Mu1_tight);
   tree_->Branch("B_Mu1_loose", &B_Mu1_loose);
-  tree_->Branch("B_Mu1_IsoTrack", &B_Mu1_IsoTrack);
-  tree_->Branch("B_Mu1_IsoHcal", &B_Mu1_IsoHcal);
-  tree_->Branch("B_Mu1_IsoEcal", &B_Mu1_IsoEcal);
-  tree_->Branch("B_Mu1_IsoCalo", &B_Mu1_IsoCalo);
-
-  tree_->Branch("B_Mu1_PaperIsoTrackRF03", &B_Mu1_PaperIsoTrackRF03);
-  tree_->Branch("B_Mu1_PaperIsoTrackRF04", &B_Mu1_PaperIsoTrackRF04);
-
-  tree_->Branch("B_Mu1_Paper3DIP", &B_Mu1_Paper3DIP);
+  tree_->Branch("B_Mu1_charge", &B_Mu1_charge);
 
   tree_->Branch("B_Mu2_px", &B_Mu2_px);
   tree_->Branch("B_Mu2_py", &B_Mu2_py);
@@ -698,45 +576,10 @@ void miniAODmmmm::beginJob() {
   tree_->Branch("B_Mu2_pt", &B_Mu2_pt);
   tree_->Branch("B_Mu2_eta", &B_Mu2_eta);
   tree_->Branch("B_Mu2_phi", &B_Mu2_phi);
-  tree_->Branch("B_Mu2_charge", &B_Mu2_charge);
   tree_->Branch("B_Mu2_soft", &B_Mu2_soft);
   tree_->Branch("B_Mu2_tight", &B_Mu2_tight);
   tree_->Branch("B_Mu2_loose", &B_Mu2_loose);
-  tree_->Branch("B_Mu2_IsoTrack", &B_Mu2_IsoTrack);
-  tree_->Branch("B_Mu2_IsoHcal", &B_Mu2_IsoHcal);
-  tree_->Branch("B_Mu2_IsoEcal", &B_Mu2_IsoEcal);
-  tree_->Branch("B_Mu2_IsoCalo", &B_Mu2_IsoCalo);
-
-  tree_->Branch("B_Mu2_PaperIsoTrackRF03", &B_Mu2_PaperIsoTrackRF03);
-  tree_->Branch("B_Mu2_PaperIsoTrackRF04", &B_Mu2_PaperIsoTrackRF04);
-
-  tree_->Branch("B_Mu2_Paper3DIP", &B_Mu2_Paper3DIP);
-
-  tree_->Branch("B_J1_VtxProb", &B_J1_VtxProb);
-
-  tree_->Branch("B_J_xyP1", &B_J_xyP1);
-  tree_->Branch("B_J_xyM1", &B_J_xyM1);
-  tree_->Branch("B_J_zP1", &B_J_zP1);
-  tree_->Branch("B_J_zM1", &B_J_zM1);
-
-  tree_->Branch("B_J_xyP2", &B_J_xyP2);
-  tree_->Branch("B_J_xyM2", &B_J_xyM2);
-  tree_->Branch("B_J_zP2", &B_J_zP2);
-  tree_->Branch("B_J_zM2", &B_J_zM2);
-
-  tree_->Branch("mu1mC2", &mu1mC2);
-  tree_->Branch("mu1mNHits", &mu1mNHits);
-  tree_->Branch("mu1mNPHits", &mu1mNPHits);
-  tree_->Branch("mu1pC2", &mu1pC2);
-  tree_->Branch("mu1pNHits", &mu1pNHits);
-  tree_->Branch("mu1pNPHits", &mu1pNPHits);
-
-  tree_->Branch("mu2mC2", &mu2mC2);
-  tree_->Branch("mu2mNHits", &mu2mNHits);
-  tree_->Branch("mu2mNPHits", &mu2mNPHits);
-  tree_->Branch("mu2pC2", &mu2pC2);
-  tree_->Branch("mu2pNHits", &mu2pNHits);
-  tree_->Branch("mu2pNPHits", &mu2pNPHits);
+  tree_->Branch("B_Mu2_charge", &B_Mu2_charge);
 
   tree_->Branch("B_M1_pt", &B_M1_pt);
   tree_->Branch("B_M1_eta", &B_M1_eta);
@@ -751,13 +594,6 @@ void miniAODmmmm::beginJob() {
   tree_->Branch("B_M2_px", &B_M2_px);
   tree_->Branch("B_M2_py", &B_M2_py);
   tree_->Branch("B_M2_pz", &B_M2_pz);
-
-  tree_->Branch("B_J_GenMuonPt", &B_J_GenMuonPt);
-  tree_->Branch("B_J_GenMuonEta", &B_J_GenMuonEta);
-  tree_->Branch("B_J_GenMuonPhi", &B_J_GenMuonPhi);
-  tree_->Branch("B_Z_GenMuonPt", &B_Z_GenMuonPt);
-  tree_->Branch("B_Z_GenMuonEta", &B_Z_GenMuonEta);
-  tree_->Branch("B_Z_GenMuonPhi", &B_Z_GenMuonPhi);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
