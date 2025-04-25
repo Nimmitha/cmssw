@@ -94,41 +94,15 @@ private:
 
   TTree *tree_;
 
-  std::vector<std::string> savedtriggerNames;
-  std::vector<bool> *savedtriggerBits;
-  std::vector<double> *savedtriggerPrescales;
-
   float Run, LumiBlock, Event;
+  bool TriggerFired;
 
-  float B_J1_mass, B_J1_px, B_J1_py, B_J1_pz;
-  float B_J1_pt, B_J1_eta, B_J1_phi, B_J1_rapidity;
+  float B_J1_mass, B_J1_pt;
 
-  float B_J1_VtxPx, B_J1_VtxPy, B_J1_VtxPz;
-  float B_J1_VtxPt, B_J1_VtxEta, B_J1_VtxPhi, B_J1_VtxRapidity, B_J1_VtxMass;
-
-  float B_J1_PVx, B_J1_PVy, B_J1_PVz;
-  float B_J1_PVxError, B_J1_PVyError, B_J1_PVzError;
-
+  float B_J1_VtxPt, B_J1_VtxMass;
   float B_J1_VtxProb;
 
-  float B_Mu1_px, B_Mu1_py, B_Mu1_pz;
-  float B_Mu1_pt, B_Mu1_eta, B_Mu1_phi;
-  bool B_Mu1_soft, B_Mu1_tight, B_Mu1_loose;
-  int B_Mu1_charge;
-
-  float B_Mu2_px, B_Mu2_py, B_Mu2_pz;
-  float B_Mu2_pt, B_Mu2_eta, B_Mu2_phi;
-  bool B_Mu2_soft, B_Mu2_tight, B_Mu2_loose;
-  int B_Mu2_charge;
-
-  float B_M1_pt, B_M1_eta, B_M1_phi;
-  float B_M1_px, B_M1_py, B_M1_pz;
-  float B_M2_pt, B_M2_eta, B_M2_phi;
-  float B_M2_px, B_M2_py, B_M2_pz;
-  unsigned int nB;
-
-  // #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
-  //   edm::ESGetToken<SetupData, SetupRecord> setupToken_;
-  // #endif
+  float B_Mu1_pt;
+  float B_Mu2_pt;
 };
 #endif
