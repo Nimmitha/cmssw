@@ -34,7 +34,7 @@ process.rootuple = cms.EDAnalyzer('miniAODmmmm',
                           objects = cms.InputTag("slimmedPatTrigger"),
                           prescales = cms.InputTag("patTrigger"),
                           pruned = cms.InputTag("prunedGenParticles"),
-                          MuonTrigger = cms.string("pass"),
+                          MuonTrigger = cms.string("HLT_Mu0_L1DoubleMu_v"),
                           isMC = cms.bool(False),
                           )
 

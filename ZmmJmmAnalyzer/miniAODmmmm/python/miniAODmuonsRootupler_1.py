@@ -23,7 +23,8 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 # process.GlobalTag = GlobalTag(process.GlobalTag, '130X_dataRun3_PromptAnalysis_v1') # 2023 check?
 # process.GlobalTag = GlobalTag(process.GlobalTag, '124X_mcRun3_2022_realistic_v12') # used to generate 2022 MC
 # process.GlobalTag = GlobalTag(process.GlobalTag, '130X_dataRun3_v2')
-process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run3_data')
+process.GlobalTag = GlobalTag(process.GlobalTag, '141X_dataRun3_Prompt_v3')
+# process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run3_data')
 
 
 
