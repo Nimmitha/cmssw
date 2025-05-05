@@ -35,7 +35,7 @@ process.options = cms.untracked.PSet(
   # SkipEvent = cms.untracked.vstring('ProductNotFound')
   )
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(       
         'file:miniAODs/0f4cf3e8-65e8-470e-a587-7a676ffcfc89_2024H0.root'
@@ -57,7 +57,7 @@ process.rootuple = cms.EDAnalyzer('miniAODmmmm',
                           )
 
 process.TFileService = cms.Service("TFileService",
-  fileName = cms.string('preselection/testout_2024H0.root'),
+  fileName = cms.string('preselection/testout_2024H0_new.root'),
 )
 
 process.p = cms.Path(process.rootuple)

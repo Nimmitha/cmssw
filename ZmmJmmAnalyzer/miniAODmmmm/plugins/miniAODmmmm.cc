@@ -78,6 +78,7 @@
 //
 
 typedef math::Error<3>::type CovarianceMatrix;
+// typedef std::pair<unsigned int, unsigned int> RunLumi;
 
 //
 // static data member definitions
@@ -105,18 +106,8 @@ miniAODmmmm::miniAODmmmm(const edm::ParameterSet &iConfig)
 
       Run(0),
       LumiBlock(0),
-      Event(0),
-      TriggerFired(false),
-
-      B_J1_mass(0),
-      B_J1_pt(0),
-
-      B_J1_VtxPt(0),
-      B_J1_VtxMass(0),
-      B_J1_VtxProb(0),
-
-      B_Mu1_pt(0),
-      B_Mu2_pt(0) {
+      binCounts(0),
+      binCountsMap() {
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   setupDataToken_ = esConsumes<SetupData, SetupRecord>();
 #endif
@@ -281,14 +272,19 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       reco::Vertex JPsi_Vtx1 = J_candi1;
 
       float B_Prob_tmp1 = TMath::Prob(J_candi1.totalChiSquared(), J_candi1.degreesOfFreedom());
-      const math::XYZTLorentzVectorD JPsi_mom1 = JPsi_Vtx1.p4(mu_mass, 0.0);
+      // const math::XYZTLorentzVectorD JPsi_mom1 = JPsi_Vtx1.p4(mu_mass, 0.0);
 
       if (B_Prob_tmp1 < 0.1) {
         continue;
       }
 
-      // Remove events with mass outside J/Psi or Z mass window
-      if ((MM1.M() < 2.6 || MM1.M() > 3.6)) {
+      float mass = MM1.M();
+      float massMin = 2.6;
+      float massMax = 3.6;
+      int nBins = 100;
+      float binWidth = (massMax - massMin) / nBins;
+
+      if (mass < massMin || mass > massMax) {
         continue;
       }
 
@@ -296,36 +292,18 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       //Event Information
       Run = iEvent.id().run();
       LumiBlock = iEvent.luminosityBlock();
-      Event = iEvent.id().event();
-      TriggerFired = triggerFlag;
+      RunLumi key(Run, LumiBlock);
 
-      B_J1_mass = MM1.M();
-      B_J1_pt = MM1.Pt();
+      if (binCountsMap.find(key) == binCountsMap.end()) {
+        cout << "Creating new binCounts for Run: " << Run << ", LumiBlock: " << LumiBlock << std::endl;
+        binCountsMap[key] = std::vector<unsigned int>(nBins, 0);
+        // cout << "binCountsMap[" << key.first << "][" << key.second << "] size: " << binCountsMap[key].size() << std::endl;
+      }
 
-      B_J1_VtxPt = JPsi_mom1.Pt();
-      B_J1_VtxMass = JPsi_mom1.mass();
-      B_J1_VtxProb = B_Prob_tmp1;
-
-      //new branch defn for muons
-      B_Mu1_pt = iMuon1->pt();
-      B_Mu2_pt = iMuon2->pt();
-
-      tree_->Fill();
-
-      Run = -999;
-      LumiBlock = -999;
-      Event = -999;
-      TriggerFired = false;
-
-      B_J1_mass = -999;
-      B_J1_pt = -999;
-
-      B_J1_VtxPt = -999;
-      B_J1_VtxMass = -999;
-      B_J1_VtxProb = -999;
-
-      B_Mu1_pt = -999;
-      B_Mu2_pt = -999;
+      int bin = static_cast<int>((mass - massMin) / binWidth);
+      if (bin >= 0 && bin < nBins) {
+        binCountsMap[key][bin]++;
+      }
     }
   }
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
@@ -345,22 +323,18 @@ void miniAODmmmm::beginJob() {
 
   tree_->Branch("Run", &Run);
   tree_->Branch("LumiBlock", &LumiBlock);
-  tree_->Branch("Event", &Event);
-  // tree_->Branch("TriggerFired", &TriggerFired);
-
-  tree_->Branch("B_J1_mass", &B_J1_mass);
-  tree_->Branch("B_J1_pt", &B_J1_pt);
-
-  // tree_->Branch("B_J1_VtxPt", &B_J1_VtxPt);
-  // tree_->Branch("B_J1_VtxMass", &B_J1_VtxMass);
-  // tree_->Branch("B_J1_VtxProb", &B_J1_VtxProb);
-
-  tree_->Branch("B_Mu1_pt", &B_Mu1_pt);
-  tree_->Branch("B_Mu2_pt", &B_Mu2_pt);
+  tree_->Branch("binCounts", &binCounts);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
 void miniAODmmmm::endJob() {
+  for (const auto &entry : binCountsMap) {
+    Run = entry.first.first;
+    LumiBlock = entry.first.second;
+    binCounts = entry.second;
+    tree_->Fill();
+  }
+
   tree_->GetDirectory()->cd();
   tree_->Write();
 }

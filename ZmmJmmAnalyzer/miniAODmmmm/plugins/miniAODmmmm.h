@@ -57,6 +57,7 @@
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
 #include <iostream>
 
+typedef std::pair<unsigned int, unsigned int> RunLumi;
 // class declaration
 //
 // If the analyzer does not use TFileService, please remove
@@ -94,15 +95,8 @@ private:
 
   TTree *tree_;
 
-  float Run, LumiBlock, Event;
-  bool TriggerFired;
-
-  float B_J1_mass, B_J1_pt;
-
-  float B_J1_VtxPt, B_J1_VtxMass;
-  float B_J1_VtxProb;
-
-  float B_Mu1_pt;
-  float B_Mu2_pt;
+  float Run, LumiBlock;
+  std::vector<unsigned int> binCounts;
+  std::map<RunLumi, std::vector<unsigned int>> binCountsMap;
 };
 #endif
