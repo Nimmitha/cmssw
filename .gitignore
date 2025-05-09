@@ -14,3 +14,6 @@ ZmmJmmAnalyzer/dataSubmit/**/crab_TTree_*/results/*.gz
 ZmmJmmAnalyzer/selection
 ZmmJmmAnalyzer/preselection
 ZmmJmmAnalyzer/miniAODs
+ZmmJmmAnalyzer/scripts/plot_ratios/plots/
+ZmmJmmAnalyzer/scripts/plot_ratio_fill/plots/
+ZmmJmmAnalyzer/scripts/plot_eta/plots/

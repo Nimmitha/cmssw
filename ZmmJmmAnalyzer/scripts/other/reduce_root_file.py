@@ -7,10 +7,10 @@ base_path = '/uscms/home/wkarunar/nobackup/datasets/data/run3/parkingDoubleMuonL
 input_files = [
     # 'crab_TTree_136TeV_Muon0_mm_2023D_v1.root',
     # 'crab_TTree_136TeV_Muon1_mm_2023D_v1.root',
-    'crab_TTree_136TeV_PDMLM0_mm_2023D_v1.root',
-    'crab_TTree_136TeV_PDMLM4_mm_2023D_v1.root',
-    'crab_TTree_136TeV_PDMLM5_mm_2023D_v1.root',
-    'crab_TTree_136TeV_PDMLM7_mm_2023D_v1.root',
+    'crab_TTree_136TeV_PDMLM1_mm_2023D_v1.root',
+    'crab_TTree_136TeV_PDMLM2_mm_2023D_v1.root',
+    'crab_TTree_136TeV_PDMLM3_mm_2023D_v1.root',
+    'crab_TTree_136TeV_PDMLM6_mm_2023D_v1.root',
 ]
 
 # Trigger to check
