@@ -8,8 +8,8 @@ crab.log
 ZmmJmmAnalyzer/dataSubmit/202?
 ZmmJmmAnalyzer/dataSubmit/2023
 ZmmJmmAnalyzer/dataSubmit/2024
-ZmmJmmAnalyzer/dataSubmit/**/crab_TTree_*/inputs/*
-ZmmJmmAnalyzer/dataSubmit/**/crab_TTree_*/results/*.gz
+ZmmJmmAnalyzer/dataSubmit/**/crab_*/inputs/*
+ZmmJmmAnalyzer/dataSubmit/**/crab_*/results/*.gz
 
 ZmmJmmAnalyzer/selection
 ZmmJmmAnalyzer/preselection

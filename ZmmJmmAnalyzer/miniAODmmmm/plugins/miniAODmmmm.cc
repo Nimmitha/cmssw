@@ -74,6 +74,7 @@
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 
+// #include <cmath>
 // constants, enums and typedefs
 //
 
@@ -299,20 +300,21 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       Run = iEvent.id().run();
       LumiBlock = iEvent.luminosityBlock();
       Event = iEvent.id().event();
+      // cout << "Run: " << Run << " LumiBlock: " << LumiBlock << " Event: " << Event << endl;
       TriggerFired = triggerFlag;
 
       B_J1_mass = MM1.M();
-      B_J1_pt = MM1.Pt();
+      B_J1_pt = std::lround(MM1.Pt() * 1000);
 
       B_J1_VtxPt = JPsi_mom1.Pt();
       B_J1_VtxMass = JPsi_mom1.mass();
       B_J1_VtxProb = B_Prob_tmp1;
 
       //new branch defn for muons
-      B_Mu1_pt = iMuon1->pt();
-      B_Mu2_pt = iMuon2->pt();
-      B_Mu1_eta = iMuon1->eta();
-      B_Mu2_eta = iMuon2->eta();
+      B_Mu1_pt = std::lround(iMuon1->pt() * 1000);
+      B_Mu2_pt = std::lround(iMuon2->pt() * 1000);
+      B_Mu1_eta = std::lround(iMuon1->eta() * 100);
+      B_Mu2_eta = std::lround(iMuon2->eta() * 100);
 
       tree_->Fill();
 
@@ -322,16 +324,16 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       TriggerFired = false;
 
       B_J1_mass = -999;
-      B_J1_pt = -999;
+      B_J1_pt = 1000;
 
       B_J1_VtxPt = -999;
       B_J1_VtxMass = -999;
       B_J1_VtxProb = -999;
 
-      B_Mu1_pt = -999;
-      B_Mu2_pt = -999;
-      B_Mu1_eta = -999;
-      B_Mu2_eta = -999;
+      B_Mu1_pt = 1000;
+      B_Mu2_pt = 1000;
+      B_Mu1_eta = 10;
+      B_Mu2_eta = 10;
     }
   }
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE

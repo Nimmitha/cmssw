@@ -94,19 +94,20 @@ private:
 
   TTree *tree_;
 
-  int Run;
-  int LumiBlock;
-  int Event;
+  UInt_t Run;
+  UShort_t LumiBlock;
+  ULong64_t Event;
   bool TriggerFired;
 
-  float B_J1_mass, B_J1_pt;
+  float B_J1_mass;
+  UInt_t B_J1_pt;
 
   float B_J1_VtxPt, B_J1_VtxMass;
   float B_J1_VtxProb;
 
-  float B_Mu1_pt;
-  float B_Mu2_pt;
-  float B_Mu1_eta;
-  float B_Mu2_eta;
+  UInt_t B_Mu1_pt;
+  UInt_t B_Mu2_pt;
+  Short_t B_Mu1_eta;
+  Short_t B_Mu2_eta;
 };
 #endif
