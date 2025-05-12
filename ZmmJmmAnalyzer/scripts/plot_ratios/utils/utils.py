@@ -149,7 +149,8 @@ def prepare_data(run, lumiblock, mass_range, mass=None, lumi_df=None, prescale_p
     elif count_method == "fit" and mass is not None:
         # ML fit method
         for key, mass_values in bin_data.items():
-            if len(mass_values) > 1000:  # Minimum events needed for a reasonable fit
+            if len(mass_values) > 10000:  # Minimum events needed for a reasonable fit
+                print(f"Performing ML fit for bin {key}")
                 # plot_filename = None
                 plot_filename = f"ML_fit_bin_{key[0]}_{key[1]*bin_width}.png"
                 
@@ -214,9 +215,9 @@ def perform_ml_fit(mass_values, mass_range, filename=None):
     float
         Number of signal events from the fit
     """
-    if len(mass_values) < 1000:
+    if len(mass_values) < 10000:
         # Not enough statistics for a reliable fit
-        return 0, 0
+        return -1, -1
     
     # Create the mass variable
     mass_min, mass_max = mass_range
@@ -233,29 +234,58 @@ def perform_ml_fit(mass_values, mass_range, filename=None):
         if mass_min < value < mass_max:  # Ensure value is within range
             mass_var.setVal(value)
             dataset.add(data_list)
+
+    # ########## Model 1: Double Gaussian + Polynomial Background ##########
+    # # Define double Gaussian signal model
+    # mean = ROOT.RooRealVar("mean", "Mean of Gaussians", 3.1, 3.0, 3.2)
+    # sigma1 = ROOT.RooRealVar("sigma1", "Width of Gaussian 1", 0.02, 0.001, 0.1)
+    # sigma2 = ROOT.RooRealVar("sigma2", "Width of Gaussian 2", 0.05, 0.001, 0.1)
+    # gauss1 = ROOT.RooGaussian("gauss1", "Gaussian 1", mass_var, mean, sigma1)
+    # gauss2 = ROOT.RooGaussian("gauss2", "Gaussian 2", mass_var, mean, sigma2)
+    # frac = ROOT.RooRealVar("frac", "Fraction of Gauss1", 0.5, 0.0, 1.0)
+    # signal = ROOT.RooAddPdf("signal", "Double Gaussian", ROOT.RooArgList(gauss1, gauss2), ROOT.RooArgList(frac))
     
-    # Define double Gaussian signal model
-    mean = ROOT.RooRealVar("mean", "Mean of Gaussians", 3.1, 3.0, 3.2)
-    sigma1 = ROOT.RooRealVar("sigma1", "Width of Gaussian 1", 0.02, 0.001, 0.1)
-    sigma2 = ROOT.RooRealVar("sigma2", "Width of Gaussian 2", 0.05, 0.001, 0.1)
-    gauss1 = ROOT.RooGaussian("gauss1", "Gaussian 1", mass_var, mean, sigma1)
+    # # Define background model (2nd degree polynomial)
+    # a0 = ROOT.RooRealVar("a0", "a0", 0.0, -1.0, 1.0)
+    # a1 = ROOT.RooRealVar("a1", "a1", 0.0, -1.0, 1.0)
+    # background = ROOT.RooPolynomial("background", "polynomial", mass_var, ROOT.RooArgList(a0, a1))
+    
+    # # Combine signal and background
+    # nsig = ROOT.RooRealVar("nsig", "Number of signal events", len(data_array)/2, 0, len(data_array)*2)
+    # nbkg = ROOT.RooRealVar("nbkg", "Number of background events", len(data_array)/2, 0, len(data_array)*2)
+    
+    # model = ROOT.RooAddPdf("model", "Signal + Background", 
+    #                      ROOT.RooArgList(signal, background),
+    #                      ROOT.RooArgList(nsig, nbkg))
+    # ############ END Model 1 ##########
+
+    ########### Model 2: CB + Gaussian + Polynomial Background ##########
+    mean = ROOT.RooRealVar("mean", "Mean", 3.09, 2.7, 3.5)
+    sigma = ROOT.RooRealVar("sigma", "Sigma", 0.02, 0.001, 0.1)
+    alpha = ROOT.RooRealVar("alpha", "Alpha (Tail Slope)", 2.0, 0.5, 5.0)
+    n = ROOT.RooRealVar("n", "n (Tail Exponent)", 3, 1, 10)
+    cb = ROOT.RooCrystalBall("cb", "Crystal Ball", mass_var, mean, sigma, alpha, n)
+    
+    sigma2 = ROOT.RooRealVar("sigma2", "Width of Gaussian 2", 0.04, 0.01, 0.1)
     gauss2 = ROOT.RooGaussian("gauss2", "Gaussian 2", mass_var, mean, sigma2)
-    frac = ROOT.RooRealVar("frac", "Fraction of Gauss1", 0.5, 0.0, 1.0)
-    signal = ROOT.RooAddPdf("signal", "Double Gaussian", ROOT.RooArgList(gauss1, gauss2), ROOT.RooArgList(frac))
-    
+    frac = ROOT.RooRealVar("frac", "Fraction of Gauss2", 0.7, 0.0, 1.0)
+    signal = ROOT.RooAddPdf("signal", "CB + Gaussian", ROOT.RooArgList(cb, gauss2), ROOT.RooArgList(frac))
+
     # Define background model (2nd degree polynomial)
-    a0 = ROOT.RooRealVar("a0", "a0", 0.0, -1.0, 1.0)
-    a1 = ROOT.RooRealVar("a1", "a1", 0.0, -1.0, 1.0)
-    background = ROOT.RooPolynomial("background", "polynomial", mass_var, ROOT.RooArgList(a0, a1))
-    
+    c0 = ROOT.RooRealVar("c0", "c0", -0.1, -1, 0)
+    # c1 = ROOT.RooRealVar("c1", "c1", 0.1, -5, 5)
+    # c2 = ROOT.RooRealVar("c2", "c2", 0.05, -5, 5)
+    background = ROOT.RooChebychev("background", "Polynomial Background", mass_var, ROOT.RooArgList(c0))
+
     # Combine signal and background
     nsig = ROOT.RooRealVar("nsig", "Number of signal events", len(data_array)/2, 0, len(data_array)*2)
     nbkg = ROOT.RooRealVar("nbkg", "Number of background events", len(data_array)/2, 0, len(data_array)*2)
-    
-    model = ROOT.RooAddPdf("model", "Signal + Background", 
+
+    model = ROOT.RooAddPdf("model", "Signal + Background",
                          ROOT.RooArgList(signal, background),
                          ROOT.RooArgList(nsig, nbkg))
-    
+    ############# END Model 2 ##########
+   
     
     # Perform the extended ML fit
     model.fitTo(dataset, ROOT.RooFit.Extended(), ROOT.RooFit.Save(), ROOT.RooFit.PrintLevel(-1))
