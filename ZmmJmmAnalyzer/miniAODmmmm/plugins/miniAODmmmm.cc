@@ -107,6 +107,7 @@ miniAODmmmm::miniAODmmmm(const edm::ParameterSet &iConfig)
       Run(0),
       LumiBlock(0),
       Event(0),
+      eventTime(0),
       TriggerFired(false),
 
       B_J1_mass(0),
@@ -300,7 +301,17 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       Run = iEvent.id().run();
       LumiBlock = iEvent.luminosityBlock();
       Event = iEvent.id().event();
-      // cout << "Run: " << Run << " LumiBlock: " << LumiBlock << " Event: " << Event << endl;
+
+      edm::Timestamp timestamp = iEvent.eventAuxiliary().time();
+      unsigned int seconds = timestamp.unixTime();
+      unsigned int microseconds = timestamp.microsecondOffset();
+
+      unsigned long long milliseconds = static_cast<unsigned long long>(seconds) * 1000 + static_cast<unsigned long long>(microseconds) / 1000;
+
+      eventTime = milliseconds;
+
+      // cout << "milliseconds: " << milliseconds << endl;
+      // cout << "Run: " << Run << " LumiBlock: " << LumiBlock << " Event: " << Event << " eventTime: " << eventTime << endl;
       TriggerFired = triggerFlag;
 
       B_J1_mass = MM1.M();
@@ -321,6 +332,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       Run = 0;
       LumiBlock = 0;
       Event = 0;
+      eventTime = 0;
       TriggerFired = false;
 
       B_J1_mass = -999;
@@ -354,6 +366,7 @@ void miniAODmmmm::beginJob() {
   tree_->Branch("Run", &Run);
   tree_->Branch("LumiBlock", &LumiBlock);
   tree_->Branch("Event", &Event);
+  tree_->Branch("eventTime", &eventTime);
   // tree_->Branch("TriggerFired", &TriggerFired);
 
   tree_->Branch("B_J1_mass", &B_J1_mass);

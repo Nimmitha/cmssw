@@ -97,6 +97,7 @@ private:
   UInt_t Run;
   UShort_t LumiBlock;
   ULong64_t Event;
+  ULong64_t eventTime;
   bool TriggerFired;
 
   float B_J1_mass;
