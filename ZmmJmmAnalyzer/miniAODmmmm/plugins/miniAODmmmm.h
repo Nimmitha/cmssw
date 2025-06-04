@@ -102,6 +102,7 @@ private:
 
   float B_J1_mass;
   UInt_t B_J1_pt;
+  Short_t B_J1_rapidity;
 
   float B_J1_VtxPt, B_J1_VtxMass;
   float B_J1_VtxProb;

@@ -112,6 +112,7 @@ miniAODmmmm::miniAODmmmm(const edm::ParameterSet &iConfig)
 
       B_J1_mass(0),
       B_J1_pt(0),
+      B_J1_rapidity(0),
 
       B_J1_VtxPt(0),
       B_J1_VtxMass(0),
@@ -316,6 +317,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 
       B_J1_mass = MM1.M();
       B_J1_pt = std::lround(MM1.Pt() * 1000);
+      B_J1_rapidity = std::lround(MM1.Rapidity() * 1000);
 
       B_J1_VtxPt = JPsi_mom1.Pt();
       B_J1_VtxMass = JPsi_mom1.mass();
@@ -337,6 +339,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 
       B_J1_mass = -999;
       B_J1_pt = 1000;
+      B_J1_rapidity = -999;
 
       B_J1_VtxPt = -999;
       B_J1_VtxMass = -999;
@@ -371,6 +374,7 @@ void miniAODmmmm::beginJob() {
 
   tree_->Branch("B_J1_mass", &B_J1_mass);
   tree_->Branch("B_J1_pt", &B_J1_pt);
+  tree_->Branch("B_J1_rapidity", &B_J1_rapidity);
 
   // tree_->Branch("B_J1_VtxPt", &B_J1_VtxPt);
   // tree_->Branch("B_J1_VtxMass", &B_J1_VtxMass);
