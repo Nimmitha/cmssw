@@ -2,7 +2,7 @@ from CRABClient.UserUtilities import config
 config = config()
 
 # user specific generic parameters
-config.General.requestName = 'PDMLM2_mm_2023C_v4'   # Used as the task/Project directory name
+config.General.requestName = 'PDMLM2_mm_2023C4_v4'   # Used as the task/Project directory name
 config.General.transferOutputs = True                               # Transfer output files to the storage site
 config.General.transferLogs = False
 
@@ -11,6 +11,7 @@ config.JobType.pluginName = 'Analysis'                              # Specify: a
 config.JobType.psetName = 'miniAODmuonsRootupler.py'           # parameter-set config file
 config.JobType.allowUndistributedCMSSW = True                       # Allow CMSSW release possibly not available at sites
 config.JobType.outputFiles = ['PDMLM2_Run2023C_v4_v1_Data.root']   # List of output files that needs to be collected
+config.JobType.maxJobRuntimeMin = 180                                  # Maximum job runtime in minutes
 # config.JobType.maxMemoryMB = 1000
 
 # data to be analyzed
