@@ -2,7 +2,7 @@ from CRABClient.UserUtilities import config
 config = config()
 
 # user specific generic parameters
-config.General.requestName = 'PDMLM6_mm_2023D_emit_v2'   # Used as the task/Project directory name
+config.General.requestName = 'PDMLM6_mm_2023D1_emit_v2'   # Used as the task/Project directory name
 config.General.transferOutputs = True                               # Transfer output files to the storage site
 config.General.transferLogs = False
 
