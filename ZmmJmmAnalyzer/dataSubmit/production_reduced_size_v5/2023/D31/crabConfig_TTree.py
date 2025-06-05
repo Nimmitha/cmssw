@@ -2,7 +2,7 @@ from CRABClient.UserUtilities import config
 config = config()
 
 # user specific generic parameters
-config.General.requestName = 'PDMLM3_mm_2023D_v5'   # Used as the task/Project directory name
+config.General.requestName = 'PDMLM3_mm_2023D1_v5'   # Used as the task/Project directory name
 config.General.transferOutputs = True                               # Transfer output files to the storage site
 config.General.transferLogs = False
 
@@ -22,7 +22,7 @@ config.Data.splitting = 'LumiBased'                                             
 config.Data.unitsPerJob = 50                                                                # Number of splitted units per job
 #NJOBS = 500  # This is not a configuration parameter, but an auxiliary variable that we use in the next line.
 config.Data.totalUnits = -1                                                                 # Number of untis to analyze 
-config.Data.outLFNDirBase = '/store/user/nkarunar/size_test/'
+config.Data.outLFNDirBase = '/store/user/nkarunar/atlas_compare/'
 config.Data.publication = False                                                             # Whether to publish the EDM output files in DBS
 
 # Grid site parameters
