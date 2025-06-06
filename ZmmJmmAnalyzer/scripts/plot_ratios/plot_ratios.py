@@ -7,15 +7,16 @@ import matplotlib.ticker as ticker
 from utils.utils import read_root_file, read_lumi_data, prepare_data, weighted_average
 
 # Step 1: Read ROOT file and apply cuts
-cuts = {"B_J1_mass": (2.7, 3.5), "B_Mu1_pt": (7, None), "B_Mu2_pt": (7, None), "Run": (370092, None)}
+cuts = {"B_J1_mass": (2.7, 3.5), "B_Mu1_pt": (7, None), "B_Mu2_pt": (7, None)} #, "Run": (370092, None)}
 # root_file_path = "../preselection/parkingDoubleMuonLowMass/2023/PDMLM0_mm_2023D_v1_HLT_Dimuon0_Jpsi3p5_Muon2_v9.root"
-root_file_path = "../../preselection/parkingDoubleMuonLowMass/2023/v2/PDMLM_mm_2023D_v2.root"
+root_file_path = "../../preselection/parkingDoubleMuonLowMass/PDMLM_mm_2023D_v2.root"
 run, lumiblock, mass = read_root_file(root_file_path, cuts)
 
-lumi_file = '../../preselection/parkingDoubleMuonLowMass/2024/lumi_normtagBRIL_PDMLM0_2023D.csv'
+lumi_file = '../../preselection/parkingDoubleMuonLowMass/lumi_normtagBRIL_PDMLM0_2023D.csv'
 lumi_df = read_lumi_data(lumi_file)
 
-event_y, event_y_error, lumi_y, pileup_y, x_labels, nlumis, prescale_lines = prepare_data(run, lumiblock, mass_range=(2.85, 3.35), mass=mass, lumi_df=lumi_df, count_method='direct')
+event_y, event_y_error, lumi_y, pileup_y, x_labels, nlumis, prescale_lines = prepare_data(run, lumiblock, mass_range=(2.7, 3.5), mass=mass, lumi_df=lumi_df, count_method='direct')
+# event_y, event_y_error, lumi_y, pileup_y, x_labels, nlumis, prescale_lines = prepare_data(run, lumiblock, mass_range=(2.85, 3.35), mass=mass, lumi_df=lumi_df, count_method='direct')
 # event_y, event_y_error, lumi_y, pileup_y, x_labels, nlumis, prescale_lines = prepare_data(run, lumiblock, mass_range=(2.7, 3.5), mass=mass, lumi_df=lumi_df, count_method='fit')
 
 # Assuming all arrays are of equal length or can logically align row-wise
@@ -135,6 +136,7 @@ avg_const, avg_const_err = weighted_average(
     summary_df['fit_const_err'].values
 )
 
+plt.figure()
 plt.errorbar(
     summary_df['fit_run'],
     summary_df['fit_slope'],
@@ -161,7 +163,7 @@ plt.title('Fit slope vs Run number')
 plt.grid(True)
 plt.tight_layout()
 plt.legend()
-plt.savefig('summary_slope.png')
+plt.savefig('plots/summary_slope.png')
 
 plt.figure()
 plt.errorbar(
@@ -190,7 +192,7 @@ plt.title('Fit const vs Run number')
 plt.grid(True)
 plt.tight_layout()
 plt.legend()
-plt.savefig('summary_const.png')
+plt.savefig('plots/summary_const.png')
 
 plt.figure()
 plt.plot
@@ -219,7 +221,7 @@ plt.legend()
 # plt.xlim(-0.010, -0.00)
 # plt.ylim(12, 14.5)
 plt.tight_layout()
-plt.savefig('summary_2D.png')
+plt.savefig('plots/summary_2D.png')
 
 # scale events to match lumi
 scale_factor = sum(df['lumi_y']) / sum(df['event_y'])
@@ -243,7 +245,7 @@ ax1.grid(True)
 fig.legend(loc='upper right')
 plt.title("2023D J/ψ Event Count and Ref Luminosity")
 fig.tight_layout()
-plt.savefig("Jpsi.png", dpi=300)
+plt.savefig("plots/Jpsi.png", dpi=300)
 
 # Compute ratio safely (avoid division by zero)
 event_y_arr = np.array(scaled_event_y)
@@ -268,7 +270,7 @@ ax3.grid(True)
 plt.title("Ratio of J/ψ Event Count to Ref Luminosity")
 plt.ylim(0.5, 1.5)
 fig2.tight_layout()
-plt.savefig("Jpsi_ratio.png", dpi=300)  
+plt.savefig("plots/Jpsi_ratio.png", dpi=300)  
 
 print(df.head())
 print(f"Average slope: {avg_slope:.4f} ± {avg_slope_err:.4f}")
@@ -308,7 +310,7 @@ ax4.grid(True)
 fig3.legend(loc='upper right')
 plt.title("2023D Corrected J/ψ Event Count and Ref Luminosity")
 fig3.tight_layout()
-plt.savefig("Jpsi_after.png", dpi=300)
+plt.savefig("plots/Jpsi_after.png", dpi=300)
 
 
 # Compute ratio safely (avoid division by zero)
@@ -335,7 +337,7 @@ ax5.grid(True)
 plt.title("Ratio of Corrected J/ψ Event Count to Ref Luminosity")
 plt.ylim(0.5, 1.5)
 fig4.tight_layout()
-plt.savefig("Jpsi_ratio_after.png", dpi=300)  
+plt.savefig("plots/Jpsi_ratio_after.png", dpi=300)  
 
 # plot the two ratio histograms side by side with rms included
 fig5, (ax6, ax7) = plt.subplots(1, 2, figsize=(14, 6))
@@ -358,4 +360,4 @@ ax7.xaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
 ax6.xaxis.set_major_locator(ticker.MaxNLocator(10))
 ax7.xaxis.set_major_locator(ticker.MaxNLocator(10)) 
 # save the figure
-plt.savefig("Jpsi_ratio_hist.png", dpi=300)
+plt.savefig("plots/Jpsi_ratio_hist.png", dpi=300)

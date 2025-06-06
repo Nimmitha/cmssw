@@ -17,3 +17,7 @@ ZmmJmmAnalyzer/miniAODs
 ZmmJmmAnalyzer/scripts/plot_ratios/plots/
 ZmmJmmAnalyzer/scripts/plot_ratio_fill/plots/
 ZmmJmmAnalyzer/scripts/plot_eta/plots/
+
+ZmmJmmAnalyzer/scripts/emittance/direct_count/output
+ZmmJmmAnalyzer/scripts/emittance/direct_count/scan_JSON
+ZmmJmmAnalyzer/scripts/emittance/fit_count
