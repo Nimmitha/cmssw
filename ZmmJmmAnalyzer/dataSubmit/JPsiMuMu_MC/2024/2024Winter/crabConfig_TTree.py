@@ -2,7 +2,7 @@ from CRABClient.UserUtilities import config
 config = config()
 
 # user specific generic parameters
-config.General.requestName = 'JPsiToMuMu_PT_0to100_Winter24_MC_withGen'   # Used as the task/Project directory name
+config.General.requestName = 'JPsiToMuMu_PT_0to100_Winter24_MC_withGen_Truth'   # Used as the task/Project directory name
 config.General.transferOutputs = True                               # Transfer output files to the storage site
 config.General.transferLogs = True
 

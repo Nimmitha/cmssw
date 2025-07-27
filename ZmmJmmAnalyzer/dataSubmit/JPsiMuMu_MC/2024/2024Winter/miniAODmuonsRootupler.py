@@ -14,9 +14,22 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '133X_mcRun3_2024_realistic_v8') # JPsiToMuMu MC
 
+# process.MessageLogger.cerr.FwkReport.reportEvery = 500
+process.MessageLogger = cms.Service("MessageLogger",
+    destinations = cms.untracked.vstring('messages'),
+    categories = cms.untracked.vstring('GenStudyAnalyzer'),
 
+    messages = cms.untracked.PSet(
+        threshold = cms.untracked.string('INFO'),  # or 'WARNING' if you want only warnings+
+        default = cms.untracked.PSet(
+            limit = cms.untracked.int32(0)          # suppress all other categories
+        ),
+        GenStudyAnalyzer = cms.untracked.PSet(
+            limit = cms.untracked.int32(100000)     # allow all messages from this category
+        )
+    )
+)
 
-process.MessageLogger.cerr.FwkReport.reportEvery = 500
 process.options = cms.untracked.PSet(
   wantSummary = cms.untracked.bool(True),
   allowUnscheduled = cms.untracked.bool(True),
