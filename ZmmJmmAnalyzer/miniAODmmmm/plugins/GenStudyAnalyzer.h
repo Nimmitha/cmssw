@@ -106,11 +106,13 @@ private:
 
   bool isFiducialGen;
   UShort_t nGenFidJpsi;
-  UShort_t nRecoJpsi;
-
   UInt_t B_J1_Gen_pt;
+  Short_t B_J1_Gen_eta;
 
   bool TriggerFired;
+
+  UShort_t nRecoJpsiNoVtx;
+  UShort_t nRecoDistinctJWVtx;
 
   float B_J1_mass;
   UInt_t B_J1_pt;
@@ -122,5 +124,9 @@ private:
   UInt_t B_Mu2_pt;
   Short_t B_Mu1_eta;
   Short_t B_Mu2_eta;
+  bool B_Mu1_soft;
+  bool B_Mu2_soft;
+
+  UShort_t nMatchedMuons;
 };
 #endif

@@ -138,9 +138,6 @@ void GenStudyAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup &
     return;
   }
 
-  // edm::LogInfo("GenStudyAnalyzer") << "Processing event: " << iEvent.id().event() << " in run: " << iEvent.id().run();
-  // cout << "LumiBlock: " << iEvent.id().luminosityBlock() << std::endl;
-
   // Pileup Info
   pileup = -1;
   if (puInfo.isValid()) {
@@ -156,6 +153,9 @@ void GenStudyAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup &
   isFiducialGen = false;
   nGenFidJpsi = 0;
   B_J1_Gen_pt = 0;
+  B_J1_Gen_eta = -399;
+  std::vector<const reco::GenParticle *> genMuons;
+  genMuons.clear();
 
   for (const auto &jpsi : *genParticles) {
     if (jpsi.pdgId() != 443)
@@ -219,7 +219,11 @@ void GenStudyAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup &
       continue;
 
     B_J1_Gen_pt = std::lround(jpsi.pt() * 1000);
+    B_J1_Gen_eta = std::lround(jpsi.eta() * 100);
 
+    // add muons to the vector
+    genMuons.push_back(muon1ptr);
+    genMuons.push_back(muon2ptr);
     isFiducialGen = true;
     nGenFidJpsi++;
   }
@@ -242,6 +246,21 @@ void GenStudyAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup &
     }
   }
 
+  // Struct to hold dimuon candidates
+  struct DimuonCandidate {
+    const pat::Muon *mu1;
+    const pat::Muon *mu2;
+    float vtxProb;
+    TLorentzVector p4;
+    float mu1_pt, mu2_pt, mu1_eta, mu2_eta;
+
+    bool operator<(const DimuonCandidate &other) const {
+      return vtxProb > other.vtxProb;  // sort descending by vtxProb
+    }
+  };
+
+  std::vector<DimuonCandidate> validCandidates;
+
   //Now we get the primary vertex
   reco::Vertex bestVtx;
   edm::Handle<reco::VertexCollection> primaryVertices_handle;
@@ -250,21 +269,26 @@ void GenStudyAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup &
   bestVtx = *(primaryVertices_handle->begin());
 
   //***************Now we check reco***********************
+  nRecoJpsiNoVtx = 0;
+  nRecoDistinctJWVtx = 0;
   B_J1_mass = -1;
   B_J1_pt = 0;
   B_J1_rapidity = -2999;
+
+  B_J1_vtxProb = -1;
 
   B_Mu1_pt = 0;
   B_Mu2_pt = 0;
   B_Mu1_eta = -399;
   B_Mu2_eta = -399;
+  B_Mu1_soft = false;
+  B_Mu2_soft = false;
+  nMatchedMuons = 0;
 
   Run = iEvent.id().run();
   LumiBlock = iEvent.luminosityBlock();
   Event = iEvent.id().event();
 
-  B_J1_vtxProb = -1;
-  nRecoJpsi = 0;
 
   for (pat::MuonCollection::const_iterator iMuon1 = thePATMuonHandle->begin(); iMuon1 != thePATMuonHandle->end(); ++iMuon1) {
     for (pat::MuonCollection::const_iterator iMuon2 = iMuon1 + 1; iMuon2 != thePATMuonHandle->end(); ++iMuon2) {
@@ -301,14 +325,35 @@ void GenStudyAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup &
         glbTrackP1 = iMuon2->track();
         glbTrackM1 = iMuon1->track();
       } else {
-        edm::LogInfo("GenStudyAnalyzer") << "Something is wrong while making charge track reference";
+        edm::LogInfo("GenStudyAnalyzer") << "Charge error";
         continue;
       }
 
-      if (glbTrackP1.isNull() || glbTrackM1.isNull()) {
-        //std::cout << "continue due to no track ref" << endl;
+      if (glbTrackP1.isNull() || glbTrackM1.isNull())
         continue;
-      }
+      if (!glbTrackP1->quality(reco::TrackBase::highPurity))
+        continue;
+      if (!glbTrackM1->quality(reco::TrackBase::highPurity))
+        continue;
+
+      reco::TransientTrack muon1TT;
+      reco::TransientTrack muon2TT;
+
+      muon1TT = theB.build(glbTrackP1);
+      muon2TT = theB.build(glbTrackM1);
+
+      //Kalman Vtx----------------------//
+      vector<TransientTrack> mu_tks;
+      KalmanVertexFitter kvfM(true);
+      mu_tks.clear();
+      mu_tks.push_back(muon1TT);
+      mu_tks.push_back(muon2TT);
+      TransientVertex J_candi1 = kvfM.vertex(mu_tks);
+
+      if (!J_candi1.isValid())
+        continue;
+
+      float Jpsi_vtxProb = TMath::Prob(J_candi1.totalChiSquared(), J_candi1.degreesOfFreedom());
 
       TLorentzVector m1, m2, MM1;
       float mu_mass = 0.1056583745;  //[PDG mass]
@@ -321,64 +366,68 @@ void GenStudyAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup &
         m1.SetXYZM(iMuon2->px(), iMuon2->py(), iMuon2->pz(), mu_mass);
         m2.SetXYZM(iMuon1->px(), iMuon1->py(), iMuon1->pz(), mu_mass);
       } else {
-        edm::LogInfo("GenStudyAnalyzer") << "Something is wrong while making muon 4 vectors";
+        edm::LogInfo("GenStudyAnalyzer") << "Charge error in muon combination";
         continue;
       }
 
       //make netral dimuon combination
       MM1 = m1 + m2;
 
-      //cout<<"Start looking muon track quality"<<endl;
-      if (!(glbTrackM1->quality(reco::TrackBase::highPurity)))
-        continue;
-      if (!(glbTrackP1->quality(reco::TrackBase::highPurity)))
-        continue;
-
-      reco::TransientTrack muon1TT;
-      reco::TransientTrack muon2TT;
-
-      muon1TT = theB.build(glbTrackP1);
-      muon2TT = theB.build(glbTrackM1);
-
-      //Kalman Vtx----------------------//
-      vector<TransientTrack> mu_tks;
-
-      KalmanVertexFitter kvfM(true);
-      mu_tks.clear();
-      mu_tks.push_back(muon1TT);
-      mu_tks.push_back(muon2TT);
-      TransientVertex J_candi1 = kvfM.vertex(mu_tks);
-
-      if (!J_candi1.isValid())
-        continue;
-
-      reco::Vertex JPsi_Vtx1 = J_candi1;
-
-      float Jpsi_vtxProb = TMath::Prob(J_candi1.totalChiSquared(), J_candi1.degreesOfFreedom());
-      // const math::XYZTLorentzVectorD JPsi_mom1 = JPsi_Vtx1.p4(mu_mass, 0.0);
-
       // Remove events with mass outside J/Psi mass window
-      if ((MM1.M() < 2.6 || MM1.M() > 3.6))
+      if ((MM1.M() < 2.7 || MM1.M() > 3.5))
         continue;
 
-      nRecoJpsi++;
-
-      if (Jpsi_vtxProb > B_J1_vtxProb) {
-        B_J1_vtxProb = Jpsi_vtxProb;
-
-        B_J1_mass = MM1.M();
-        B_J1_pt = std::lround(MM1.Pt() * 1000);
-        B_J1_rapidity = std::lround(MM1.Rapidity() * 1000);
-
-        B_Mu1_pt = std::lround(iMuon1->pt() * 1000);
-        B_Mu2_pt = std::lround(iMuon2->pt() * 1000);
-        B_Mu1_eta = std::lround(iMuon1->eta() * 100);
-        B_Mu2_eta = std::lround(iMuon2->eta() * 100);
-      }
+      validCandidates.push_back(
+          {&(*iMuon1), &(*iMuon2), Jpsi_vtxProb, MM1, static_cast<float>(iMuon1->pt()), static_cast<float>(iMuon2->pt()), static_cast<float>(iMuon1->eta()), static_cast<float>(iMuon2->eta())});
     }
   }
 
-  // Fill the tree with the event information
+  std::sort(validCandidates.begin(), validCandidates.end());
+
+  nRecoJpsiNoVtx = validCandidates.size();
+
+  // Track used muons
+  std::set<const pat::Muon *> usedMuons;
+  usedMuons.clear();
+
+  nRecoDistinctJWVtx = 0;
+  for (const auto &cand : validCandidates) {
+    if (cand.vtxProb < 0.1) {
+      continue;
+    }
+    if (usedMuons.count(cand.mu1) || usedMuons.count(cand.mu2)) {
+      continue;
+    }
+    nRecoDistinctJWVtx++;
+    usedMuons.insert(cand.mu1);
+    usedMuons.insert(cand.mu2);
+  }
+
+  if (!validCandidates.empty() && nRecoDistinctJWVtx > 0) {
+    const auto &cand = validCandidates.front();  // best candidate
+
+    B_J1_mass = cand.p4.M();
+    B_J1_pt = std::lround(cand.p4.Pt() * 1000);
+    B_J1_rapidity = std::lround(cand.p4.Rapidity() * 1000);
+
+    B_J1_vtxProb = cand.vtxProb;
+    B_Mu1_pt = std::lround(cand.mu1_pt * 1000);
+    B_Mu2_pt = std::lround(cand.mu2_pt * 1000);
+    B_Mu1_eta = std::lround(cand.mu1_eta * 100);
+    B_Mu2_eta = std::lround(cand.mu2_eta * 100);
+    B_Mu1_soft = cand.mu1->isSoftMuon(bestVtx);
+    B_Mu2_soft = cand.mu2->isSoftMuon(bestVtx);
+
+    usedMuons.insert(cand.mu1);
+    usedMuons.insert(cand.mu2);
+
+    // Match reco muons to gen muons
+    for (const auto *genMu : genMuons) {
+      if (deltaR(cand.mu1->eta(), cand.mu1->phi(), genMu->eta(), genMu->phi()) < 0.03 || deltaR(cand.mu2->eta(), cand.mu2->phi(), genMu->eta(), genMu->phi()) < 0.03)
+        ++nMatchedMuons;
+    }
+  }
+
   tree_->Fill();
 }
 
@@ -394,9 +443,11 @@ void GenStudyAnalyzer::beginJob() {
 
   tree_->Branch("isFiducialGen", &isFiducialGen, "isFiducialGen/O");
   tree_->Branch("nGenFidJpsi", &nGenFidJpsi, "nGenFidJpsi/s");
-  tree_->Branch("nRecoJpsi", &nRecoJpsi, "nRecoJpsi/s");
+  tree_->Branch("nRecoJpsiNoVtx", &nRecoJpsiNoVtx, "nRecoJpsiNoVtx/s");
+  tree_->Branch("nRecoDistinctJWVtx", &nRecoDistinctJWVtx, "nRecoDistinctJWVtx/s");
 
   tree_->Branch("B_J1_Gen_pt", &B_J1_Gen_pt, "B_J1_Gen_pt/i");
+  tree_->Branch("B_J1_Gen_eta", &B_J1_Gen_eta, "B_J1_Gen_eta/S");
 
   tree_->Branch("TriggerFired", &TriggerFired, "TriggerFired/O");
 
@@ -410,6 +461,10 @@ void GenStudyAnalyzer::beginJob() {
   tree_->Branch("B_Mu2_pt", &B_Mu2_pt, "B_Mu2_pt/i");
   tree_->Branch("B_Mu1_eta", &B_Mu1_eta, "B_Mu1_eta/S");
   tree_->Branch("B_Mu2_eta", &B_Mu2_eta, "B_Mu2_eta/S");
+  tree_->Branch("B_Mu1_soft", &B_Mu1_soft, "B_Mu1_soft/O");
+  tree_->Branch("B_Mu2_soft", &B_Mu2_soft, "B_Mu2_soft/O");
+
+  tree_->Branch("nMatchedMuons", &nMatchedMuons, "nMatchedMuons/i");
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
