@@ -194,6 +194,23 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 
   bestVtx = *(primaryVertices_handle->begin());
 
+  UShort_t goodPVCount = 0;
+
+  if (primaryVertices_handle.isValid()) {
+    for (const auto &vtx : *primaryVertices_handle) {
+      if (!vtx.isFake() && vtx.ndof() > 4 && fabs(vtx.z()) <= 24.0 && fabs(vtx.position().Rho()) <= 2.0) {
+        ++goodPVCount;
+      }
+    }
+    if (!primaryVertices_handle->empty()) {
+      bestVtx = *(primaryVertices_handle->begin());
+    }
+  } else {
+    edm::LogWarning("miniAODmmmm") << "Primary vertex collection is not valid!";
+  }
+
+  nPV = goodPVCount;
+
   //****************************************************
   //*********Now we get the muons***********************
   //****************************************************
@@ -337,6 +354,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       eventTime = 0;
       TriggerFired = false;
 
+      nPV = 0;
       B_J1_mass = -999;
       B_J1_pt = 1000;
       B_J1_rapidity = -999;
@@ -372,6 +390,7 @@ void miniAODmmmm::beginJob() {
   // tree_->Branch("eventTime", &eventTime);
   // tree_->Branch("TriggerFired", &TriggerFired);
 
+  tree_->Branch("nPV", &nPV);
   tree_->Branch("B_J1_mass", &B_J1_mass);
   tree_->Branch("B_J1_pt", &B_J1_pt);
   // tree_->Branch("B_J1_rapidity", &B_J1_rapidity);

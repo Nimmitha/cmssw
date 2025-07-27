@@ -100,6 +100,7 @@ private:
   ULong64_t eventTime;
   bool TriggerFired;
 
+  UShort_t nPV;
   float B_J1_mass;
   UInt_t B_J1_pt;
   Short_t B_J1_rapidity;
