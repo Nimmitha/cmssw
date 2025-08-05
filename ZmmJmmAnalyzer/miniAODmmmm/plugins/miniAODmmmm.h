@@ -112,5 +112,6 @@ private:
   UInt_t B_Mu2_pt;
   Short_t B_Mu1_eta;
   Short_t B_Mu2_eta;
+  bool isBestCandidate;
 };
 #endif

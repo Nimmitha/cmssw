@@ -110,6 +110,7 @@ miniAODmmmm::miniAODmmmm(const edm::ParameterSet &iConfig)
       eventTime(0),
       TriggerFired(false),
 
+      nPV(0),
       B_J1_mass(0),
       B_J1_pt(0),
       B_J1_rapidity(0),
@@ -121,7 +122,8 @@ miniAODmmmm::miniAODmmmm(const edm::ParameterSet &iConfig)
       B_Mu1_pt(0),
       B_Mu2_pt(0),
       B_Mu1_eta(0),
-      B_Mu2_eta(0) {
+      B_Mu2_eta(0),
+      isBestCandidate(false) {
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   setupDataToken_ = esConsumes<SetupData, SetupRecord>();
 #endif
@@ -183,6 +185,22 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
   if (!triggerFlag) {
     return;
   }
+
+  // Struct to hold dimuon candidates
+  struct DimuonCandidate {
+    const pat::Muon *mu1;
+    const pat::Muon *mu2;
+    float vtxProb;
+    TLorentzVector p4;
+    // XYZTLorentzVectorD J_vtx;
+    float mu1_pt, mu2_pt, mu1_eta, mu2_eta;
+
+    bool operator<(const DimuonCandidate &other) const {
+      return vtxProb > other.vtxProb;  // sort descending by vtxProb
+    }
+  };
+
+  std::vector<DimuonCandidate> validCandidates;
 
   //*********************************
   //Now we get the primary vertex
@@ -303,7 +321,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       reco::Vertex JPsi_Vtx1 = J_candi1;
 
       float B_Prob_tmp1 = TMath::Prob(J_candi1.totalChiSquared(), J_candi1.degreesOfFreedom());
-      const math::XYZTLorentzVectorD JPsi_mom1 = JPsi_Vtx1.p4(mu_mass, 0.0);
+      // const math::XYZTLorentzVectorD JPsi_mom1 = JPsi_Vtx1.p4(mu_mass, 0.0);
 
       if (B_Prob_tmp1 < 0.1) {
         continue;
@@ -314,61 +332,92 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
         continue;
       }
 
-      //****************************************************************************************
-      //Event Information
-      Run = iEvent.id().run();
-      LumiBlock = iEvent.luminosityBlock();
-      Event = iEvent.id().event();
-
-      edm::Timestamp timestamp = iEvent.eventAuxiliary().time();
-      unsigned int seconds = timestamp.unixTime();
-      unsigned int microseconds = timestamp.microsecondOffset();
-
-      unsigned long long milliseconds = static_cast<unsigned long long>(seconds) * 1000 + static_cast<unsigned long long>(microseconds) / 1000;
-
-      eventTime = milliseconds;
-
-      // cout << "milliseconds: " << milliseconds << endl;
-      // cout << "Run: " << Run << " LumiBlock: " << LumiBlock << " Event: " << Event << " eventTime: " << eventTime << endl;
-      TriggerFired = triggerFlag;
-
-      B_J1_mass = MM1.M();
-      B_J1_pt = std::lround(MM1.Pt() * 1000);
-      B_J1_rapidity = std::lround(MM1.Rapidity() * 1000);
-
-      B_J1_VtxPt = JPsi_mom1.Pt();
-      B_J1_VtxMass = JPsi_mom1.mass();
-      B_J1_VtxProb = B_Prob_tmp1;
-
-      //new branch defn for muons
-      B_Mu1_pt = std::lround(iMuon1->pt() * 1000);
-      B_Mu2_pt = std::lround(iMuon2->pt() * 1000);
-      B_Mu1_eta = std::lround(iMuon1->eta() * 100);
-      B_Mu2_eta = std::lround(iMuon2->eta() * 100);
-
-      tree_->Fill();
-
-      Run = 0;
-      LumiBlock = 0;
-      Event = 0;
-      eventTime = 0;
-      TriggerFired = false;
-
-      nPV = 0;
-      B_J1_mass = -999;
-      B_J1_pt = 1000;
-      B_J1_rapidity = -999;
-
-      B_J1_VtxPt = -999;
-      B_J1_VtxMass = -999;
-      B_J1_VtxProb = -999;
-
-      B_Mu1_pt = 1000;
-      B_Mu2_pt = 1000;
-      B_Mu1_eta = 10;
-      B_Mu2_eta = 10;
+      validCandidates.push_back({&(*iMuon1),
+                                 &(*iMuon2),
+                                 B_Prob_tmp1,
+                                 MM1,
+                                 //  JPsi_mom1,
+                                 static_cast<float>(iMuon1->pt()),
+                                 static_cast<float>(iMuon2->pt()),
+                                 static_cast<float>(iMuon1->eta()),
+                                 static_cast<float>(iMuon2->eta())});
     }
   }
+
+  //Event Information
+  Run = iEvent.id().run();
+  LumiBlock = iEvent.luminosityBlock();
+  Event = iEvent.id().event();
+
+  edm::Timestamp timestamp = iEvent.eventAuxiliary().time();
+  unsigned int seconds = timestamp.unixTime();
+  unsigned int microseconds = timestamp.microsecondOffset();
+
+  unsigned long long milliseconds = static_cast<unsigned long long>(seconds) * 1000 + static_cast<unsigned long long>(microseconds) / 1000;
+
+  eventTime = milliseconds;
+
+  // cout << "milliseconds: " << milliseconds << endl;
+  // cout << "Run: " << Run << " LumiBlock: " << LumiBlock << " Event: " << Event << " eventTime: " << eventTime << endl;
+  TriggerFired = triggerFlag;
+
+  std::sort(validCandidates.begin(), validCandidates.end());
+
+  // Track used muons
+  std::set<const pat::Muon *> usedMuons;
+  usedMuons.clear();
+
+  UShort_t nRecoDistinctJWVtx = 0;
+  for (const auto &cand : validCandidates) {
+    if (usedMuons.count(cand.mu1) || usedMuons.count(cand.mu2)) {
+      continue;
+    }
+    nRecoDistinctJWVtx++;
+    usedMuons.insert(cand.mu1);
+    usedMuons.insert(cand.mu2);
+
+    // Fill the tree with all the candidates
+    B_J1_mass = cand.p4.M();
+    B_J1_pt = std::lround(cand.p4.Pt() * 1000);
+    B_J1_rapidity = std::lround(cand.p4.Rapidity() * 1000);
+    // B_J1_VtxPt = cand.J_vtx.Pt();
+    // B_J1_VtxMass = cand.J_vtx.mass();
+    B_J1_VtxProb = cand.vtxProb;
+    B_Mu1_pt = std::lround(cand.mu1->pt() * 1000);
+    B_Mu2_pt = std::lround(cand.mu2->pt() * 1000);
+    B_Mu1_eta = std::lround(cand.mu1->eta() * 100);
+    B_Mu2_eta = std::lround(cand.mu2->eta() * 100);
+
+    if (nRecoDistinctJWVtx == 1) {
+      isBestCandidate = true;  // Mark the first candidate as the best
+    } else {
+      isBestCandidate = false;  // Subsequent candidates are not the best
+    }
+
+    tree_->Fill();
+
+    B_J1_mass = -999;
+    B_J1_pt = 1000;
+    B_J1_rapidity = -999;
+
+    B_J1_VtxPt = -999;
+    B_J1_VtxMass = -999;
+    B_J1_VtxProb = -999;
+
+    B_Mu1_pt = 1000;
+    B_Mu2_pt = 1000;
+    B_Mu1_eta = 10;
+    B_Mu2_eta = 10;
+  }
+
+  // Reset variables for the next event
+  Run = 0;
+  LumiBlock = 0;
+  Event = 0;
+  eventTime = 0;
+  TriggerFired = false;
+  nPV = 0;
+
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   // if the SetupData is always needed
   auto setup = iSetup.getData(setupToken_);
@@ -386,7 +435,7 @@ void miniAODmmmm::beginJob() {
 
   tree_->Branch("Run", &Run);
   tree_->Branch("LumiBlock", &LumiBlock);
-  tree_->Branch("Event", &Event);
+  // tree_->Branch("Event", &Event);
   // tree_->Branch("eventTime", &eventTime);
   // tree_->Branch("TriggerFired", &TriggerFired);
 
@@ -403,6 +452,7 @@ void miniAODmmmm::beginJob() {
   tree_->Branch("B_Mu2_pt", &B_Mu2_pt);
   tree_->Branch("B_Mu1_eta", &B_Mu1_eta);
   tree_->Branch("B_Mu2_eta", &B_Mu2_eta);
+  tree_->Branch("isBestCandidate", &isBestCandidate);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
