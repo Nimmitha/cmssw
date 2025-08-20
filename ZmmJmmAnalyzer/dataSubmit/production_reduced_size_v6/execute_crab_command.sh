@@ -64,6 +64,7 @@ for dir in "$year"/*/; do
                     if [ -f "$subdir/processedLumis.json" ]; then
                         (cd "$subdir" && brilcalc lumi -i processedLumis.json --byls --output-style csv > lumi_online.csv)
                         (cd "$subdir" && brilcalc lumi -i processedLumis.json --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json --byls --output-style csv > lumi_normtagBRIL.csv)
+                        (cd "$subdir" && brilcalc lumi -i processedLumis.json --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json --byls --output-style csv > lumi_normtagPHYSICS.csv)
                     else
                         echo "processedLumis.json not found in $subdir. Skipping..."
                     fi
