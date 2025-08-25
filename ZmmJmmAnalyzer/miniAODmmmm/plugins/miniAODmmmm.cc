@@ -349,13 +349,13 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
   LumiBlock = iEvent.luminosityBlock();
   Event = iEvent.id().event();
 
-  edm::Timestamp timestamp = iEvent.eventAuxiliary().time();
-  unsigned int seconds = timestamp.unixTime();
-  unsigned int microseconds = timestamp.microsecondOffset();
+  // edm::Timestamp timestamp = iEvent.eventAuxiliary().time();
+  // unsigned int seconds = timestamp.unixTime();
+  // unsigned int microseconds = timestamp.microsecondOffset();
 
-  unsigned long long milliseconds = static_cast<unsigned long long>(seconds) * 1000 + static_cast<unsigned long long>(microseconds) / 1000;
+  // unsigned long long milliseconds = static_cast<unsigned long long>(seconds) * 1000 + static_cast<unsigned long long>(microseconds) / 1000;
 
-  eventTime = milliseconds;
+  // eventTime = milliseconds;
 
   // cout << "milliseconds: " << milliseconds << endl;
   // cout << "Run: " << Run << " LumiBlock: " << LumiBlock << " Event: " << Event << " eventTime: " << eventTime << endl;
