@@ -28,7 +28,8 @@ era_config = {
 }
 
 # Base path pattern
-base_path_pattern = "/uscms/home/wkarunar/nobackup/datasets/data/run3/parkingDoubleMuonLowMass/{year}/v6"
+# base_path_pattern = "/uscms/home/wkarunar/nobackup/datasets/data/run3/parkingDoubleMuonLowMass/{year}/v6"
+base_path_pattern = "/home/nimmitha/LPCfiles/run3/jmm_counting/cmssw/ZmmJmmAnalyzer/preselection/parkingDoubleMuonLowMass/{year}/v6"
 
 # Cuts definition
 cuts_config = {
@@ -77,63 +78,68 @@ def process_era(year, era, base_path, args):
     lumi_file = f"{base_path}/lumi_normtag{normtag}_PDMLM_{year}{era}.csv"
     output_csv = f"{args.csv_dir}/event_data_fit_{year}_{era}_{normtag}.csv"
 
-    # Check if ROOT file exists
-    if not os.path.exists(root_file):
-        print(f"Warning: ROOT file not found: {root_file}")
-        return False
-    
-    # Stage 1: ROOT to HDF5 conversion (if needed)
-    if not os.path.exists(hdf5_file) or args.force_convert:
-        cmd = [
-            "python", "root_to_hdf5.py",
-            root_file,
-            hdf5_file,
-            "--bin-width", str(args.bin_width),
-            "--chunk-size", args.chunk_size,
-            "--compression", args.compression,
-            "--verify"  # Add verification after conversion
-        ]
-        
-        run_command(cmd, f"Stage 1: Converting ROOT to HDF5 for {year} {era}")
+    if args.no_convert:
+        print(f"Skipping conversion for {year} {era}")
+        if not os.path.exists(hdf5_file):
+            print(f"Error: HDF5 file does not exist, cannot skip conversion: {hdf5_file}")
+            return False
     else:
-        print(f"HDF5 file already exists: {hdf5_file}")
-    
-    # Check if HDF5 was created successfully
-    if not os.path.exists(hdf5_file):
-        print(f"Error: HDF5 file was not created: {hdf5_file}")
-        return False
+        # Check if ROOT file exists
+        if not os.path.exists(root_file) and not args.no_convert:
+            print(f"Warning: ROOT file not found: {root_file}")
+            return False
+        
+        # Stage 1: ROOT to HDF5 conversion (if needed)
+        if not os.path.exists(hdf5_file) or args.force_convert:
+            cmd = [
+                "python", "root_to_hdf5.py",
+                root_file,
+                hdf5_file,
+                "--bin-width", str(args.bin_width),
+                "--chunk-size", args.chunk_size,
+                "--compression", args.compression,
+                "--verify"  # Add verification after conversion
+            ]
+            
+            run_command(cmd, f"Stage 1: Converting ROOT to HDF5 for {year} {era}")
+        else:
+            print(f"HDF5 file already exists: {hdf5_file}")
+        
+        # Check if HDF5 was created successfully
+        if not os.path.exists(hdf5_file):
+            print(f"Error: HDF5 file was not created: {hdf5_file}")
+            return False
     
     # Stage 2: ML Analysis
     if args.no_analyze:
         print(f"Skipping ML analysis for {year} {era}")
-        return True
-    
-    if not os.path.exists(output_csv) or args.force_analyze:
-        cmd = [
-            "python", "hdf5_ml_analysis.py",
-            hdf5_file,
-            output_csv,
-            "--mass-min", str(args.mass_min),
-            "--mass-max", str(args.mass_max),
-            "--n-cores", str(args.n_cores),
-            "--year", year,
-            "--era", era
-        ]
-        
-        # Add luminosity file if it exists
-        if os.path.exists(lumi_file):
-            cmd.extend(["--lumi-file", lumi_file])
+    else:    
+        if not os.path.exists(output_csv) or args.force_analyze:
+            cmd = [
+                "python", "hdf5_ml_analysis.py",
+                hdf5_file,
+                output_csv,
+                "--mass-min", str(args.mass_min),
+                "--mass-max", str(args.mass_max),
+                "--n-cores", str(args.n_cores),
+                "--year", year,
+                "--era", era
+            ]
+            
+            # Add luminosity file if it exists
+            if os.path.exists(lumi_file):
+                cmd.extend(["--lumi-file", lumi_file])
+            else:
+                print(f"Warning: Luminosity file not found: {lumi_file}")
+            
+            # Add plot saving options
+            if args.save_plots:
+                cmd.append("--save-plots")
+                cmd.extend(["--plot-dir", args.plot_dir])
+            
+            run_command(cmd, f"Stage 2: ML Analysis for {year} {era}")
         else:
-            print(f"Warning: Luminosity file not found: {lumi_file}")
-        
-        # Add plot saving options
-        if args.save_plots:
-            cmd.append("--save-plots")
-            cmd.extend(["--plot-dir", args.plot_dir])
-        
-        run_command(cmd, f"Stage 2: ML Analysis for {year} {era}")
-    else:
-        print(f"Output CSV already exists: {output_csv}")
+            print(f"Output CSV already exists: {output_csv}")
     
     return True
 
@@ -170,6 +176,8 @@ def main():
                        help='Force re-analysis of HDF5 files')
     parser.add_argument('--no-analyze', default=False, action='store_true',
                        help='Skip analysis of HDF5 files')
+    parser.add_argument('--no-convert', default=False, action='store_true',
+                       help='Skip conversion of ROOT to HDF5')
 
     args = parser.parse_args()
     

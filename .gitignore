@@ -5,11 +5,9 @@ __init__.py
 *.requestcache
 crab.log
 
-ZmmJmmAnalyzer/dataSubmit/202?
-ZmmJmmAnalyzer/dataSubmit/2023
-ZmmJmmAnalyzer/dataSubmit/2024
 ZmmJmmAnalyzer/dataSubmit/**/crab_*/inputs/*
 ZmmJmmAnalyzer/dataSubmit/**/crab_*/results/*.gz
+ZmmJmmAnalyzer/dataSubmit/production_reduced_size_v6/2025/E_2025
 
 ZmmJmmAnalyzer/selection
 ZmmJmmAnalyzer/preselection
@@ -18,7 +16,9 @@ ZmmJmmAnalyzer/scripts/plot_ratios/plots/
 ZmmJmmAnalyzer/scripts/plot_ratio_fill/plots/
 ZmmJmmAnalyzer/scripts/plot_eta/plots/
 
+ZmmJmmAnalyzer/scripts/lumi_calibration_all_in_one/scaling_to_brilcalc/plots/ML_fits
+ZmmJmmAnalyzer/scripts/lumi_calibration_all_in_one/scaling_to_brilcalc/hdf5_files
+
 ZmmJmmAnalyzer/scripts/emittance/direct_count/output
 ZmmJmmAnalyzer/scripts/emittance/direct_count/scan_JSON
 ZmmJmmAnalyzer/scripts/emittance/fit_count
-ZmmJmmAnalyzer/dataSubmit/production_reduced_size_v6/2025/E_2025
