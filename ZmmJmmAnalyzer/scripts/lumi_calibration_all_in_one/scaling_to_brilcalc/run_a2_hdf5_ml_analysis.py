@@ -287,7 +287,7 @@ def analyze_hdf5_with_ml(
     front_cols = ['run', 'lumiblock', 'bin_key',
                   'fit_status', 
                   'totalEvents', 'events', 'events_error', 
-                  'nPV', 'lumi', 'pileup', 'nlumis', 'chi2']
+                  'nPV', 'nPV_err', 'lumi', 'pileup', 'nlumis', 'chi2']
     other_cols = [col for col in df.columns if col not in front_cols]
     df = df[front_cols + other_cols]
 
