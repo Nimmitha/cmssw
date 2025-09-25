@@ -2,6 +2,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 
+"""Use the brilcalc CSV files to calculate integrated luminosity in 50 lumiblock bins.
+Generates plots of source distribution and combined CSV files.
+"""
 
 def read_lumi_data(lumi_file: Path) -> pd.DataFrame:
     """Read luminosity data from brilcalc CSV."""

@@ -2,6 +2,9 @@ import pandas as pd
 import glob
 import os
 
+"""Combine different era CSV files into one CSV file for each year and for all years.
+Assumes the CSV files are named in the format: event_data_<method>_<year>_*.csv
+"""
 
 csv_dir = 'csvs'
 method = 'fit'

@@ -151,7 +151,7 @@ def main():
                        help='Specific eras to process (overrides config)')
     parser.add_argument('--hdf5-dir', default='hdf5_files', 
                        help='Directory for HDF5 files')
-    parser.add_argument('--csv-dir', default='csvs', 
+    parser.add_argument('--csv-dir', default='csvs/event_data', 
                        help='Directory for output CSV files')
     parser.add_argument('--plot-dir', default='plots/ML_fits', 
                        help='Directory for fit plots')
