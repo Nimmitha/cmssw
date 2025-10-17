@@ -102,7 +102,7 @@ private:
   Bool_t passSel1;
   Bool_t passSel2;
   Bool_t sameMuonTrigMatch;
-  Int_t nRecoDistinctJWVtx;
+  UShort_t nRecoDistinctJWVtx;
   // Int_t prescaleBarrel; // optional
   // Int_t prescaleL1DM;  // optional
 
@@ -110,8 +110,7 @@ private:
   UInt_t B_J1_pt;
   Short_t B_J1_rapidity;
 
-  float B_J1_VtxPt, B_J1_VtxMass;
-  float B_J1_VtxProb;
+  Float_t B_J1_VtxProb;
 
   UInt_t B_Mu1_pt;
   UInt_t B_Mu2_pt;

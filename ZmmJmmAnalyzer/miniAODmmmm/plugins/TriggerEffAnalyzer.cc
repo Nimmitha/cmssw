@@ -165,9 +165,9 @@ void TriggerEffAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup
   std::vector<DimuonCandidate> validCandidates;
 
   // Reset variables for the next event
-  Run = 0;
-  LumiBlock = 0;
-  Event = 0;
+  Run = iEvent.id().run();
+  LumiBlock = iEvent.id().luminosityBlock();
+  Event = iEvent.id().event();
 
   const edm::TriggerNames &names = iEvent.triggerNames(*TriggerResults);
 
@@ -179,19 +179,15 @@ void TriggerEffAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup
   bool firedHLT_Barrel = false;
   for (unsigned int i = 0; i < TriggerResults->size(); ++i) {
     std::string name = names.triggerName(i);
-    // cout << "Trigger name: " << name << endl;
     if (name.find("HLT_Mu0_Barrel_v") != std::string::npos && TriggerResults->accept(i)) {
-      // if (name.find("HLT_Mu0_L1DoubleMu_v") != std::string::npos && TriggerResults->accept(i)) {
       firedHLT_Barrel = true;
       break;
     }
   }
 
   if (firedHLT_Barrel) {
-    // cout << "Event fired HLT_Mu0_Barrel" << endl;
     for (pat::MuonCollection::const_iterator iMuon1 = thePATMuonHandle->begin(); iMuon1 != thePATMuonHandle->end(); ++iMuon1) {
       if (iMuon1->pt() > 5.0 && std::abs(iMuon1->eta()) < 1.5) {
-        // cout << "Event has muon with pT>5 and |eta|<1.5" << endl;
         passSel1 = true;
         break;
       }
@@ -201,7 +197,6 @@ void TriggerEffAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup
   if (passSel1) {
     // cout << "Event passed selection 1" << endl;
   } else {
-    // cout << "Event did not pass selection 1" << endl;
     return;
   }
 
@@ -218,7 +213,7 @@ void TriggerEffAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup
   }
 
   if (firedHLT_L1DM) {
-    cout << "Event fired HLT_Mu0_L1DoubleMu" << endl;
+    // cout << "Event fired HLT_Mu0_L1DoubleMu" << endl;
   } else {
     // cout << "Event did not fire HLT_Mu0_L1DoubleMu" << endl;
     // return;
@@ -241,14 +236,14 @@ void TriggerEffAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup
         if (!((iMuon1->charge()) + (iMuon2->charge())) == 0)
           continue;
 
-        if (iMuon1->pt() < 3.0)
+        if (iMuon1->pt() < 5.0)
           continue;
-        if (iMuon2->pt() < 3.0)
+        if (iMuon2->pt() < 5.0)
           continue;
 
-        if (iMuon1->eta() < -2.4 || iMuon1->eta() > 2.4)
+        if (iMuon1->eta() < -1.5 || iMuon1->eta() > 1.5)
           continue;
-        if (iMuon2->eta() < -2.4 || iMuon2->eta() > 2.4)
+        if (iMuon2->eta() < -1.5 || iMuon2->eta() > 1.5)
           continue;
 
         TrackRef glbTrackP1;
@@ -317,9 +312,9 @@ void TriggerEffAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup
         float B_Prob_tmp1 = TMath::Prob(J_candi1.totalChiSquared(), J_candi1.degreesOfFreedom());
         // const math::XYZTLorentzVectorD JPsi_mom1 = JPsi_Vtx1.p4(mu_mass, 0.0);
 
-        if (B_Prob_tmp1 < 0.1) {
-          continue;
-        }
+        // if (B_Prob_tmp1 < 0.1) {
+        //   continue;
+        // }
 
         // Remove events with mass outside J/Psi or Z mass window
         if ((MM1.M() < 2.6 || MM1.M() > 3.6)) {
@@ -346,7 +341,7 @@ void TriggerEffAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup
       // Track used muons
       std::set<const pat::Muon *> usedMuons;
       usedMuons.clear();
-      UShort_t nRecoDistinctJWVtx = 0;
+      nRecoDistinctJWVtx = 0;
       for (const auto &cand : validCandidates) {
         if (usedMuons.count(cand.mu1) || usedMuons.count(cand.mu2)) {
           continue;
@@ -380,8 +375,6 @@ void TriggerEffAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup
     B_J1_pt = 1000;
     B_J1_rapidity = -999;
   
-    B_J1_VtxPt = -999;
-    B_J1_VtxMass = -999;
     B_J1_VtxProb = -999;
   
     B_Mu1_pt = 1000;
@@ -464,7 +457,7 @@ void TriggerEffAnalyzer::beginJob() {
 
   tree_->Branch("B_J1_mass", &B_J1_mass);
   tree_->Branch("B_J1_pt", &B_J1_pt);
-  // tree_->Branch("B_J1_VtxProb", &B_J1_VtxProb);
+  tree_->Branch("B_J1_VtxProb", &B_J1_VtxProb);
 
   tree_->Branch("B_Mu1_pt", &B_Mu1_pt);
   tree_->Branch("B_Mu2_pt", &B_Mu2_pt);
