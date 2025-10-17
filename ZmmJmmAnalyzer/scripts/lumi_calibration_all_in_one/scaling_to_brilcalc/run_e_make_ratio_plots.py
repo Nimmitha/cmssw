@@ -9,7 +9,7 @@ plt.style.use(hep.style.CMS)
 # -----------------------------
 # Config
 # -----------------------------
-PREPARED_CSV = "csvs/final_fit_Run3.csv"   # from Script 1
+PREPARED_CSV = "csvs/final_fit_Run3.csv"
 OUTDIR = "plots/run3"
 os.makedirs(OUTDIR, exist_ok=True)
 
