@@ -16,8 +16,22 @@ ZmmJmmAnalyzer/scripts/plot_ratios/plots/
 ZmmJmmAnalyzer/scripts/plot_ratio_fill/plots/
 ZmmJmmAnalyzer/scripts/plot_eta/plots/
 
-ZmmJmmAnalyzer/scripts/lumi_calibration_all_in_one/scaling_to_brilcalc/plots/ML_fits
+ZmmJmmAnalyzer/scripts/lumi_calibration_all_in_one/emittance_scan/method_fit/output
+ZmmJmmAnalyzer/scripts/lumi_calibration_all_in_one/emittance_scan/method_fit/scan_JSON
+
+ZmmJmmAnalyzer/scripts/lumi_calibration_all_in_one/emittance_scan/bc/output
+ZmmJmmAnalyzer/scripts/lumi_calibration_all_in_one/emittance_scan/bc/*.json
+
+ZmmJmmAnalyzer/scripts/lumi_calibration_all_in_one/scaling_to_brilcalc/plots/
+# ZmmJmmAnalyzer/scripts/lumi_calibration_all_in_one/scaling_to_brilcalc/plots/ML_fits
+# ZmmJmmAnalyzer/scripts/lumi_calibration_all_in_one/scaling_to_brilcalc/plots/tracker
+
 ZmmJmmAnalyzer/scripts/lumi_calibration_all_in_one/scaling_to_brilcalc/hdf5_files
+ZmmJmmAnalyzer/scripts/lumi_calibration_all_in_one/scaling_to_brilcalc/csvs
+
+ZmmJmmAnalyzer/scripts/lumi_calibration_all_in_one/scaling_to_brilcalc/old
+
+ZmmJmmAnalyzer/scripts/lumi_calibration_all_in_one/BPIX_test
 
 ZmmJmmAnalyzer/scripts/emittance/direct_count/output
 ZmmJmmAnalyzer/scripts/emittance/direct_count/scan_JSON
