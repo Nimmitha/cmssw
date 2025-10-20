@@ -98,23 +98,14 @@ private:
   UShort_t LumiBlock;
   ULong64_t Event;
 
-  // New tag-and-probe helper variables
-  Bool_t passSel1;
-  Bool_t passSel2;
-  Bool_t sameMuonTrigMatch;
-  UShort_t nRecoDistinctJWVtx;
-  // Int_t prescaleBarrel; // optional
-  // Int_t prescaleL1DM;  // optional
+  float_t B_Mu1_pt;
+  float_t B_Mu1_eta;
+  float_t B_Mu2_pt;
+  float_t B_Mu2_eta;
 
-  float B_J1_mass;
-  UInt_t B_J1_pt;
-  Short_t B_J1_rapidity;
-
-  Float_t B_J1_VtxProb;
-
-  UInt_t B_Mu1_pt;
-  UInt_t B_Mu2_pt;
-  Short_t B_Mu1_eta;
-  Short_t B_Mu2_eta;
+  bool firedHLT_L1DoubleMu;
+  bool hasDimuonInRange;
+  bool dm_triggerMatched_m1;
+  bool dm_triggerMatched_m2;
 };
 #endif
