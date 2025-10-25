@@ -108,6 +108,9 @@ private:
   float B_J1_VtxPt, B_J1_VtxMass;
   float B_J1_VtxProb;
 
+  bool mu1_B1, mu1_B2, mu1_B3, mu1_B4, mu1_F;
+  bool mu2_B1, mu2_B2, mu2_B3, mu2_B4, mu2_F;
+
   UInt_t B_Mu1_pt;
   UInt_t B_Mu2_pt;
   Short_t B_Mu1_eta;

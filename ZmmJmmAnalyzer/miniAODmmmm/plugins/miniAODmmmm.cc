@@ -119,6 +119,9 @@ miniAODmmmm::miniAODmmmm(const edm::ParameterSet &iConfig)
       B_J1_VtxMass(0),
       B_J1_VtxProb(0),
 
+      mu1_B1(false), mu1_B2(false), mu1_B3(false), mu1_B4(false), mu1_F(false),
+      mu2_B1(false), mu2_B2(false), mu2_B3(false), mu2_B4(false), mu2_F(false),
+
       B_Mu1_pt(0),
       B_Mu2_pt(0),
       B_Mu1_eta(0),
@@ -349,13 +352,13 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
   LumiBlock = iEvent.luminosityBlock();
   Event = iEvent.id().event();
 
-  // edm::Timestamp timestamp = iEvent.eventAuxiliary().time();
-  // unsigned int seconds = timestamp.unixTime();
-  // unsigned int microseconds = timestamp.microsecondOffset();
+  edm::Timestamp timestamp = iEvent.eventAuxiliary().time();
+  unsigned int seconds = timestamp.unixTime();
+  unsigned int microseconds = timestamp.microsecondOffset();
 
-  // unsigned long long milliseconds = static_cast<unsigned long long>(seconds) * 1000 + static_cast<unsigned long long>(microseconds) / 1000;
+  unsigned long long milliseconds = static_cast<unsigned long long>(seconds) * 1000 + static_cast<unsigned long long>(microseconds) / 1000;
 
-  // eventTime = milliseconds;
+  eventTime = milliseconds;
 
   // cout << "milliseconds: " << milliseconds << endl;
   // cout << "Run: " << Run << " LumiBlock: " << LumiBlock << " Event: " << Event << " eventTime: " << eventTime << endl;
@@ -375,6 +378,51 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     nRecoDistinctJWVtx++;
     usedMuons.insert(cand.mu1);
     usedMuons.insert(cand.mu2);
+
+    mu1_B1 = mu1_B2 = mu1_B3 = mu1_B4 = mu1_F = false;
+    mu2_B1 = mu2_B2 = mu2_B3 = mu2_B4 = mu2_F = false;
+
+    // Analyze hit patterns for both muons
+    const reco::Track* tk1 = cand.mu1->innerTrack().get();
+    const reco::Track* tk2 = cand.mu2->innerTrack().get();
+    if (!tk1 || !tk2) continue;
+
+    const reco::HitPattern& hp1 = tk1->hitPattern();
+    const reco::HitPattern& hp2 = tk2->hitPattern();
+
+    for (int i = 0; i < hp1.numberOfAllHits(reco::HitPattern::TRACK_HITS); i++) {
+      uint32_t hit = hp1.getHitPattern(reco::HitPattern::TRACK_HITS, i);
+      if (!hp1.validHitFilter(hit)) continue;
+
+      int subdet = hp1.getSubStructure(hit);
+      int layer  = hp1.getLayer(hit);
+
+      if (subdet == 1) { // Pixel barrel
+          if (layer == 1) mu1_B1 = true;
+          else if (layer == 2) mu1_B2 = true;
+          else if (layer == 3) mu1_B3 = true;
+          else if (layer == 4) mu1_B4 = true;
+      } else if (subdet == 2) { // Pixel forward
+          mu1_F = true;
+      }
+    }
+
+    for (int i = 0; i < hp2.numberOfAllHits(reco::HitPattern::TRACK_HITS); i++) {
+      uint32_t hit = hp2.getHitPattern(reco::HitPattern::TRACK_HITS, i);
+      if (!hp2.validHitFilter(hit)) continue;
+
+      int subdet = hp2.getSubStructure(hit);
+      int layer  = hp2.getLayer(hit);
+
+      if (subdet == 1) {
+          if (layer == 1) mu2_B1 = true;
+          else if (layer == 2) mu2_B2 = true;
+          else if (layer == 3) mu2_B3 = true;
+          else if (layer == 4) mu2_B4 = true;
+      } else if (subdet == 2) {
+          mu2_F = true;
+      }
+    }
 
     // Fill the tree with all the candidates
     B_J1_mass = cand.p4.M();
@@ -436,7 +484,7 @@ void miniAODmmmm::beginJob() {
   tree_->Branch("Run", &Run);
   tree_->Branch("LumiBlock", &LumiBlock);
   // tree_->Branch("Event", &Event);
-  // tree_->Branch("eventTime", &eventTime);
+  tree_->Branch("eventTime", &eventTime);
   // tree_->Branch("TriggerFired", &TriggerFired);
 
   tree_->Branch("nPV", &nPV);
@@ -447,6 +495,20 @@ void miniAODmmmm::beginJob() {
   // tree_->Branch("B_J1_VtxPt", &B_J1_VtxPt);
   // tree_->Branch("B_J1_VtxMass", &B_J1_VtxMass);
   // tree_->Branch("B_J1_VtxProb", &B_J1_VtxProb);
+
+  // Muon 1
+  tree_->Branch("mu1_B1", &mu1_B1, "mu1_B1/O");
+  tree_->Branch("mu1_B2", &mu1_B2, "mu1_B2/O");
+  tree_->Branch("mu1_B3", &mu1_B3, "mu1_B3/O");
+  tree_->Branch("mu1_B4", &mu1_B4, "mu1_B4/O");
+  tree_->Branch("mu1_F",  &mu1_F,  "mu1_F/O");
+
+  // Muon 2
+  tree_->Branch("mu2_B1", &mu2_B1, "mu2_B1/O");
+  tree_->Branch("mu2_B2", &mu2_B2, "mu2_B2/O");
+  tree_->Branch("mu2_B3", &mu2_B3, "mu2_B3/O");
+  tree_->Branch("mu2_B4", &mu2_B4, "mu2_B4/O");
+  tree_->Branch("mu2_F",  &mu2_F,  "mu2_F/O");
 
   tree_->Branch("B_Mu1_pt", &B_Mu1_pt);
   tree_->Branch("B_Mu2_pt", &B_Mu2_pt);
