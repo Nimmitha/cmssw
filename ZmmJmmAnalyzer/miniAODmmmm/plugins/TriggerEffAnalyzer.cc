@@ -150,10 +150,10 @@ void TriggerEffAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup
   const edm::TriggerNames &names = iEvent.triggerNames(*TriggerResults);
 
   const pat::Muon *sm_muon_ptr = nullptr;
-  float B_Mu1_phi = -99;
+  float B_Mu1_phi = -9;
 
   B_Mu2_pt = -1;
-  B_Mu2_eta = -99;
+  B_Mu2_eta = -9;
 
   // -------------------------------
   // Selection 1:
@@ -175,7 +175,7 @@ void TriggerEffAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup
     if (iMuon1->pt() < 5.0)
       continue;
 
-    if (abs(iMuon1->eta()) > 2.4)
+    if (abs(iMuon1->eta()) > 1.0)
       continue;
 
     // Find the trigger object that matches to this muon
@@ -235,7 +235,7 @@ void TriggerEffAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSetup
       if (iMuon2->pt() < 5.0)
         continue;
 
-      if (abs(iMuon2->eta()) > 2.4)
+      if (abs(iMuon2->eta()) > 1.0)
         continue;
 
       TLorentzVector M1, M2, MM;
