@@ -16,7 +16,7 @@ config.JobType.maxJobRuntimeMin = 60                                  # Maximum 
 
 # data to be analyzed
 config.Data.inputDBS = 'global'
-config.Data.inputDataset = '/Muon1/Run2024H-MINIv6NANOv15-v1/MINIAOD'               # Name of the dataset
+config.Data.inputDataset = '/Muon1/Run2024H-MINIv6NANOv15-v2/MINIAOD'               # Name of the dataset
 #config.Data.outputPrimaryDataset = 'DoubleJPsiToMuMu_RAWSIM_SPS_LO_may2016_largetest_FNAL' # Used when running private input files or MC generation
 config.Data.lumiMask = 'Cert_Collisions2024_378981_386951_Golden.json' # Lumi-section filter
 config.Data.splitting = 'LumiBased'                                                         # Split the task based on 
