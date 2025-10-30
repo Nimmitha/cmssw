@@ -90,18 +90,18 @@ tagandprobe::tagandprobe(const edm::ParameterSet& iConfig)
       LumiBlock(0),
       Event(0),
 
-      // B_Mu1_pt(0),
-      // B_Mu1_eta(0),
-      // B_Mu2_pt(0),
-      // B_Mu2_eta(0),
       firedHLT_IsoMu24(false),
+      oneSingleMuObject(false),
+      dR_SMO_offM(-1),
       sm_triggerMatched(false),
-      nIsoMu24Objs(0),
-      nIsoMu24MatchedObjs(0),
-      matchMask(0),
       firedHLT_L1DoubleMu(false),
+      atLeastTwoOfflineAtDMT(false),
+      nDMT_objs(0),
+      DMobjMatchedToSMobj(false),
+      dR_dmO_smO(-1.0),
       dm_matched_offline(false),
-      dm_matched_sm(false)
+      dR_dmO_OffM(-1.0),
+      dmMatchedIsSM(false)
 // dm_triggerMatched_m1(false),
 // dm_triggerMatched_m2(false)
 {
@@ -181,163 +181,113 @@ void tagandprobe::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     }
   }
 
+  oneSingleMuObject = false;
+  dR_SMO_offM = -1;
   sm_triggerMatched = false;
-  nIsoMu24Objs = isoMu24_objects.size();
-  nIsoMu24MatchedObjs = 0;
-  matchMask = 0;
-  vector<float> mu1_pt;
-  vector<float> mu1_eta;
-  float dR_temp = 0.0;
+  firedHLT_L1DoubleMu = false;
+  atLeastTwoOfflineAtDMT = false;
+  nDMT_objs = 0;
+  DMobjMatchedToSMobj = false;
+  dR_dmO_smO = -1.0;
+  dm_matched_offline = false;
+  dR_dmO_OffM = -1.0;
+  dmMatchedIsSM = false;
+  const pat::Muon* matchedToSM = nullptr;
 
-  // check if each  isoMu24 object matches to any slimmed muon individually
-  for (size_t i = 0; i < isoMu24_objects.size(); ++i) {
+  // Ignore if there are more than 2 objects
+  if (isoMu24_objects.size() == 1) {
+    oneSingleMuObject = true;
+
+    // And that object matches to a slimmed muon
     for (pat::MuonCollection::const_iterator iMuon1 = thePATMuonHandle->begin(); iMuon1 != thePATMuonHandle->end(); ++iMuon1) {
-      dR_temp = reco::deltaR(iMuon1->eta(), iMuon1->phi(), isoMu24_objects[i].eta(), isoMu24_objects[i].phi());
-      if (dR_temp < 0.1) {
-        nIsoMu24MatchedObjs++;
-        matchMask |= (1 << i);
-
+      dR_SMO_offM = reco::deltaR(iMuon1->eta(), iMuon1->phi(), isoMu24_objects[0].eta(), isoMu24_objects[0].phi());
+      if (dR_SMO_offM < 0.1) {
         sm_triggerMatched = true;
-
-        mu1_pt.push_back(iMuon1->pt());
-        mu1_eta.push_back(iMuon1->eta());
-
-        // B_Mu1_pt = iMuon1->pt();
-        // B_Mu1_eta = iMuon1->eta();
-
+        // save iMuon1 for later use
+        matchedToSM = &(*iMuon1);
         break;
       }
     }
-  }
-  // // cout << "nIsoMu24Objs: " << nIsoMu24Objs << ", nIsoMu24MatchedObjs: " << nIsoMu24MatchedObjs << ", matchMask: " << matchMask << " - " << std::bitset<8>(matchMask) << std::endl;
 
-  // // --------------------------------------
-  // // Selection 2:
-  // // --------------------------------------
-  firedHLT_L1DoubleMu = false;
-
-  // // 1. Check if event fired HLT_Mu0_L1DoubleMu_v*
-  for (unsigned int i = 0; i < TriggerResults->size(); ++i) {
-    std::string name = names.triggerName(i);
-    if (name.find("HLT_Mu0_L1DoubleMu_v") != std::string::npos && TriggerResults->accept(i)) {
-      firedHLT_L1DoubleMu = true;
-      break;
-    }
-  }
-
-  dm_matched_offline = false;
-  dm_matched_sm = false;
-  if (firedHLT_L1DoubleMu == true) {
-    std::vector<pat::TriggerObjectStandAlone> DoubleMu_objects;
-    for (const auto& obj : *triggerObjects) {
-      pat::TriggerObjectStandAlone unpackedObj = obj;
-      unpackedObj.unpackPathNames(names);
-      unpackedObj.unpackFilterLabels(iEvent, *TriggerResults);
-
-      if (unpackedObj.hasFilterLabel("hltL3fL1sDoubleMu0SQL1f0L2PreFilteres0L3Filtered0")) {
-        DoubleMu_objects.push_back(unpackedObj);
+    // 1. Check if event fired HLT_Mu0_L1DoubleMu_v*
+    for (unsigned int i = 0; i < TriggerResults->size(); ++i) {
+      std::string name = names.triggerName(i);
+      if (name.find("HLT_Mu0_L1DoubleMu_v") != std::string::npos && TriggerResults->accept(i)) {
+        firedHLT_L1DoubleMu = true;
+        break;
       }
     }
 
-    if (DoubleMu_objects.size() < 2) {
-      cout << "Recovering the two muons" << std::endl;
-      DoubleMu_objects.clear();
+    // Find dimuon trigger objects
+    if (firedHLT_L1DoubleMu == true) {
+      // 2. Are there at least two offline muons
+      if (thePATMuonHandle->size() >= 2) {
+        atLeastTwoOfflineAtDMT = true;
+      }
+
+      std::vector<pat::TriggerObjectStandAlone> DoubleMu_objects;
       for (const auto& obj : *triggerObjects) {
         pat::TriggerObjectStandAlone unpackedObj = obj;
         unpackedObj.unpackPathNames(names);
         unpackedObj.unpackFilterLabels(iEvent, *TriggerResults);
 
-        if (unpackedObj.hasFilterLabel("hltL2fL1sL1DoubleMuL1f0L2PreFiltered0ForLowMassInclusive")) {
+        if (unpackedObj.hasFilterLabel("hltL3fL1sDoubleMu0SQL1f0L2PreFilteres0L3Filtered0")) {
           DoubleMu_objects.push_back(unpackedObj);
         }
       }
-      if (DoubleMu_objects.size() >= 2) {
-        cout << "Successfully recovered the two muons" << std::endl;
-      } else {
-        cout << "Failed to recover the two muons" << std::endl;
+
+      // if failed to find two objects, try recovering them from a different filter
+      if (DoubleMu_objects.size() < 2) {
+        cout << "Recovering the two muons" << std::endl;
+        DoubleMu_objects.clear();
+        for (const auto& obj : *triggerObjects) {
+          pat::TriggerObjectStandAlone unpackedObj = obj;
+          unpackedObj.unpackPathNames(names);
+          unpackedObj.unpackFilterLabels(iEvent, *TriggerResults);
+
+          if (unpackedObj.hasFilterLabel("hltL2fL1sL1DoubleMuL1f0L2PreFiltered0ForLowMassInclusive")) {
+            DoubleMu_objects.push_back(unpackedObj);
+          }
+        }
+        if (DoubleMu_objects.size() >= 2) {
+          cout << "Successfully recovered the two muons" << std::endl;
+        } else {
+          cout << "Failed to recover the two muons" << std::endl;
+        }
       }
-    }
 
-    // Check if any of the two muons match to any of the slimmed muons and to the IsoMu24 trigger objects
-    for (size_t i = 0; i < DoubleMu_objects.size(); ++i) {
-      for (pat::MuonCollection::const_iterator iMuon2 = thePATMuonHandle->begin(); iMuon2 != thePATMuonHandle->end(); ++iMuon2) {
-        dR_temp = reco::deltaR(iMuon2->eta(), iMuon2->phi(), DoubleMu_objects[i].eta(), DoubleMu_objects[i].phi());
-        if (dR_temp < 0.1) {
-          dm_matched_offline = true;
+      nDMT_objs = DoubleMu_objects.size();
+      // cout << "Number of dimuon trigger objects: " << nDMT_objs << std::endl;
 
-          // Check if this muon also matched to the IsoMu24 trigger object
-          for (size_t j = 0; j < isoMu24_objects.size(); ++j) {
-            dR_temp = reco::deltaR(iMuon2->eta(), iMuon2->phi(), isoMu24_objects[j].eta(), isoMu24_objects[j].phi());
+      if (nDMT_objs > 0) {
+        // Check if one of these DMT objects matches to the IsoMu24 objects
+        for (size_t i = 0; i < DoubleMu_objects.size(); ++i) {
+          dR_dmO_smO = reco::deltaR(DoubleMu_objects[i].eta(), DoubleMu_objects[i].phi(), isoMu24_objects[0].eta(), isoMu24_objects[0].phi());
+          if (dR_dmO_smO < 0.15) {
+            DMobjMatchedToSMobj = true;
+            break;
+          }
+        }
 
-            if (dR_temp < 0.1) {
-              dm_matched_sm = true;
-              break;
+        // Check if one of the DMT objects matches to an offline muon
+        for (size_t i = 0; i < DoubleMu_objects.size(); ++i) {
+          for (pat::MuonCollection::const_iterator iMuon2 = thePATMuonHandle->begin(); iMuon2 != thePATMuonHandle->end(); ++iMuon2) {
+            float temp_dR_dmO_OffM = reco::deltaR(iMuon2->eta(), iMuon2->phi(), DoubleMu_objects[i].eta(), DoubleMu_objects[i].phi());
+            if (temp_dR_dmO_OffM < 0.1) {
+              dm_matched_offline = true;
+              dR_dmO_OffM = temp_dR_dmO_OffM;
+
+              // Check if this muon is the same as the one matched to the IsoMu24 trigger object
+              if (&(*iMuon2) == matchedToSM) {
+                dmMatchedIsSM = true;
+                break;
+              }
             }
           }
         }
       }
     }
   }
-
-  // if (!firedHLT_L1DoubleMu)
-  //   return;
-
-  // 2. Find the triggar objects that has the last filter of HLT_Mu0_L1DoubleMu_v*
-
-  // for (const auto &obj : *triggerObjects) {
-  //   pat::TriggerObjectStandAlone unpackedObj = obj;
-  //   unpackedObj.unpackPathNames(names);
-  //   unpackedObj.unpackFilterLabels(iEvent, *TriggerResults);
-  //   if (unpackedObj.hasFilterLabel("hltL3fL1sDoubleMu0SQL1f0L2PreFilteres0L3Filtered0")) {
-
-  //   }
-  // }
-
-  // n_dm_matched = 0;
-  // if (firedHLT_L1DoubleMu) {
-  //   for (pat::MuonCollection::const_iterator iMuon2 = thePATMuonHandle->begin(); iMuon2 != thePATMuonHandle->end(); ++iMuon2) {
-  //     for (const auto &obj : *triggerObjects) {
-  //       pat::TriggerObjectStandAlone unpackedObj = obj;
-  //       unpackedObj.unpackPathNames(names);
-  //       unpackedObj.unpackFilterLabels(iEvent, *TriggerResults);
-  //       if (unpackedObj.hasFilterLabel("hltL3fL1sDoubleMu0SQL1f0L2PreFilteres0L3Filtered0")) {
-  //         float dR_temp = reco::deltaR(iMuon2->eta(), iMuon2->phi(), unpackedObj.eta(), unpackedObj.phi());
-  //         // if (dR_temp < 0.01) {
-  //           n_dm_matched += 1;
-  //           // break;
-  //         // }
-  //       }
-  //     }
-  //   }
-  // }
-  // cout << "Number of muons matched to dimuon trigger objects: " << n_dm_matched << std::endl;
-
-  // // Find the trigger object that matches to this muon
-
-  // // cout << "### Trigger objects: " << triggerObjects->size() << std::endl;
-  // int fcount = 0;
-  // int pcount = 0;
-  // for (const auto &obj : *triggerObjects) {
-  //   // cout << "Examining trigger object with pt=" << obj.pt() << ", eta=" << obj.eta() << ", phi=" << obj.phi() << std::endl;
-  //   pat::TriggerObjectStandAlone unpackedObj = obj;
-  //   unpackedObj.unpackPathNames(names);
-  //   unpackedObj.unpackFilterLabels(iEvent, *TriggerResults);
-
-  //   if (unpackedObj.hasFilterLabel("hltL3fL1sDoubleMu0SQL1f0L2PreFilteres0L3Filtered0")) {
-  //     // std::cout << "Muon matched to last filter: pt=" << unpackedObj.pt() << ", eta=" << unpackedObj.eta() << ", phi=" << unpackedObj.phi() << std::endl;
-  //     fcount++;
-  //   }
-
-  //   // true, true = last filter in path
-  //   if (unpackedObj.hasPathName("HLT_IsoMu24_v*", true, true)) {
-  //     // std::cout << "Found trigger object with pt=" << obj.pt() << ", eta=" << obj.eta() << ", phi=" << obj.phi() << std::endl;
-  //     pcount++;
-  //     // for (auto &label : unpackedObj.filterLabels()) {
-  //     //   std::cout << "  filter label: " << label << std::endl;
-  //     // }
-  //   }
-  // }
-  // cout << pcount << " : " << fcount << std::endl;
 
   tree_->Fill();
 
@@ -360,25 +310,18 @@ void tagandprobe::beginJob() {
   tree_->Branch("LumiBlock", &LumiBlock);
   // tree_->Branch("Event", &Event);
 
-  // tree_->Branch("B_Mu1_pt", &B_Mu1_pt);
-  // tree_->Branch("B_Mu1_eta", &B_Mu1_eta);
-  // tree_->Branch("B_Mu2_pt", &B_Mu2_pt);
-  // tree_->Branch("B_Mu2_eta", &B_Mu2_eta);
-  // tree_->Branch("dR_temp", &dR_temp);
-
   tree_->Branch("firedHLT_IsoMu24", &firedHLT_IsoMu24);
+  tree_->Branch("oneSingleMuObject", &oneSingleMuObject);
+  tree_->Branch("dR_SMO_offM", &dR_SMO_offM);
   tree_->Branch("sm_triggerMatched", &sm_triggerMatched);
-  tree_->Branch("nIsoMu24Objs", &nIsoMu24Objs);
-  tree_->Branch("nIsoMu24MatchedObjs", &nIsoMu24MatchedObjs);
-  tree_->Branch("matchMask", &matchMask);
   tree_->Branch("firedHLT_L1DoubleMu", &firedHLT_L1DoubleMu);
+  tree_->Branch("atLeastTwoOfflineAtDMT", &atLeastTwoOfflineAtDMT);
+  tree_->Branch("nDMT_objs", &nDMT_objs);
+  tree_->Branch("DMobjMatchedToSMobj", &DMobjMatchedToSMobj);
+  tree_->Branch("dR_dmO_smO", &dR_dmO_smO);
   tree_->Branch("dm_matched_offline", &dm_matched_offline);
-  tree_->Branch("dm_matched_sm", &dm_matched_sm);
-  // tree_->Branch("hasDimuonInRange", &hasDimuonInRange);
-  // tree_->Branch("n_dm_matched", &n_dm_matched);
-
-  // tree_->Branch("dm_triggerMatched_m1", &dm_triggerMatched_m1);
-  // tree_->Branch("dm_triggerMatched_m2", &dm_triggerMatched_m2);
+  tree_->Branch("dR_dmO_OffM", &dR_dmO_OffM);
+  tree_->Branch("dmMatchedIsSM", &dmMatchedIsSM);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------

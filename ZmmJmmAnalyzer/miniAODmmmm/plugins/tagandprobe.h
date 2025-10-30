@@ -66,14 +66,14 @@
 
 class tagandprobe : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
-  explicit tagandprobe(const edm::ParameterSet &);
+  explicit tagandprobe(const edm::ParameterSet&);
   ~tagandprobe() override;
 
-  static void fillDescriptions(edm::ConfigurationDescriptions &descriptions);
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
 private:
   void beginJob() override;
-  void analyze(const edm::Event &, const edm::EventSetup &) override;
+  void analyze(const edm::Event&, const edm::EventSetup&) override;
   void endJob() override;
 
   // ----------member data ---------------------------
@@ -92,26 +92,23 @@ private:
   std::string MuonTriggerString;
   bool isMC_;
 
-  TTree *tree_;
+  TTree* tree_;
 
   UInt_t Run;
   UShort_t LumiBlock;
   ULong64_t Event;
 
-  // float_t B_Mu1_pt;
-  // float_t B_Mu1_eta;
-  // float_t B_Mu2_pt;
-  // float_t B_Mu2_eta;
-
-  // float_t dR_temp;
-
   bool firedHLT_IsoMu24;
+  bool oneSingleMuObject;
+  float dR_SMO_offM;
   bool sm_triggerMatched;
-  UInt_t nIsoMu24Objs;
-  UInt_t nIsoMu24MatchedObjs;
-  u_int32_t matchMask;
   bool firedHLT_L1DoubleMu;
+  bool atLeastTwoOfflineAtDMT;
+  UShort_t nDMT_objs;
+  bool DMobjMatchedToSMobj;
+  float dR_dmO_smO;
   bool dm_matched_offline;
-  bool dm_matched_sm;
+  float dR_dmO_OffM;
+  bool dmMatchedIsSM;
 };
 #endif
