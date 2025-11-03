@@ -1,0 +1,7 @@
+Using SingleMuon and DoubleMuon to measure 'efficiency' in custom tag & probe method
+SingleMuon: HLT_IsoMu24_v*
+DoubleMuon: HLT_Mu0_L1DoubleMu_v*
+
+v2 records dR distributions when matched
+v3 no dR saved, included dPt for better matching
+added new logic find SingleMuon triggered JPsi count
