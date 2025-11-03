@@ -97,13 +97,20 @@ private:
   UInt_t Run;
   UShort_t LumiBlock;
   ULong64_t Event;
-
   bool firedHLT_IsoMu24;
+  bool firedHLT_L1DoubleMu;
+  UShort_t nIsoMu24_objects;
   bool oneSingleMuObject;
   float dR_SMO_offM;
   bool sm_triggerMatched;
-  bool firedHLT_L1DoubleMu;
-  bool atLeastTwoOfflineAtDMT;
+
+  bool SMinAcceptance;
+  float dPt;
+
+      UShort_t nOffline_Muons;
+  bool OtherMuinAcceptanceI;
+  bool OtherMuinAcceptanceII;
+  bool foundJPsi;
   UShort_t nDMT_objs;
   bool DMobjMatchedToSMobj;
   float dR_dmO_smO;
