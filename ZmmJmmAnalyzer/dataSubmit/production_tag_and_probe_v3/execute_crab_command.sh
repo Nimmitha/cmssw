@@ -15,7 +15,7 @@ usage() {
 
 # Default values for variables
 # CRAB_DIR_PATTERN="crab_TTree_136TeV*"
-CRAB_DIR_PATTERN="crab_Muon*"
+CRAB_DIR_PATTERN="crab_*"
 CRAB_CONFIG="crabConfig_TTree.py"
 
 # Check if correct number of arguments is provided
