@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
-// Package:    miniAODmmmm
-// Class:      miniAODmmmm
+// Package:    miniAODmmmm_binned
+// Class:      miniAODmmmm_binned
 //
-/**\class miniAODmmmm miniAODmmmm.cc ZmmJmmAnalyzer/miniAODmmmm/plugins/miniAODmmmm.cc
+/**\class miniAODmmmm_binned miniAODmmmm_binned.cc ZmmJmmAnalyzer/miniAODmmmm_binned/plugins/miniAODmmmm_binned.cc
 
  Description: [one line class summary]
 
@@ -20,7 +20,7 @@
 #include <memory>
 
 // user include files
-#include "ZmmJmmAnalyzer/miniAODmmmm/plugins/miniAODmmmm.h"
+#include "ZmmJmmAnalyzer/miniAODmmmm/plugins/miniAODmmmm_binned.h"
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
@@ -74,11 +74,11 @@
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 
-// #include <cmath>
 // constants, enums and typedefs
 //
 
 typedef math::Error<3>::type CovarianceMatrix;
+// typedef std::pair<unsigned int, unsigned int> RunLumi;
 
 //
 // static data member definitions
@@ -88,7 +88,7 @@ typedef math::Error<3>::type CovarianceMatrix;
 // constructors and destructor
 //
 
-miniAODmmmm::miniAODmmmm(const edm::ParameterSet &iConfig)
+miniAODmmmm_binned::miniAODmmmm_binned(const edm::ParameterSet &iConfig)
     : muonsToken_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"))),
       TriggerResultsToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("bits"))),
       prunedGenToken_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("pruned"))),
@@ -106,38 +106,22 @@ miniAODmmmm::miniAODmmmm(const edm::ParameterSet &iConfig)
 
       Run(0),
       LumiBlock(0),
-      Event(0),
-      eventTime(0),
-      TriggerFired(false),
-
-      nPV(0),
-      B_J1_mass(0),
-      B_J1_pt(0),
-      B_J1_rapidity(0),
-
-      B_J1_VtxPt(0),
-      B_J1_VtxMass(0),
-      B_J1_VtxProb(0),
-      
-      B_Mu1_pt(0),
-      B_Mu2_pt(0),
-      B_Mu1_eta(0),
-      B_Mu2_eta(0),
-      isBestCandidate(false) {
+      binCounts(0),
+      binCountsMap() {
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   setupDataToken_ = esConsumes<SetupData, SetupRecord>();
 #endif
   //now do what ever initialization is needed
 }
 
-miniAODmmmm::~miniAODmmmm() {}
+miniAODmmmm_binned::~miniAODmmmm_binned() {}
 
 //
 // member functions
 //
 
 // ------------ method called for each event  ------------
-void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetup) {
+void miniAODmmmm_binned::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetup) {
   using std::vector;
   using namespace edm;
   using namespace reco;
@@ -157,15 +141,15 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
   edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
   iEvent.getByToken(triggerPrescales_, triggerPrescales);
   if (!thePATMuonHandle.isValid()) {
-    edm::LogWarning("miniAODmmmm") << "No pat::Muon found on Event!";
+    edm::LogWarning("miniAODmmmm_binned") << "No pat::Muon found on Event!";
     return;
   }
   if (!TriggerResults.isValid()) {
-    edm::LogWarning("miniAODmmmm") << "No TriggerResults found on Event!";
+    edm::LogWarning("miniAODmmmm_binned") << "No TriggerResults found on Event!";
     return;
   }
   if (!triggerPrescales.isValid()) {
-    edm::LogWarning("miniAODmmmm") << "no Trigger prescale in event!";
+    edm::LogWarning("miniAODmmmm_binned") << "no Trigger prescale in event!";
     return;
   }
 
@@ -186,22 +170,6 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     return;
   }
 
-  // Struct to hold dimuon candidates
-  struct DimuonCandidate {
-    const pat::Muon *mu1;
-    const pat::Muon *mu2;
-    float vtxProb;
-    TLorentzVector p4;
-    // XYZTLorentzVectorD J_vtx;
-    float mu1_pt, mu2_pt, mu1_eta, mu2_eta;
-
-    bool operator<(const DimuonCandidate &other) const {
-      return vtxProb > other.vtxProb;  // sort descending by vtxProb
-    }
-  };
-
-  std::vector<DimuonCandidate> validCandidates;
-
   //*********************************
   //Now we get the primary vertex
   //*********************************
@@ -211,21 +179,6 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
   iEvent.getByToken(primaryVertices_Label, primaryVertices_handle);
 
   bestVtx = *(primaryVertices_handle->begin());
-
-  UShort_t goodPVCount = 0;
-
-  if (primaryVertices_handle.isValid() && !primaryVertices_handle->empty()) {
-    for (const auto &vtx : *primaryVertices_handle) {
-      if (!vtx.isFake() && vtx.ndof() > 4 && fabs(vtx.z()) <= 24.0 && fabs(vtx.position().Rho()) <= 2.0) {
-        ++goodPVCount;
-      }
-    }
-    bestVtx = *(primaryVertices_handle->begin());
-  } else {
-    edm::LogWarning("miniAODmmmm") << "Primary vertex collection is not valid!";
-  }
-
-  nPV = goodPVCount;
 
   //****************************************************
   //*********Now we get the muons***********************
@@ -242,7 +195,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
         continue;
 
       //opposite charge
-      if ( (iMuon1->charge()) + (iMuon2->charge()) != 0 )
+      if (!((iMuon1->charge()) + (iMuon2->charge())) == 0)
         continue;
 
       if (iMuon1->pt() < 3.0)
@@ -312,7 +265,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       TransientVertex J_candi1 = kvfM.vertex(mu_tks);
 
       if (!J_candi1.isValid()) {
-        // cout << "continue because no vertexed dimuon" << endl;
+        cout << "continue because no vertexed dimuon" << endl;
         continue;
       }
 
@@ -325,97 +278,34 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
         continue;
       }
 
-      // Remove events with mass outside J/Psi or Z mass window
-      if ((MM1.M() < 2.6 || MM1.M() > 3.6)) {
+      float mass = MM1.M();
+      float massMin = 2.6;
+      float massMax = 3.6;
+      int nBins = 100;
+      float binWidth = (massMax - massMin) / nBins;
+
+      if (mass < massMin || mass > massMax) {
         continue;
       }
 
-      validCandidates.push_back({&(*iMuon1),
-                                 &(*iMuon2),
-                                 B_Prob_tmp1,
-                                 MM1,
-                                 //  JPsi_mom1,
-                                 static_cast<float>(iMuon1->pt()),
-                                 static_cast<float>(iMuon2->pt()),
-                                 static_cast<float>(iMuon1->eta()),
-                                 static_cast<float>(iMuon2->eta())});
+      //****************************************************************************************
+      //Event Information
+      Run = iEvent.id().run();
+      LumiBlock = iEvent.luminosityBlock();
+      RunLumi key(Run, LumiBlock);
+
+      if (binCountsMap.find(key) == binCountsMap.end()) {
+        cout << "Creating new binCounts for Run: " << Run << ", LumiBlock: " << LumiBlock << std::endl;
+        binCountsMap[key] = std::vector<unsigned int>(nBins, 0);
+        // cout << "binCountsMap[" << key.first << "][" << key.second << "] size: " << binCountsMap[key].size() << std::endl;
+      }
+
+      int bin = static_cast<int>((mass - massMin) / binWidth);
+      if (bin >= 0 && bin < nBins) {
+        binCountsMap[key][bin]++;
+      }
     }
   }
-
-  //Event Information
-  Run = iEvent.id().run();
-  LumiBlock = iEvent.luminosityBlock();
-  Event = iEvent.id().event();
-
-  edm::Timestamp timestamp = iEvent.eventAuxiliary().time();
-  unsigned int seconds = timestamp.unixTime();
-  unsigned int microseconds = timestamp.microsecondOffset();
-
-  unsigned long long milliseconds = static_cast<unsigned long long>(seconds) * 1000 + static_cast<unsigned long long>(microseconds) / 1000;
-
-  eventTime = milliseconds;
-
-  // cout << "milliseconds: " << milliseconds << endl;
-  // cout << "Run: " << Run << " LumiBlock: " << LumiBlock << " Event: " << Event << " eventTime: " << eventTime << endl;
-  TriggerFired = triggerFlag;
-
-  std::sort(validCandidates.begin(), validCandidates.end());
-
-  // Track used muons
-  std::set<const pat::Muon *> usedMuons;
-  usedMuons.clear();
-
-  UShort_t nRecoDistinctJWVtx = 0;
-  for (const auto &cand : validCandidates) {
-    if (usedMuons.count(cand.mu1) || usedMuons.count(cand.mu2)) {
-      continue;
-    }
-    nRecoDistinctJWVtx++;
-    usedMuons.insert(cand.mu1);
-    usedMuons.insert(cand.mu2);
-
-    // Fill the tree with all the candidates
-    B_J1_mass = cand.p4.M();
-    B_J1_pt = std::lround(cand.p4.Pt() * 1000);
-    B_J1_rapidity = std::lround(cand.p4.Rapidity() * 1000);
-    // B_J1_VtxPt = cand.J_vtx.Pt();
-    // B_J1_VtxMass = cand.J_vtx.mass();
-    B_J1_VtxProb = cand.vtxProb;
-    B_Mu1_pt = std::lround(cand.mu1->pt() * 1000);
-    B_Mu2_pt = std::lround(cand.mu2->pt() * 1000);
-    B_Mu1_eta = std::lround(cand.mu1->eta() * 100);
-    B_Mu2_eta = std::lround(cand.mu2->eta() * 100);
-
-    if (nRecoDistinctJWVtx == 1) {
-      isBestCandidate = true;  // Mark the first candidate as the best
-    } else {
-      isBestCandidate = false;  // Subsequent candidates are not the best
-    }
-
-    tree_->Fill();
-
-    B_J1_mass = -999;
-    B_J1_pt = 1000;
-    B_J1_rapidity = -999;
-
-    B_J1_VtxPt = -999;
-    B_J1_VtxMass = -999;
-    B_J1_VtxProb = -999;
-
-    B_Mu1_pt = 1000;
-    B_Mu2_pt = 1000;
-    B_Mu1_eta = 10;
-    B_Mu2_eta = 10;
-  }
-
-  // Reset variables for the next event
-  Run = 0;
-  LumiBlock = 0;
-  Event = 0;
-  eventTime = 0;
-  TriggerFired = false;
-  nPV = 0;
-
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   // if the SetupData is always needed
   auto setup = iSetup.getData(setupToken_);
@@ -426,37 +316,31 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 
 // ------------ method called once each job just before starting event loop  ------------
 
-void miniAODmmmm::beginJob() {
+void miniAODmmmm_binned::beginJob() {
   std::cout << "Beginning analyzer job with value of isMC= " << isMC_ << std::endl;
 
   tree_ = new TTree("ntuple", "ntuple");
 
   tree_->Branch("Run", &Run);
   tree_->Branch("LumiBlock", &LumiBlock);
-  // tree_->Branch("Event", &Event);
-  // tree_->Branch("eventTime", &eventTime);
-  // tree_->Branch("TriggerFired", &TriggerFired);
-
-  tree_->Branch("nPV", &nPV);
-  tree_->Branch("B_J1_mass", &B_J1_mass);
-  tree_->Branch("B_J1_pt", &B_J1_pt);
-  // tree_->Branch("B_J1_rapidity", &B_J1_rapidity);
-
-  // tree_->Branch("B_J1_VtxPt", &B_J1_VtxPt);
-  // tree_->Branch("B_J1_VtxMass", &B_J1_VtxMass);
-  // tree_->Branch("B_J1_VtxProb", &B_J1_VtxProb);
-
-  tree_->Branch("isBestCandidate", &isBestCandidate);
+  tree_->Branch("binCounts", &binCounts);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
-void miniAODmmmm::endJob() {
+void miniAODmmmm_binned::endJob() {
+  for (const auto &entry : binCountsMap) {
+    Run = entry.first.first;
+    LumiBlock = entry.first.second;
+    binCounts = entry.second;
+    tree_->Fill();
+  }
+
   tree_->GetDirectory()->cd();
   tree_->Write();
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
-void miniAODmmmm::fillDescriptions(edm::ConfigurationDescriptions &descriptions) {
+void miniAODmmmm_binned::fillDescriptions(edm::ConfigurationDescriptions &descriptions) {
   // The following says we do not know what parameters are allowed so do no validation
   //  Please change this to state exactly what you do use, even if it is no parameters
   edm::ParameterSetDescription desc;
@@ -465,4 +349,4 @@ void miniAODmmmm::fillDescriptions(edm::ConfigurationDescriptions &descriptions)
 }
 
 // define this as a plug-in
-DEFINE_FWK_MODULE(miniAODmmmm);
+DEFINE_FWK_MODULE(miniAODmmmm_binned);

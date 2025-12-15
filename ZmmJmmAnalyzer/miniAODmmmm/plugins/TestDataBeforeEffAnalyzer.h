@@ -1,11 +1,11 @@
-#ifndef _miniAODmmmm_h
-#define _miniAODmmmm_h
+#ifndef _TestDataBeforeEffAnalyzer_h
+#define _TestDataBeforeEffAnalyzer_h
 
 // system include files
 #include <memory>
 
 // user include files
-#include "ZmmJmmAnalyzer/miniAODmmmm/plugins/miniAODmmmm.h"
+#include "ZmmJmmAnalyzer/miniAODmmmm/plugins/TestDataBeforeEffAnalyzer.h"
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
@@ -64,10 +64,10 @@
 // from  edm::one::EDAnalyzer<>
 // This will improve performance in multithreaded jobs.
 
-class miniAODmmmm : public edm::one::EDAnalyzer<edm::one::SharedResources> {
+class TestDataBeforeEffAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
-  explicit miniAODmmmm(const edm::ParameterSet &);
-  ~miniAODmmmm() override;
+  explicit TestDataBeforeEffAnalyzer(const edm::ParameterSet &);
+  ~TestDataBeforeEffAnalyzer() override;
 
   static void fillDescriptions(edm::ConfigurationDescriptions &descriptions);
 
@@ -97,21 +97,12 @@ private:
   UInt_t Run;
   UShort_t LumiBlock;
   ULong64_t Event;
-  ULong64_t eventTime;
-  bool TriggerFired;
 
-  UShort_t nPV;
-  float B_J1_mass;
-  UInt_t B_J1_pt;
-  Short_t B_J1_rapidity;
+  float_t B_Mu1_pt;
+  float_t B_Mu1_eta;
+  float_t B_Mu2_pt;
+  float_t B_Mu2_eta;
 
-  float B_J1_VtxPt, B_J1_VtxMass;
-  float B_J1_VtxProb;
-
-  UInt_t B_Mu1_pt;
-  UInt_t B_Mu2_pt;
-  Short_t B_Mu1_eta;
-  Short_t B_Mu2_eta;
-  bool isBestCandidate;
+  bool firedHLT_L1DoubleMu;
 };
 #endif

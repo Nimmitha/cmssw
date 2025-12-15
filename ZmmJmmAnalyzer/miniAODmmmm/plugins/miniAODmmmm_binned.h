@@ -1,11 +1,11 @@
-#ifndef _miniAODmmmm_h
-#define _miniAODmmmm_h
+#ifndef _miniAODmmmm_binned_h
+#define _miniAODmmmm_binned_h
 
 // system include files
 #include <memory>
 
 // user include files
-#include "ZmmJmmAnalyzer/miniAODmmmm/plugins/miniAODmmmm.h"
+#include "ZmmJmmAnalyzer/miniAODmmmm/plugins/miniAODmmmm_binned.h"
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
@@ -65,16 +65,16 @@ typedef std::pair<unsigned int, unsigned int> RunLumi;
 // from  edm::one::EDAnalyzer<>
 // This will improve performance in multithreaded jobs.
 
-class miniAODmmmm : public edm::one::EDAnalyzer<edm::one::SharedResources> {
+class miniAODmmmm_binned : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
-  explicit miniAODmmmm(const edm::ParameterSet &);
-  ~miniAODmmmm() override;
+  explicit miniAODmmmm_binned(const edm::ParameterSet&);
+  ~miniAODmmmm_binned() override;
 
-  static void fillDescriptions(edm::ConfigurationDescriptions &descriptions);
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
 private:
   void beginJob() override;
-  void analyze(const edm::Event &, const edm::EventSetup &) override;
+  void analyze(const edm::Event&, const edm::EventSetup&) override;
   void endJob() override;
 
   // ----------member data ---------------------------
@@ -93,7 +93,7 @@ private:
   std::string MuonTriggerString;
   bool isMC_;
 
-  TTree *tree_;
+  TTree* tree_;
 
   float Run, LumiBlock;
   std::vector<unsigned int> binCounts;

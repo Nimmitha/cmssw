@@ -1,0 +1,50 @@
+### miniAODmmmm.cc
+    Main version
+    All opposite-charge muon pairs with basic kinematic cuts, track quality, and a successful Kalman vertex fit prob  > 0.1.
+    Invariant mass in [2.6, 3.6] GeV.
+    Valid dimuon candidate with lowest vertexing probability marked with isBestCandidate = true
+    Other candidates are also kept (Muons are not reused)
+    
+    Optionally enables the eventTime for collecting data for emittance scan study.
+
+
+### miniAODmmmm_Pixelhits.cc
+    Collects hit locations in the Pixel detector.
+    Identifies the four BPIX layers separately and FPIX hits
+
+
+### miniAODmmmm_binned.cc - not used
+    This code builds a J/ψ mass histogram in fixed bins, separately for each (Run, LumiBlock).
+    Mass range is split into nBins = 100 equal-width bins.
+    For each mass bin it increments the value of the binkey which is (Run,LumiBlock)
+
+        binCountsMap[(Run,LumiBlock)][bin]++
+
+    For each key it writes one TTree entry containing:
+
+    Run
+    LumiBlock
+    binCounts = vector of length 100 (the mass-bin counts for that Run–LS)
+    So: each tree row is one lumisection, and binCounts[i] is the number of selected dimuon candidates.
+
+
+### mytagAndProbeV1.cc
+    Check slides 8.10
+
+
+### mytagAndProbeV6.cc
+    Check slides 8.10
+
+
+### mytagAndProbeV7.cc
+    Check slides 8.10
+
+
+### TriggerEffAnalyzer.cc
+    Abandoned method
+    Efficiency of the triggerHLT_Mu0_L1DoubleMu_v* vs HLT_Mu0_L1DoubleMu_v*
+
+
+### tagandprobe.cc
+    Current method of custom tag and probe.
+    Ingredients for Ratio1, Ratio2 and Ratio3 are calculated here

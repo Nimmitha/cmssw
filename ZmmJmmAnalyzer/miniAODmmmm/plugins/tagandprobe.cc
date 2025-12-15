@@ -205,6 +205,10 @@ void tagandprobe::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
   int charge = 0;
 
+  if (!firedHLT_IsoMu24 && !firedHLT_L1DoubleMu) {
+    return;
+  }
+
   if (firedHLT_IsoMu24) {
     // Find all IsoMu24 trigger objects
     for (const auto& obj : *triggerObjects) {
@@ -262,7 +266,7 @@ void tagandprobe::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
               continue;
             }
 
-            if (iMuon1->charge() == charge)
+            if (iMuon1->charge() * charge > 0)
               continue;
 
             if (iMuon1->pt() < 3.0)
@@ -273,10 +277,8 @@ void tagandprobe::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
             nOffline_Muons++;
             OtherMuinAcceptanceI = true;
-            // cout << "OtherMuinAcceptanceI = True" << endl;
 
             if (iMuon1->pt() < 25) {
-              // cout << "OtherMuinAcceptanceII = True" << endl;
               OtherMuinAcceptanceII = true;
 
               TLorentzVector M1, M2, MM1;
@@ -292,7 +294,6 @@ void tagandprobe::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           }
         }
       }
-      // cout << "Completed Trigger matched muon in acceptance" << endl;
 
       // Find dimuon trigger objects
       if (firedHLT_L1DoubleMu == true) {
@@ -312,7 +313,6 @@ void tagandprobe::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
         // if failed to find two objects, try recovering them from a different filter
         if (DoubleMu_objects.size() < 2) {
-          // cout << "Recovering the two muons" << std::endl;
           DoubleMu_objects.clear();
           for (const auto& obj : *triggerObjects) {
             pat::TriggerObjectStandAlone unpackedObj = obj;
@@ -394,7 +394,7 @@ void tagandprobe::beginJob() {
   // tree_->Branch("dR_SMO_offM", &dR_SMO_offM);
   tree_->Branch("sm_triggerMatched", &sm_triggerMatched);
   tree_->Branch("SMinAcceptance", &SMinAcceptance);
-  tree_->Branch("dPt", &dPt);
+  // tree_->Branch("dPt", &dPt);
   tree_->Branch("nOffline_Muons", &nOffline_Muons);
   tree_->Branch("OtherMuinAcceptanceI", &OtherMuinAcceptanceI);
   tree_->Branch("OtherMuinAcceptanceII", &OtherMuinAcceptanceII);
