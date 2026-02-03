@@ -7,6 +7,7 @@
     
     Optionally enables the eventTime for collecting data for emittance scan study.
 
+    Optionally added cuts based on muon ID. Checked Soft(prs_v7) and Loose(prs_v8)
 
 ### miniAODmmmm_Pixelhits.cc
     Collects hit locations in the Pixel detector.

@@ -51,6 +51,7 @@
 
 // // packedCandidates
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "DataFormats/MuonReco/interface/MuonSelectors.h"
 
 // // From Kalman example
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -88,7 +89,7 @@ typedef math::Error<3>::type CovarianceMatrix;
 // constructors and destructor
 //
 
-miniAODmmmm::miniAODmmmm(const edm::ParameterSet &iConfig)
+miniAODmmmm::miniAODmmmm(const edm::ParameterSet& iConfig)
     : muonsToken_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"))),
       TriggerResultsToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("bits"))),
       prunedGenToken_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("pruned"))),
@@ -118,7 +119,7 @@ miniAODmmmm::miniAODmmmm(const edm::ParameterSet &iConfig)
       B_J1_VtxPt(0),
       B_J1_VtxMass(0),
       B_J1_VtxProb(0),
-      
+
       B_Mu1_pt(0),
       B_Mu2_pt(0),
       B_Mu1_eta(0),
@@ -137,13 +138,13 @@ miniAODmmmm::~miniAODmmmm() {}
 //
 
 // ------------ method called for each event  ------------
-void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetup) {
+void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using std::vector;
   using namespace edm;
   using namespace reco;
   using namespace std;
 
-  const auto &theB = iSetup.getData(estoken_TTB);
+  const auto& theB = iSetup.getData(estoken_TTB);
 
   edm::Handle<pat::MuonCollection> thePATMuonHandle;
   iEvent.getByToken(muonsToken_, thePATMuonHandle);
@@ -169,7 +170,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     return;
   }
 
-  const edm::TriggerNames &names = iEvent.triggerNames(*TriggerResults);
+  const edm::TriggerNames& names = iEvent.triggerNames(*TriggerResults);
 
   // Check if the trigger fired
   bool triggerFlag = false;
@@ -188,14 +189,14 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 
   // Struct to hold dimuon candidates
   struct DimuonCandidate {
-    const pat::Muon *mu1;
-    const pat::Muon *mu2;
+    const pat::Muon* mu1;
+    const pat::Muon* mu2;
     float vtxProb;
     TLorentzVector p4;
     // XYZTLorentzVectorD J_vtx;
     float mu1_pt, mu2_pt, mu1_eta, mu2_eta;
 
-    bool operator<(const DimuonCandidate &other) const {
+    bool operator<(const DimuonCandidate& other) const {
       return vtxProb > other.vtxProb;  // sort descending by vtxProb
     }
   };
@@ -215,7 +216,7 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
   UShort_t goodPVCount = 0;
 
   if (primaryVertices_handle.isValid() && !primaryVertices_handle->empty()) {
-    for (const auto &vtx : *primaryVertices_handle) {
+    for (const auto& vtx : *primaryVertices_handle) {
       if (!vtx.isFake() && vtx.ndof() > 4 && fabs(vtx.z()) <= 24.0 && fabs(vtx.position().Rho()) <= 2.0) {
         ++goodPVCount;
       }
@@ -236,13 +237,23 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
       if (iMuon1 == iMuon2)
         continue;
 
+      // if (!muon::isSoftMuon(*iMuon1, bestVtx))
+      //   continue;
+      // if (!muon::isSoftMuon(*iMuon2, bestVtx))
+      //   continue;
+
+      // if (!muon::isLooseMuon(*iMuon1))
+      //   continue;
+      // if (!muon::isLooseMuon(*iMuon2))
+      //   continue;
+
       if (!(abs(iMuon1->charge()) == 1))
         continue;
       if (!(abs(iMuon2->charge()) == 1))
         continue;
 
       //opposite charge
-      if ( (iMuon1->charge()) + (iMuon2->charge()) != 0 )
+      if ((iMuon1->charge()) + (iMuon2->charge()) != 0)
         continue;
 
       if (iMuon1->pt() < 3.0)
@@ -362,11 +373,11 @@ void miniAODmmmm::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
   std::sort(validCandidates.begin(), validCandidates.end());
 
   // Track used muons
-  std::set<const pat::Muon *> usedMuons;
+  std::set<const pat::Muon*> usedMuons;
   usedMuons.clear();
 
   UShort_t nRecoDistinctJWVtx = 0;
-  for (const auto &cand : validCandidates) {
+  for (const auto& cand : validCandidates) {
     if (usedMuons.count(cand.mu1) || usedMuons.count(cand.mu2)) {
       continue;
     }
@@ -446,6 +457,10 @@ void miniAODmmmm::beginJob() {
   // tree_->Branch("B_J1_VtxMass", &B_J1_VtxMass);
   // tree_->Branch("B_J1_VtxProb", &B_J1_VtxProb);
 
+  tree_->Branch("B_Mu1_pt", &B_Mu1_pt);
+  tree_->Branch("B_Mu2_pt", &B_Mu2_pt);
+  tree_->Branch("B_Mu1_eta", &B_Mu1_eta);
+  tree_->Branch("B_Mu2_eta", &B_Mu2_eta);
   tree_->Branch("isBestCandidate", &isBestCandidate);
 }
 
@@ -456,7 +471,7 @@ void miniAODmmmm::endJob() {
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
-void miniAODmmmm::fillDescriptions(edm::ConfigurationDescriptions &descriptions) {
+void miniAODmmmm::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   // The following says we do not know what parameters are allowed so do no validation
   //  Please change this to state exactly what you do use, even if it is no parameters
   edm::ParameterSetDescription desc;
