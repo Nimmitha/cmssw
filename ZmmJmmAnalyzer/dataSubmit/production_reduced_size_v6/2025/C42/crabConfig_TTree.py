@@ -11,14 +11,14 @@ config.JobType.pluginName = 'Analysis'                              # Specify: a
 config.JobType.psetName = 'miniAODmuonsRootupler.py'           # parameter-set config file
 config.JobType.allowUndistributedCMSSW = True                       # Allow CMSSW release possibly not available at sites
 config.JobType.outputFiles = ['PDMLM4_Run2025C2_v2_Data.root']   # List of output files that needs to be collected
-config.JobType.maxJobRuntimeMin = 1200                                  # Maximum job runtime in minutes
+config.JobType.maxJobRuntimeMin = 60                                  # Maximum job runtime in minutes
 # config.JobType.maxMemoryMB = 1000
 
 # data to be analyzed
 config.Data.inputDBS = 'global'
 config.Data.inputDataset = '/ParkingDoubleMuonLowMass4/Run2025C-PromptReco-v2/MINIAOD'               # Name of the dataset
 #config.Data.outputPrimaryDataset = 'DoubleJPsiToMuMu_RAWSIM_SPS_LO_may2016_largetest_FNAL' # Used when running private input files or MC generation
-config.Data.lumiMask = 'Cert_Collisions2025_391658_395172_golden.json' # Lumi-section filter
+config.Data.lumiMask = 'Cert_Collisions2025_391658_398903_Golden.json' # Lumi-section filter
 config.Data.splitting = 'LumiBased'                                                         # Split the task based on 
 config.Data.unitsPerJob = 50                                                                # Number of splitted units per job
 #NJOBS = 500  # This is not a configuration parameter, but an auxiliary variable that we use in the next line.
