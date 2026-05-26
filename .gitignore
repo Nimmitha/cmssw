@@ -5,6 +5,8 @@ __init__.py
 #*#
 *~
 
+.vscode/settings.json
+
 ZmmJmmAnalyzer/preselection
 ZmmJmmAnalyzer/scripts
 
