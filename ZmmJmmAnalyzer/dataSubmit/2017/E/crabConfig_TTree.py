@@ -4,13 +4,14 @@ config = config()
 # user specific generic parameters
 config.General.requestName = 'TTree_13TeV_mmmm_UL_2017E'   # Used as the task/Project directory name
 config.General.transferOutputs = True                               # Transfer output files to the storage site
-config.General.transferLogs = False
+config.General.transferLogs = True
 
 # job type and related configurables
 config.JobType.pluginName = 'Analysis'                              # Specify: analysis or MC generation
 config.JobType.psetName = 'miniAODmmmmRootupler_2017_E.py'           # parameter-set config file
 config.JobType.allowUndistributedCMSSW = True                       # Allow CMSSW release possibly not available at sites
 config.JobType.outputFiles = ['SingleMuon_Run2017E_UL_v2_v1_Data.root']   # List of output files that needs to be collected
+config.JobType.maxJobRuntimeMin = 60                                  # Maximum job runtime in minutes
 # config.JobType.maxMemoryMB = 1000
 
 # data to be analyzed
@@ -22,7 +23,7 @@ config.Data.splitting = 'LumiBased'                                             
 config.Data.unitsPerJob = 50                                                                # Number of splitted units per job
 #NJOBS = 500  # This is not a configuration parameter, but an auxiliary variable that we use in the next line.
 config.Data.totalUnits = -1                                                                 # Number of untis to analyze 
-config.Data.outLFNDirBase = '/store/user/nkarunar/'
+config.Data.outLFNDirBase = '/store/user/nkarunar/ml_reboot'
 config.Data.publication = False                                                             # Whether to publish the EDM output files in DBS
 
 # Grid site parameters
