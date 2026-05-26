@@ -5,6 +5,14 @@ __init__.py
 #*#
 *~
 
-dataSubmit
-preselection
-scripts
+ZmmJmmAnalyzer/preselection
+ZmmJmmAnalyzer/scripts
+
+ZmmJmmAnalyzer/dataSubmit/**/crab_*/inputs/
+ZmmJmmAnalyzer/dataSubmit/**/crab.log
+ZmmJmmAnalyzer/dataSubmit/**/*.gz
+ZmmJmmAnalyzer/dataSubmit/**/.requestcache
+
+
+# lrwxrwxrwx 1 wkarunar us_cms   58 May 25 22:37 mmmm -> /uscms/home/wkarunar/nobackup/datasets/data/run2/Muon/mmmm
+# lrwxrwxrwx 1 wkarunar us_cms   59 May 25 22:37 run2_mc -> /uscms/home/wkarunar/nobackup/datasets/mc/preselection/run2
