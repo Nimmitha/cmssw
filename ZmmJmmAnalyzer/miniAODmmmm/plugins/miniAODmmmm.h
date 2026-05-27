@@ -40,13 +40,20 @@ private:
   std::string muonTriggerString_;
   bool requireTrigger_;
   bool keepEmptyEvents_;
+  bool applyBroadTopologySkim_;
+  double lowMassMin_;
+  double lowMassMax_;
+  double zMassMin_;
+  double zMassMax_;
+  double broadDimuonVtxProbMin_;
+  double broadFourMuVtxProbMin_;
 
   TTree* tree_ = nullptr;
 
   UInt_t nB = 0;
 
-  std::vector<unsigned int>* Run = nullptr;
-  std::vector<unsigned int>* LumiBlock = nullptr;
+  std::vector<int>* Run = nullptr;
+  std::vector<int>* LumiBlock = nullptr;
   std::vector<unsigned long long>* Event = nullptr;
   std::vector<unsigned int>* nPV = nullptr;
 

@@ -162,7 +162,14 @@ miniAODmmmm::miniAODmmmm(const edm::ParameterSet& iConfig)
       triggerBitsToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("bits"))),
       muonTriggerString_(iConfig.getParameter<std::string>("MuonTrigger")),
       requireTrigger_(iConfig.existsAs<bool>("requireTrigger") ? iConfig.getParameter<bool>("requireTrigger") : false),
-      keepEmptyEvents_(iConfig.existsAs<bool>("keepEmptyEvents") ? iConfig.getParameter<bool>("keepEmptyEvents") : false) {}
+      keepEmptyEvents_(iConfig.existsAs<bool>("keepEmptyEvents") ? iConfig.getParameter<bool>("keepEmptyEvents") : false),
+      applyBroadTopologySkim_(iConfig.existsAs<bool>("applyBroadTopologySkim") ? iConfig.getParameter<bool>("applyBroadTopologySkim") : true),
+      lowMassMin_(iConfig.existsAs<double>("lowMassMin") ? iConfig.getParameter<double>("lowMassMin") : 1.0),
+      lowMassMax_(iConfig.existsAs<double>("lowMassMax") ? iConfig.getParameter<double>("lowMassMax") : 5.0),
+      zMassMin_(iConfig.existsAs<double>("zMassMin") ? iConfig.getParameter<double>("zMassMin") : 70.0),
+      zMassMax_(iConfig.existsAs<double>("zMassMax") ? iConfig.getParameter<double>("zMassMax") : 110.0),
+      broadDimuonVtxProbMin_(iConfig.existsAs<double>("broadDimuonVtxProbMin") ? iConfig.getParameter<double>("broadDimuonVtxProbMin") : 0.001),
+      broadFourMuVtxProbMin_(iConfig.existsAs<double>("broadFourMuVtxProbMin") ? iConfig.getParameter<double>("broadFourMuVtxProbMin") : 0.001) {}
 
 void miniAODmmmm::beginJob() {
   edm::Service<TFileService> fs;
@@ -365,6 +372,27 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           TransientVertex vtx4 = kvf.vertex(tracks14);
           TransientVertex vtx4mu = kvf.vertex(tracks4);
 
+          const float vtxProb12 = vertexProbability(vtx1);
+          const float vtxProb34 = vertexProbability(vtx2);
+          const float vtxProb23 = vertexProbability(vtx3);
+          const float vtxProb14 = vertexProbability(vtx4);
+          const float vtxProb4mu = vertexProbability(vtx4mu);
+
+          if (applyBroadTopologySkim_) {
+            const auto inRange = [](double x, double lo, double hi) { return x > lo && x < hi; };
+            const auto low = [&](double mass) { return inRange(mass, lowMassMin_, lowMassMax_); };
+            const auto zlike = [&](double mass) { return inRange(mass, zMassMin_, zMassMax_); };
+            const bool group12_34 =
+                (vtxProb12 > broadDimuonVtxProbMin_) &&
+                (vtxProb34 > broadDimuonVtxProbMin_) &&
+                ((low(MM1.M()) && zlike(MM2.M())) || (zlike(MM1.M()) && low(MM2.M())));
+            const bool group23_14 =
+                (vtxProb23 > broadDimuonVtxProbMin_) &&
+                (vtxProb14 > broadDimuonVtxProbMin_) &&
+                ((low(MM3.M()) && zlike(MM4.M())) || (zlike(MM3.M()) && low(MM4.M())));
+            if (!(vtxProb4mu > broadFourMuVtxProbMin_ && (group12_34 || group23_14))) continue;
+          }
+
           const std::vector<TLorentzVector> selectedMuonP4{M1, M2, M3, M4};
           const float iso1_03 = pairTrackIso(*packedCandHandle, MM1, selectedMuonP4, 0.3f);
           const float iso1_04 = pairTrackIso(*packedCandHandle, MM1, selectedMuonP4, 0.4f);
@@ -375,9 +403,9 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           const float iso4_03 = pairTrackIso(*packedCandHandle, MM4, selectedMuonP4, 0.3f);
           const float iso4_04 = pairTrackIso(*packedCandHandle, MM4, selectedMuonP4, 0.4f);
 
-          Run->push_back(iEvent.id().run());
-          LumiBlock->push_back(iEvent.luminosityBlock());
-          Event->push_back(iEvent.id().event());
+          Run->push_back(static_cast<int>(iEvent.id().run()));
+          LumiBlock->push_back(static_cast<int>(iEvent.luminosityBlock()));
+          Event->push_back(static_cast<unsigned long long>(iEvent.id().event()));
           nPV->push_back(primaryVerticesHandle->size());
 
           fourMu_mass->push_back(MMMM.M());
@@ -388,7 +416,7 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           fourMu_eta->push_back(MMMM.Eta());
           fourMu_phi->push_back(MMMM.Phi());
           fourMu_rapidity->push_back(MMMM.Rapidity());
-          fourMu_vtxProb->push_back(vertexProbability(vtx4mu));
+          fourMu_vtxProb->push_back(vtxProb4mu);
           fourMu_pvx->push_back(bestVtx.x());
           fourMu_pvy->push_back(bestVtx.y());
           fourMu_pvz->push_back(bestVtx.z());
@@ -412,10 +440,10 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           PUSH_P4(pair14, MM4);
 #undef PUSH_P4
 
-          pair12_vtxProb->push_back(vertexProbability(vtx1));
-          pair34_vtxProb->push_back(vertexProbability(vtx2));
-          pair23_vtxProb->push_back(vertexProbability(vtx3));
-          pair14_vtxProb->push_back(vertexProbability(vtx4));
+          pair12_vtxProb->push_back(vtxProb12);
+          pair34_vtxProb->push_back(vtxProb34);
+          pair23_vtxProb->push_back(vtxProb23);
+          pair14_vtxProb->push_back(vtxProb14);
 
           pair12_dR->push_back(reco::deltaR(M1.Eta(), M1.Phi(), M2.Eta(), M2.Phi()));
           pair34_dR->push_back(reco::deltaR(M3.Eta(), M3.Phi(), M4.Eta(), M4.Phi()));
