@@ -404,24 +404,24 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   // Keep this block only for a short local test on one/few files per year and on private MC.
   // It verifies that egammaPostRecoSeq/MiniAOD contains ecalTrkEnergyPostCorr and shows
   // the raw-vs-corrected electron energy/pt for the first few electrons seen by this job.
-  static unsigned int nEgammaCorrDebugPrints = 0;
-  if (nEgammaCorrDebugPrints < 20) {
-    for (const auto& ele : *electronHandle) {
-      if (nEgammaCorrDebugPrints >= 20) break;
-      const bool hasCorr = ele.hasUserFloat("ecalTrkEnergyPostCorr");
-      const TLorentzVector corrP4 = electronP4ForAnalysis(ele);
-      edm::LogWarning("miniAODeemm_EGammaCorrCheck")
-          << "run=" << iEvent.id().run()
-          << " lumi=" << iEvent.luminosityBlock()
-          << " event=" << iEvent.id().event()
-          << " has_ecalTrkEnergyPostCorr=" << hasCorr
-          << " raw_pt=" << ele.pt()
-          << " corr_pt=" << corrP4.Pt()
-          << " raw_energy=" << ele.energy()
-          << " corr_energy=" << (hasCorr ? ele.userFloat("ecalTrkEnergyPostCorr") : -999.0f);
-      ++nEgammaCorrDebugPrints;
-    }
-  }
+  // static unsigned int nEgammaCorrDebugPrints = 0;
+  // if (nEgammaCorrDebugPrints < 20) {
+  //   for (const auto& ele : *electronHandle) {
+  //     if (nEgammaCorrDebugPrints >= 20) break;
+  //     const bool hasCorr = ele.hasUserFloat("ecalTrkEnergyPostCorr");
+  //     const TLorentzVector corrP4 = electronP4ForAnalysis(ele);
+  //     edm::LogWarning("miniAODeemm_EGammaCorrCheck")
+  //         << "run=" << iEvent.id().run()
+  //         << " lumi=" << iEvent.luminosityBlock()
+  //         << " event=" << iEvent.id().event()
+  //         << " has_ecalTrkEnergyPostCorr=" << hasCorr
+  //         << " raw_pt=" << ele.pt()
+  //         << " corr_pt=" << corrP4.Pt()
+  //         << " raw_energy=" << ele.energy()
+  //         << " corr_energy=" << (hasCorr ? ele.userFloat("ecalTrkEnergyPostCorr") : -999.0f);
+  //     ++nEgammaCorrDebugPrints;
+  //   }
+  // }
   // ===================== REMOVE BEFORE CRAB: EGamma correction quick check =====================
 
   // Special treatment for 2017 when using HLT_Ele32_WPTight_Gsf_L1DoubleEG_v.

@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from array import array
 from pathlib import Path
-from typing import Dict, Iterable, List
+from typing import Dict, List
 
 import ROOT
 
@@ -64,7 +64,7 @@ ELECTRON_ID = "WP90"  # options: "Loose", "WP90", "WP80"
 
 MUON_PT_MIN = 3.0
 MUON_ABS_ETA_MAX = 2.4
-ELE1_PT_MIN = 27.0
+ELE1_PT_MIN = 32.0
 ELE2_PT_MIN = 5.0
 ELE_ABS_ETA_MAX = 2.5
 
@@ -76,9 +76,13 @@ DATA_JPSI_MASS = (2.8, 4.0)
 Z_MASS = (70.0, 110.0)
 SIGNAL_FOURL_MASS = (112.0, 162.0)
 
-# Optional: keep one best candidate per event. For first pass, keep False so the
-# selection is transparent and comparable to candidate-level yields.
-DEDUPLICATE_ONE_PER_EVENT = False
+# Optional: keep one best candidate per input TTree entry.
+# This is the safest default for both data and your merged private MC:
+#   * data: one TTree entry should correspond to one collision event;
+#   * private MC: run/lumi/event may be duplicated across merged files, so do NOT
+#     deduplicate globally by (run,lumi,event).
+# Best candidate rule: highest fourL_vtxProb only.
+DEDUPLICATE_ONE_PER_ENTRY = False
 
 # =============================================================================
 # Output content
@@ -239,13 +243,15 @@ def sample_selection(tree: ROOT.TTree, idx: int, sample: str) -> bool:
 
 
 def candidate_rank(tree: ROOT.TTree, idx: int) -> tuple:
-    """Lower tuple is better for optional per-event deduplication."""
-    jmass = abs(get_vec_value(tree, "Jpsi_mass", idx) - 3.0969)
-    zmass = abs(get_vec_value(tree, "Z_mass", idx) - 91.1876)
+    """Lower tuple is better for optional per-entry deduplication.
+
+    Per your current choice, the only ranking variable is fourL_vtxProb.
+    We use the negative value because Python's min(...) returns the smallest tuple.
+    Do not include closeness to 125 GeV here, because that would sculpt the
+    four-lepton mass distribution.
+    """
     four_vtx = get_vec_value(tree, "fourL_vtxProb", idx)
-    j_vtx = get_vec_value(tree, "Jpsi_vtxProb", idx)
-    z_vtx = get_vec_value(tree, "Z_vtxProb", idx)
-    return (jmass / 0.10 + zmass / 10.0, -four_vtx, -(j_vtx * z_vtx))
+    return (-four_vtx,)
 
 
 def make_output_tree() -> tuple[ROOT.TFile, ROOT.TTree, Dict[str, array]]:
@@ -284,11 +290,17 @@ def fill_output(tree: ROOT.TTree, idx: int, out_arrays: Dict[str, array], label:
         out_arrays[name][0] = int(get_vec_value(tree, name, idx))
 
 
-def selected_indices_for_entry(tree: ROOT.TTree, sample: str) -> List[int]:
+def selected_indices_for_entry(tree: ROOT.TTree, sample: str, deduplicate: bool) -> List[int]:
+    """Return selected candidate indices for one input TTree entry.
+
+    If deduplicate=True, keep only the candidate with the highest fourL_vtxProb
+    within this entry. This avoids using run/lumi/event as a global key, which is
+    important for your private MC where those numbers can repeat after merging.
+    """
     n_cands = int(tree.nB)
     selected = [i for i in range(n_cands) if sample_selection(tree, i, sample)]
 
-    if not DEDUPLICATE_ONE_PER_EVENT or len(selected) <= 1:
+    if not deduplicate or len(selected) <= 1:
         return selected
 
     best = min(selected, key=lambda i: candidate_rank(tree, i))
@@ -320,28 +332,53 @@ def process_sample(sample: str, input_path: str, output_path: str, label: int) -
 
     n_events = int(tree.GetEntries())
     n_candidates = 0
-    n_selected = 0
+    n_selected_entries_before_dedup = 0
+    n_selected_candidates_before_dedup = 0
+    n_saved_entries = 0
+    n_saved_candidates = 0
 
     for iev in range(n_events):
         tree.GetEntry(iev)
         n_candidates += int(tree.nB)
-        indices = selected_indices_for_entry(tree, sample)
-        for idx in indices:
+
+        selected_before = selected_indices_for_entry(tree, sample, deduplicate=False)
+        if selected_before:
+            n_selected_entries_before_dedup += 1
+            n_selected_candidates_before_dedup += len(selected_before)
+
+        indices_to_save = selected_indices_for_entry(
+            tree, sample, deduplicate=DEDUPLICATE_ONE_PER_ENTRY
+        )
+        if indices_to_save:
+            n_saved_entries += 1
+
+        for idx in indices_to_save:
             fill_output(tree, idx, out_arrays, label)
             tout.Fill()
-        n_selected += len(indices)
+            n_saved_candidates += 1
 
         if iev > 0 and iev % 100000 == 0:
-            print(f"    events {iev}/{n_events}, selected {n_selected}", flush=True)
+            print(
+                f"    entries {iev}/{n_events}, "
+                f"selected candidates before dedup {n_selected_candidates_before_dedup}, "
+                f"saved {n_saved_candidates}",
+                flush=True,
+            )
 
     fout.cd()
     tout.Write()
+    output_entries = int(tout.GetEntries())
     fout.Close()
     fin.Close()
 
-    print(f"  input events      : {n_events}")
-    print(f"  input candidates  : {n_candidates}")
-    print(f"  selected candidates: {n_selected}")
+    print(f"  input TTree entries              : {n_events}")
+    print(f"  input candidates                 : {n_candidates}")
+    print(f"  selected entries before dedup    : {n_selected_entries_before_dedup}")
+    print(f"  selected candidates before dedup : {n_selected_candidates_before_dedup}")
+    print(f"  saved entries                    : {n_saved_entries}")
+    print(f"  saved candidates                 : {n_saved_candidates}")
+    print(f"  output tree entries              : {output_entries}")
+    print(f"  saved file                       : {output_path}")
 
 
 def main() -> None:
@@ -349,7 +386,8 @@ def main() -> None:
     print(f"  Electron ID: {ELECTRON_ID}")
     print(f"  Ele trigger required: {REQUIRE_ELE_TRIGGER}")
     print(f"  Trigger match required: {REQUIRE_TRIGGER_MATCH}")
-    print(f"  Deduplicate one/event: {DEDUPLICATE_ONE_PER_EVENT}")
+    print(f"  Deduplicate one/input entry: {DEDUPLICATE_ONE_PER_ENTRY}")
+    print("  Best-candidate rule: highest fourL_vtxProb")
 
     outdir = Path(OUTDIR)
 

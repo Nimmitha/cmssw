@@ -16,3 +16,5 @@ ZeeJmmAnalyzer/dataSubmit/**/crab_*/inputs/
 ZeeJmmAnalyzer/dataSubmit/**/crab.log
 ZeeJmmAnalyzer/dataSubmit/**/*.gz
 ZeeJmmAnalyzer/dataSubmit/**/.requestcache
+
+ZeeJmmAnalyzer/duplicate_check/
