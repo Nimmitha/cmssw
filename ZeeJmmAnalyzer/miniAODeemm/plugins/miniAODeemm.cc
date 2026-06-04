@@ -134,6 +134,29 @@ float electronMVARaw(const pat::Electron& ele, const std::vector<std::string>& r
   return kBad;
 }
 
+TLorentzVector electronP4ForAnalysis(const pat::Electron& ele) {
+  // EGamma Run-2 UL nominal electron p4:
+  // use ECAL-track combined energy after scale/smearing corrections.
+  // This value is embedded by MiniAODV2/EgammaPostRecoTools as a userFloat.
+  TLorentzVector p4;
+  const bool hasCorr = ele.hasUserFloat("ecalTrkEnergyPostCorr");
+  const float corrEnergy = hasCorr ? ele.userFloat("ecalTrkEnergyPostCorr") : ele.energy();
+
+  if (hasCorr && ele.energy() > 0.0f && corrEnergy > 0.0f) {
+    const auto corrP4 = ele.p4() * corrEnergy / ele.energy();
+    p4.SetPxPyPzE(corrP4.px(), corrP4.py(), corrP4.pz(), corrP4.energy());
+  } else {
+    // Fallback for quick tests if the EGamma corrected userFloat is missing.
+    // For production this should not happen after egammaPostRecoSeq is in the path.
+    p4.SetPxPyPzE(ele.px(), ele.py(), ele.pz(), ele.energy());
+  }
+  return p4;
+}
+
+float electronPtForAnalysis(const pat::Electron& ele) {
+  return electronP4ForAnalysis(ele).Pt();
+}
+
 bool hasElectronTriggerPath(const pat::TriggerObjectStandAlone& obj,
                             const std::string& triggerPattern) {
   if (triggerPattern.empty()) return false;
@@ -376,6 +399,31 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     }
   }
 
+
+  // ===================== REMOVE BEFORE CRAB: EGamma correction quick check =====================
+  // Keep this block only for a short local test on one/few files per year and on private MC.
+  // It verifies that egammaPostRecoSeq/MiniAOD contains ecalTrkEnergyPostCorr and shows
+  // the raw-vs-corrected electron energy/pt for the first few electrons seen by this job.
+  static unsigned int nEgammaCorrDebugPrints = 0;
+  if (nEgammaCorrDebugPrints < 20) {
+    for (const auto& ele : *electronHandle) {
+      if (nEgammaCorrDebugPrints >= 20) break;
+      const bool hasCorr = ele.hasUserFloat("ecalTrkEnergyPostCorr");
+      const TLorentzVector corrP4 = electronP4ForAnalysis(ele);
+      edm::LogWarning("miniAODeemm_EGammaCorrCheck")
+          << "run=" << iEvent.id().run()
+          << " lumi=" << iEvent.luminosityBlock()
+          << " event=" << iEvent.id().event()
+          << " has_ecalTrkEnergyPostCorr=" << hasCorr
+          << " raw_pt=" << ele.pt()
+          << " corr_pt=" << corrP4.Pt()
+          << " raw_energy=" << ele.energy()
+          << " corr_energy=" << (hasCorr ? ele.userFloat("ecalTrkEnergyPostCorr") : -999.0f);
+      ++nEgammaCorrDebugPrints;
+    }
+  }
+  // ===================== REMOVE BEFORE CRAB: EGamma correction quick check =====================
+
   // Special treatment for 2017 when using HLT_Ele32_WPTight_Gsf_L1DoubleEG_v.
   // This emulates HLT_Ele32_WPTight_Gsf, which was not in the 2017 menu, by
   // additionally requiring the matched trigger object to pass hltEGL1SingleEGOrFilter.
@@ -408,7 +456,8 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   looseElectronIdx.reserve(electronHandle->size());
   for (size_t i = 0; i < electronHandle->size(); ++i) {
     const auto& e = electronHandle->at(i);
-    if (e.pt() < 5.0) continue;
+    const float ePt = electronPtForAnalysis(e);
+    if (ePt < 5.0) continue;
     if (std::abs(e.eta()) > 2.5) continue;
     if (e.gsfTrack().isNull()) continue;
     if (requireLooseElectronID_ && electronID(e, kLooseElectronID) <= 0.5f) continue;
@@ -433,23 +482,28 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
       // Keep the two-electron quality and preselection together for readability.
       if (e1.gsfTrack().isNull() || e2.gsfTrack().isNull()) continue;
-      if (e1.pt() < 5.0 || e2.pt() < 5.0) continue;
+
+      const TLorentzVector e1P4 = electronP4ForAnalysis(e1);
+      const TLorentzVector e2P4 = electronP4ForAnalysis(e2);
+      const float e1CorrPt = e1P4.Pt();
+      const float e2CorrPt = e2P4.Pt();
+
+      if (e1CorrPt < 5.0 || e2CorrPt < 5.0) continue;
       if (std::abs(e1.eta()) > 2.5 || std::abs(e2.eta()) > 2.5) continue;
       if (requireLooseElectronID_ &&
           (electronID(e1, kLooseElectronID) <= 0.5f || electronID(e2, kLooseElectronID) <= 0.5f)) continue;
       if (e1.charge() * e2.charge() >= 0) continue;
-      if (std::max(e1.pt(), e2.pt()) < 20.0) continue;
+      if (std::max(e1CorrPt, e2CorrPt) < 20.0) continue;
 
       const pat::Electron* ePlusPtr = (e1.charge() > 0) ? &e1 : &e2;
       const pat::Electron* eMinusPtr = (e1.charge() > 0) ? &e2 : &e1;
-      const pat::Electron* eLeadPtr = (e1.pt() >= e2.pt()) ? &e1 : &e2;
-      const pat::Electron* eSubPtr = (e1.pt() >= e2.pt()) ? &e2 : &e1;
+      const pat::Electron* eLeadPtr = (e1CorrPt >= e2CorrPt) ? &e1 : &e2;
+      const pat::Electron* eSubPtr = (e1CorrPt >= e2CorrPt) ? &e2 : &e1;
 
-      TLorentzVector EPlus, EMinus, ELead, ESub;
-      EPlus.SetPtEtaPhiM(ePlusPtr->pt(), ePlusPtr->eta(), ePlusPtr->phi(), kElectronMass);
-      EMinus.SetPtEtaPhiM(eMinusPtr->pt(), eMinusPtr->eta(), eMinusPtr->phi(), kElectronMass);
-      ELead.SetPtEtaPhiM(eLeadPtr->pt(), eLeadPtr->eta(), eLeadPtr->phi(), kElectronMass);
-      ESub.SetPtEtaPhiM(eSubPtr->pt(), eSubPtr->eta(), eSubPtr->phi(), kElectronMass);
+      const TLorentzVector EPlus = (e1.charge() > 0) ? e1P4 : e2P4;
+      const TLorentzVector EMinus = (e1.charge() > 0) ? e2P4 : e1P4;
+      const TLorentzVector ELead = (e1CorrPt >= e2CorrPt) ? e1P4 : e2P4;
+      const TLorentzVector ESub = (e1CorrPt >= e2CorrPt) ? e2P4 : e1P4;
       const TLorentzVector Zee = EPlus + EMinus;
       if (!(Zee.M() > 60.0 && Zee.M() < 120.0)) continue;
 
