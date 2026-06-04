@@ -7,12 +7,12 @@ __init__.py
 
 .vscode/settings.json
 
-ZmmJmmAnalyzer/miniAOD
-ZmmJmmAnalyzer/preselection
-ZmmJmmAnalyzer/selection
-ZmmJmmAnalyzer/scripts/old
+ZeeJmmAnalyzer/miniAOD
+ZeeJmmAnalyzer/preselection
+ZeeJmmAnalyzer/selection
+ZeeJmmAnalyzer/scripts/old
 
-ZmmJmmAnalyzer/dataSubmit/**/crab_*/inputs/
-ZmmJmmAnalyzer/dataSubmit/**/crab.log
-ZmmJmmAnalyzer/dataSubmit/**/*.gz
-ZmmJmmAnalyzer/dataSubmit/**/.requestcache
+ZeeJmmAnalyzer/dataSubmit/**/crab_*/inputs/
+ZeeJmmAnalyzer/dataSubmit/**/crab.log
+ZeeJmmAnalyzer/dataSubmit/**/*.gz
+ZeeJmmAnalyzer/dataSubmit/**/.requestcache
