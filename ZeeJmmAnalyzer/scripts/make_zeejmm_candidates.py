@@ -148,7 +148,7 @@ def electron_id_pass(tree: ROOT.TTree, idx: int) -> bool:
     if ELECTRON_ID == "Loose":
         return bool(get_vec_value(tree, "e1_passLooseID", idx)) and bool(get_vec_value(tree, "e2_passLooseID", idx))
     if ELECTRON_ID == "WP90":
-        return bool(get_vec_value(tree, "e1_passWP90", idx)) and bool(get_vec_value(tree, "e2_passWP90", idx))
+        return bool(get_vec_value(tree, "e1_passWP90", idx)) or bool(get_vec_value(tree, "e2_passWP90", idx))
     if ELECTRON_ID == "WP80":
         return bool(get_vec_value(tree, "e1_passWP80", idx)) and bool(get_vec_value(tree, "e2_passWP80", idx))
     raise ValueError(f"Unknown ELECTRON_ID = {ELECTRON_ID}")
