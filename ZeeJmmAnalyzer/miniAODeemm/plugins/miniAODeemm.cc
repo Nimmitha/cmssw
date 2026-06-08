@@ -82,6 +82,27 @@ float pfRelIso03(const pat::Muon& mu) {
   return safeRatio(pfAbsIso03(mu), mu.pt());
 }
 
+float muTrackAbsIso03(const pat::Muon& mu, const pat::Muon& otherMu) {
+  // Track-based isolation matching the paper-style definition:
+  // scalar pT sum of reconstructed tracks in dR < 0.3 around this muon,
+  // with the other selected muon's inner-track pT subtracted if it falls in the cone.
+  // The muon's own track is already excluded by the standard pat::Muon isolationR03 sumPt.
+  float iso03 = mu.isolationR03().sumPt;
+
+  if (otherMu.innerTrack().isNonnull()) {
+    const float dR = reco::deltaR(mu.eta(), mu.phi(), otherMu.eta(), otherMu.phi());
+    if (dR < 0.3f) {
+      iso03 -= otherMu.innerTrack()->pt();
+    }
+  }
+
+  return std::max(0.0f, iso03);
+}
+
+float muTrackRelIso03(const pat::Muon& mu, const pat::Muon& otherMu) {
+  return safeRatio(muTrackAbsIso03(mu, otherMu), mu.pt());
+}
+
 float trackChi2(const reco::TrackRef& trk) {
   if (trk.isNull()) return kBad;
   return trk->normalizedChi2();
@@ -341,6 +362,7 @@ void miniAODeemm::beginJob() {
   branch("mu2_px", mu2_px); branch("mu2_py", mu2_py); branch("mu2_pz", mu2_pz); branch("mu2_pt", mu2_pt); branch("mu2_eta", mu2_eta); branch("mu2_phi", mu2_phi); branch("mu2_charge", mu2_charge);
   branch("mu1_soft", mu1_soft); branch("mu2_soft", mu2_soft); branch("mu1_loose", mu1_loose); branch("mu2_loose", mu2_loose); branch("mu1_tight", mu1_tight); branch("mu2_tight", mu2_tight);
   branch("mu1_pfRelIso03", mu1_pfRelIso03); branch("mu2_pfRelIso03", mu2_pfRelIso03); branch("mu1_pfAbsIso03", mu1_pfAbsIso03); branch("mu2_pfAbsIso03", mu2_pfAbsIso03);
+  branch("mu1_trackAbsIso03", mu1_trackAbsIso03); branch("mu2_trackAbsIso03", mu2_trackAbsIso03); branch("mu1_trackRelIso03", mu1_trackRelIso03); branch("mu2_trackRelIso03", mu2_trackRelIso03);
   branch("mu1_dxy", mu1_dxy); branch("mu2_dxy", mu2_dxy); branch("mu1_dz", mu1_dz); branch("mu2_dz", mu2_dz); branch("mu1_dB3D", mu1_dB3D); branch("mu2_dB3D", mu2_dB3D);
   branch("mu1_normChi2", mu1_normChi2); branch("mu2_normChi2", mu2_normChi2); branch("mu1_nValidHits", mu1_nValidHits); branch("mu2_nValidHits", mu2_nValidHits); branch("mu1_nValidPixelHits", mu1_nValidPixelHits); branch("mu2_nValidPixelHits", mu2_nValidPixelHits);
 
@@ -356,7 +378,7 @@ void miniAODeemm::clearVectors() {
   CLR(Jpsi_mass); CLR(Jpsi_px); CLR(Jpsi_py); CLR(Jpsi_pz); CLR(Jpsi_pt); CLR(Jpsi_eta); CLR(Jpsi_phi); CLR(Jpsi_rapidity); CLR(Jpsi_vtxProb); CLR(Jpsi_dR_mumu); CLR(Jpsi_trackIso03); CLR(Jpsi_trackIso04); CLR(Jpsi_relIso03); CLR(Jpsi_relIso04);
   CLR(Z_Jpsi_dR); CLR(Z_Jpsi_dPhi); CLR(Z_Jpsi_dEta); CLR(Z_Jpsi_dY); CLR(pt_balance); CLR(cosTheta_Z_ePlus); CLR(cosTheta_Jpsi_muPlus); CLR(phi_decayPlane_Z_Jpsi);
   CLR(e1_px); CLR(e1_py); CLR(e1_pz); CLR(e1_pt); CLR(e1_eta); CLR(e1_phi); CLR(e2_px); CLR(e2_py); CLR(e2_pz); CLR(e2_pt); CLR(e2_eta); CLR(e2_phi); CLR(e1_charge); CLR(e2_charge); CLR(e1_dxy); CLR(e1_dz); CLR(e2_dxy); CLR(e2_dz); CLR(e1_mvaRaw); CLR(e2_mvaRaw); CLR(e1_passLooseID); CLR(e2_passLooseID); CLR(e1_passWP90); CLR(e2_passWP90); CLR(e1_passWP80); CLR(e2_passWP80); CLR(e1_triggerMatched); CLR(e2_triggerMatched); CLR(e1_triggerDR); CLR(e2_triggerDR);
-  CLR(mu1_px); CLR(mu1_py); CLR(mu1_pz); CLR(mu1_pt); CLR(mu1_eta); CLR(mu1_phi); CLR(mu2_px); CLR(mu2_py); CLR(mu2_pz); CLR(mu2_pt); CLR(mu2_eta); CLR(mu2_phi); CLR(mu1_charge); CLR(mu2_charge); CLR(mu1_soft); CLR(mu2_soft); CLR(mu1_loose); CLR(mu2_loose); CLR(mu1_tight); CLR(mu2_tight); CLR(mu1_pfRelIso03); CLR(mu2_pfRelIso03); CLR(mu1_pfAbsIso03); CLR(mu2_pfAbsIso03); CLR(mu1_dxy); CLR(mu2_dxy); CLR(mu1_dz); CLR(mu2_dz); CLR(mu1_dB3D); CLR(mu2_dB3D); CLR(mu1_normChi2); CLR(mu2_normChi2); CLR(mu1_nValidHits); CLR(mu2_nValidHits); CLR(mu1_nValidPixelHits); CLR(mu2_nValidPixelHits);
+  CLR(mu1_px); CLR(mu1_py); CLR(mu1_pz); CLR(mu1_pt); CLR(mu1_eta); CLR(mu1_phi); CLR(mu2_px); CLR(mu2_py); CLR(mu2_pz); CLR(mu2_pt); CLR(mu2_eta); CLR(mu2_phi); CLR(mu1_charge); CLR(mu2_charge); CLR(mu1_soft); CLR(mu2_soft); CLR(mu1_loose); CLR(mu2_loose); CLR(mu1_tight); CLR(mu2_tight); CLR(mu1_pfRelIso03); CLR(mu2_pfRelIso03); CLR(mu1_pfAbsIso03); CLR(mu2_pfAbsIso03); CLR(mu1_trackAbsIso03); CLR(mu2_trackAbsIso03); CLR(mu1_trackRelIso03); CLR(mu2_trackRelIso03); CLR(mu1_dxy); CLR(mu2_dxy); CLR(mu1_dz); CLR(mu2_dz); CLR(mu1_dB3D); CLR(mu2_dB3D); CLR(mu1_normChi2); CLR(mu2_normChi2); CLR(mu1_nValidHits); CLR(mu2_nValidHits); CLR(mu1_nValidPixelHits); CLR(mu2_nValidPixelHits);
   CLR(nExtraLooseElectrons); CLR(nExtraLooseMuons);
 #undef CLR
 }
@@ -457,7 +479,7 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   for (size_t i = 0; i < electronHandle->size(); ++i) {
     const auto& e = electronHandle->at(i);
     const float ePt = electronPtForAnalysis(e);
-    if (ePt < 5.0) continue;
+    if (ePt < 4.0) continue;
     if (std::abs(e.eta()) > 2.5) continue;
     if (e.gsfTrack().isNull()) continue;
     if (requireLooseElectronID_ && electronID(e, kLooseElectronID) <= 0.5f) continue;
@@ -488,7 +510,7 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       const float e1CorrPt = e1P4.Pt();
       const float e2CorrPt = e2P4.Pt();
 
-      if (e1CorrPt < 5.0 || e2CorrPt < 5.0) continue;
+      if (e1CorrPt < 4.0 || e2CorrPt < 4.0) continue;
       if (std::abs(e1.eta()) > 2.5 || std::abs(e2.eta()) > 2.5) continue;
       if (requireLooseElectronID_ &&
           (electronID(e1, kLooseElectronID) <= 0.5f || electronID(e2, kLooseElectronID) <= 0.5f)) continue;
@@ -510,7 +532,7 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       std::vector<reco::TransientTrack> zeeTracks{ttBuilder->build(ePlusPtr->gsfTrack()), ttBuilder->build(eMinusPtr->gsfTrack())};
       const TransientVertex zeeVtx = kvf.vertex(zeeTracks);
       const float zeeProb = vertexProbability(zeeVtx);
-      if (!(zeeProb > 0.001)) continue;
+      if (!(zeeProb > 0.005)) continue;
 
       const float eLeadTrigDR = minTriggerDR(*eLeadPtr, unpackedTriggerObjects, ElectronTriggerString_);
       const float eSubTrigDR = minTriggerDR(*eSubPtr, unpackedTriggerObjects, ElectronTriggerString_);
@@ -543,17 +565,17 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           MuLead.SetPtEtaPhiM(muLeadPtr->pt(), muLeadPtr->eta(), muLeadPtr->phi(), kMuonMass);
           MuSub.SetPtEtaPhiM(muSubPtr->pt(), muSubPtr->eta(), muSubPtr->phi(), kMuonMass);
           const TLorentzVector Jpsi = MUP + MUM;
-          if (!(Jpsi.M() > 2.8 && Jpsi.M() < 3.4)) continue;
+          if (!(Jpsi.M() > 2 && Jpsi.M() < 4)) continue;
 
           std::vector<reco::TransientTrack> jpsiTracks{ttBuilder->build(muPlusPtr->innerTrack()), ttBuilder->build(muMinusPtr->innerTrack())};
           const TransientVertex jpsiVtx = kvf.vertex(jpsiTracks);
           const float jpsiProb = vertexProbability(jpsiVtx);
-          if (!(jpsiProb > 0.001)) continue;
+          if (!(jpsiProb > 0.005)) continue;
 
           std::vector<reco::TransientTrack> fourTracks{ttBuilder->build(ePlusPtr->gsfTrack()), ttBuilder->build(eMinusPtr->gsfTrack()), ttBuilder->build(muPlusPtr->innerTrack()), ttBuilder->build(muMinusPtr->innerTrack())};
           const TransientVertex fourVtx = kvf.vertex(fourTracks);
           const float fourProb = vertexProbability(fourVtx);
-          if (!(fourProb > 0.001)) continue;
+          if (!(fourProb > 0.005)) continue;
 
           const TLorentzVector fourL = Zee + Jpsi;
           const std::vector<TLorentzVector> selectedLeptons{EPlus, EMinus, MUP, MUM};
@@ -622,6 +644,10 @@ void miniAODeemm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           mu1_tight.push_back(muLeadPtr->isTightMuon(bestVtx) ? 1 : 0); mu2_tight.push_back(muSubPtr->isTightMuon(bestVtx) ? 1 : 0);
           mu1_pfAbsIso03.push_back(pfAbsIso03(*muLeadPtr)); mu2_pfAbsIso03.push_back(pfAbsIso03(*muSubPtr));
           mu1_pfRelIso03.push_back(pfRelIso03(*muLeadPtr)); mu2_pfRelIso03.push_back(pfRelIso03(*muSubPtr));
+          mu1_trackAbsIso03.push_back(muTrackAbsIso03(*muLeadPtr, *muSubPtr));
+          mu2_trackAbsIso03.push_back(muTrackAbsIso03(*muSubPtr, *muLeadPtr));
+          mu1_trackRelIso03.push_back(muTrackRelIso03(*muLeadPtr, *muSubPtr));
+          mu2_trackRelIso03.push_back(muTrackRelIso03(*muSubPtr, *muLeadPtr));
           mu1_dxy.push_back(dxy(muLeadPtr->innerTrack(), bestVtx)); mu2_dxy.push_back(dxy(muSubPtr->innerTrack(), bestVtx));
           mu1_dz.push_back(dz(muLeadPtr->innerTrack(), bestVtx)); mu2_dz.push_back(dz(muSubPtr->innerTrack(), bestVtx));
           mu1_dB3D.push_back(muLeadPtr->dB(pat::Muon::PV3D)); mu2_dB3D.push_back(muSubPtr->dB(pat::Muon::PV3D));

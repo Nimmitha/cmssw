@@ -86,6 +86,7 @@ private:
   std::vector<float> mu2_px, mu2_py, mu2_pz, mu2_pt, mu2_eta, mu2_phi;
   std::vector<int> mu1_charge, mu2_charge;
   std::vector<int> mu1_soft, mu2_soft, mu1_loose, mu2_loose, mu1_tight, mu2_tight;
+  std::vector<float> mu1_trackAbsIso03, mu2_trackAbsIso03, mu1_trackRelIso03, mu2_trackRelIso03;
   std::vector<float> mu1_pfRelIso03, mu2_pfRelIso03, mu1_pfAbsIso03, mu2_pfAbsIso03;
   std::vector<float> mu1_dxy, mu2_dxy, mu1_dz, mu2_dz, mu1_dB3D, mu2_dB3D;
   std::vector<float> mu1_normChi2, mu2_normChi2;
