@@ -52,8 +52,8 @@ private:
 
   UInt_t nB = 0;
 
-  std::vector<int>* Run = nullptr;
-  std::vector<int>* LumiBlock = nullptr;
+  std::vector<unsigned int>* Run = nullptr;
+  std::vector<unsigned int>* LumiBlock = nullptr;
   std::vector<unsigned long long>* Event = nullptr;
   std::vector<unsigned int>* nPV = nullptr;
 
@@ -125,6 +125,15 @@ private:
   std::vector<float>* pair23_14_dEta = nullptr;
   std::vector<float>* pair12_34_dY = nullptr;
   std::vector<float>* pair23_14_dY = nullptr;
+
+  std::vector<float>* muP1_trackAbsIso03_paper;
+  std::vector<float>* muP1_trackRelIso03_paper;
+  std::vector<float>* muM1_trackAbsIso03_paper;
+  std::vector<float>* muM1_trackRelIso03_paper;
+  std::vector<float>* muP2_trackAbsIso03_paper;
+  std::vector<float>* muP2_trackRelIso03_paper;
+  std::vector<float>* muM2_trackAbsIso03_paper;
+  std::vector<float>* muM2_trackRelIso03_paper;
 
   std::vector<float>* pair12_trackIso03 = nullptr;
   std::vector<float>* pair12_trackIso04 = nullptr;

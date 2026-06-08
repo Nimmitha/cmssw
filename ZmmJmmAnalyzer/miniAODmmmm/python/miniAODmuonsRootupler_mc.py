@@ -10,7 +10,7 @@ options.setDefault(
 
 options.setDefault(
     "outputFile",
-    "selection/2018_ss/zmmjmm_mc_2018_v1_1.root"
+    "preselection/2018_ss/zmmjmm_mc_2018_v1_1.root"
 )
 
 options.parseArguments()
@@ -64,7 +64,7 @@ process.rootuple = cms.EDAnalyzer(
     # For 2017 data use:
     # MuonTrigger = cms.string("HLT_IsoMu27_v"),
 
-    requireTrigger = cms.bool(True),
+    requireTrigger = cms.bool(False),
     keepEmptyEvents = cms.bool(False),
 )
 

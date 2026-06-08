@@ -59,6 +59,25 @@ float pfAbsIso04(const pat::Muon& mu) {
   return iso.sumChargedHadronPt + std::max(0.0f, static_cast<float>(iso.sumNeutralHadronEt + iso.sumPhotonEt - 0.5 * iso.sumPUPt));
 }
 
+float muTrackAbsIso03Paper(const pat::Muon& mu, const std::vector<const pat::Muon*>& selectedMuons) {
+  // Paper-style track isolation: start from the standard track isolation in
+  // DeltaR=0.3 around this muon, then remove the other selected muons if they
+  // are inside the cone. This keeps nearby signal muons from being counted as
+  // isolation activity.
+  float iso = mu.isolationR03().sumPt;
+  for (const pat::Muon* other : selectedMuons) {
+    if (other == nullptr || other == &mu) continue;
+    if (reco::deltaR(mu.eta(), mu.phi(), other->eta(), other->phi()) < 0.3) {
+      iso -= other->pt();
+    }
+  }
+  return std::max(0.0f, iso);
+}
+
+float muTrackRelIso03Paper(const pat::Muon& mu, const std::vector<const pat::Muon*>& selectedMuons) {
+  return safeRatio(muTrackAbsIso03Paper(mu, selectedMuons), mu.pt());
+}
+
 float vertexProbability(const TransientVertex& vtx) {
   if (!vtx.isValid()) return kBad;
   return ChiSquaredProbability(vtx.totalChiSquared(), static_cast<int>(std::round(vtx.degreesOfFreedom())));
@@ -164,10 +183,10 @@ miniAODmmmm::miniAODmmmm(const edm::ParameterSet& iConfig)
       requireTrigger_(iConfig.existsAs<bool>("requireTrigger") ? iConfig.getParameter<bool>("requireTrigger") : false),
       keepEmptyEvents_(iConfig.existsAs<bool>("keepEmptyEvents") ? iConfig.getParameter<bool>("keepEmptyEvents") : false),
       applyBroadTopologySkim_(iConfig.existsAs<bool>("applyBroadTopologySkim") ? iConfig.getParameter<bool>("applyBroadTopologySkim") : true),
-      lowMassMin_(iConfig.existsAs<double>("lowMassMin") ? iConfig.getParameter<double>("lowMassMin") : 1.0),
-      lowMassMax_(iConfig.existsAs<double>("lowMassMax") ? iConfig.getParameter<double>("lowMassMax") : 5.0),
-      zMassMin_(iConfig.existsAs<double>("zMassMin") ? iConfig.getParameter<double>("zMassMin") : 70.0),
-      zMassMax_(iConfig.existsAs<double>("zMassMax") ? iConfig.getParameter<double>("zMassMax") : 110.0),
+      lowMassMin_(iConfig.existsAs<double>("lowMassMin") ? iConfig.getParameter<double>("lowMassMin") : 2.0),
+      lowMassMax_(iConfig.existsAs<double>("lowMassMax") ? iConfig.getParameter<double>("lowMassMax") : 4.0),
+      zMassMin_(iConfig.existsAs<double>("zMassMin") ? iConfig.getParameter<double>("zMassMin") : 60.0),
+      zMassMax_(iConfig.existsAs<double>("zMassMax") ? iConfig.getParameter<double>("zMassMax") : 120.0),
       broadDimuonVtxProbMin_(iConfig.existsAs<double>("broadDimuonVtxProbMin") ? iConfig.getParameter<double>("broadDimuonVtxProbMin") : 0.001),
       broadFourMuVtxProbMin_(iConfig.existsAs<double>("broadFourMuVtxProbMin") ? iConfig.getParameter<double>("broadFourMuVtxProbMin") : 0.001) {}
 
@@ -229,6 +248,10 @@ void miniAODmmmm::beginJob() {
   MAKE_VEC(muM1_px, float); MAKE_VEC(muM1_py, float); MAKE_VEC(muM1_pz, float); MAKE_VEC(muM1_pt, float); MAKE_VEC(muM1_eta, float); MAKE_VEC(muM1_phi, float); MAKE_VEC(muM1_charge, int); MAKE_VEC(muM1_soft, bool); MAKE_VEC(muM1_tight, bool); MAKE_VEC(muM1_loose, bool); MAKE_VEC(muM1_isoTrack, float); MAKE_VEC(muM1_isoHcal, float); MAKE_VEC(muM1_isoEcal, float); MAKE_VEC(muM1_isoCalo, float); MAKE_VEC(muM1_pfAbsIso03, float); MAKE_VEC(muM1_pfAbsIso04, float); MAKE_VEC(muM1_pfRelIso03, float); MAKE_VEC(muM1_pfRelIso04, float); MAKE_VEC(muM1_dB3D, float);
   MAKE_VEC(muP2_px, float); MAKE_VEC(muP2_py, float); MAKE_VEC(muP2_pz, float); MAKE_VEC(muP2_pt, float); MAKE_VEC(muP2_eta, float); MAKE_VEC(muP2_phi, float); MAKE_VEC(muP2_charge, int); MAKE_VEC(muP2_soft, bool); MAKE_VEC(muP2_tight, bool); MAKE_VEC(muP2_loose, bool); MAKE_VEC(muP2_isoTrack, float); MAKE_VEC(muP2_isoHcal, float); MAKE_VEC(muP2_isoEcal, float); MAKE_VEC(muP2_isoCalo, float); MAKE_VEC(muP2_pfAbsIso03, float); MAKE_VEC(muP2_pfAbsIso04, float); MAKE_VEC(muP2_pfRelIso03, float); MAKE_VEC(muP2_pfRelIso04, float); MAKE_VEC(muP2_dB3D, float);
   MAKE_VEC(muM2_px, float); MAKE_VEC(muM2_py, float); MAKE_VEC(muM2_pz, float); MAKE_VEC(muM2_pt, float); MAKE_VEC(muM2_eta, float); MAKE_VEC(muM2_phi, float); MAKE_VEC(muM2_charge, int); MAKE_VEC(muM2_soft, bool); MAKE_VEC(muM2_tight, bool); MAKE_VEC(muM2_loose, bool); MAKE_VEC(muM2_isoTrack, float); MAKE_VEC(muM2_isoHcal, float); MAKE_VEC(muM2_isoEcal, float); MAKE_VEC(muM2_isoCalo, float); MAKE_VEC(muM2_pfAbsIso03, float); MAKE_VEC(muM2_pfAbsIso04, float); MAKE_VEC(muM2_pfRelIso03, float); MAKE_VEC(muM2_pfRelIso04, float); MAKE_VEC(muM2_dB3D, float);
+  MAKE_VEC(muP1_trackAbsIso03_paper, float); MAKE_VEC(muP1_trackRelIso03_paper, float);
+  MAKE_VEC(muM1_trackAbsIso03_paper, float); MAKE_VEC(muM1_trackRelIso03_paper, float);
+  MAKE_VEC(muP2_trackAbsIso03_paper, float); MAKE_VEC(muP2_trackRelIso03_paper, float);
+  MAKE_VEC(muM2_trackAbsIso03_paper, float); MAKE_VEC(muM2_trackRelIso03_paper, float);
 
   MAKE_VEC(muP1_dxy, float); MAKE_VEC(muM1_dxy, float); MAKE_VEC(muP1_dz, float); MAKE_VEC(muM1_dz, float); MAKE_VEC(muP2_dxy, float); MAKE_VEC(muM2_dxy, float); MAKE_VEC(muP2_dz, float); MAKE_VEC(muM2_dz, float);
 
@@ -258,6 +281,10 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   CLEAR(muM1_px); CLEAR(muM1_py); CLEAR(muM1_pz); CLEAR(muM1_pt); CLEAR(muM1_eta); CLEAR(muM1_phi); CLEAR(muM1_charge); CLEAR(muM1_soft); CLEAR(muM1_tight); CLEAR(muM1_loose); CLEAR(muM1_isoTrack); CLEAR(muM1_isoHcal); CLEAR(muM1_isoEcal); CLEAR(muM1_isoCalo); CLEAR(muM1_pfAbsIso03); CLEAR(muM1_pfAbsIso04); CLEAR(muM1_pfRelIso03); CLEAR(muM1_pfRelIso04); CLEAR(muM1_dB3D);
   CLEAR(muP2_px); CLEAR(muP2_py); CLEAR(muP2_pz); CLEAR(muP2_pt); CLEAR(muP2_eta); CLEAR(muP2_phi); CLEAR(muP2_charge); CLEAR(muP2_soft); CLEAR(muP2_tight); CLEAR(muP2_loose); CLEAR(muP2_isoTrack); CLEAR(muP2_isoHcal); CLEAR(muP2_isoEcal); CLEAR(muP2_isoCalo); CLEAR(muP2_pfAbsIso03); CLEAR(muP2_pfAbsIso04); CLEAR(muP2_pfRelIso03); CLEAR(muP2_pfRelIso04); CLEAR(muP2_dB3D);
   CLEAR(muM2_px); CLEAR(muM2_py); CLEAR(muM2_pz); CLEAR(muM2_pt); CLEAR(muM2_eta); CLEAR(muM2_phi); CLEAR(muM2_charge); CLEAR(muM2_soft); CLEAR(muM2_tight); CLEAR(muM2_loose); CLEAR(muM2_isoTrack); CLEAR(muM2_isoHcal); CLEAR(muM2_isoEcal); CLEAR(muM2_isoCalo); CLEAR(muM2_pfAbsIso03); CLEAR(muM2_pfAbsIso04); CLEAR(muM2_pfRelIso03); CLEAR(muM2_pfRelIso04); CLEAR(muM2_dB3D);
+  CLEAR(muP1_trackAbsIso03_paper); CLEAR(muP1_trackRelIso03_paper);
+  CLEAR(muM1_trackAbsIso03_paper); CLEAR(muM1_trackRelIso03_paper);
+  CLEAR(muP2_trackAbsIso03_paper); CLEAR(muP2_trackRelIso03_paper);
+  CLEAR(muM2_trackAbsIso03_paper); CLEAR(muM2_trackRelIso03_paper);
   CLEAR(muP1_dxy); CLEAR(muM1_dxy); CLEAR(muP1_dz); CLEAR(muM1_dz); CLEAR(muP2_dxy); CLEAR(muM2_dxy); CLEAR(muP2_dz); CLEAR(muM2_dz);
   CLEAR(muM1_normChi2); CLEAR(muM1_nValidHits); CLEAR(muM1_nValidPixelHits); CLEAR(muP1_normChi2); CLEAR(muP1_nValidHits); CLEAR(muP1_nValidPixelHits); CLEAR(muM2_normChi2); CLEAR(muM2_nValidHits); CLEAR(muM2_nValidPixelHits); CLEAR(muP2_normChi2); CLEAR(muP2_nValidHits); CLEAR(muP2_nValidPixelHits);
   CLEAR(muP1_p4_pt); CLEAR(muP1_p4_eta); CLEAR(muP1_p4_phi); CLEAR(muP1_p4_px); CLEAR(muP1_p4_py); CLEAR(muP1_p4_pz); CLEAR(muM1_p4_pt); CLEAR(muM1_p4_eta); CLEAR(muM1_p4_phi); CLEAR(muM1_p4_px); CLEAR(muM1_p4_py); CLEAR(muM1_p4_pz); CLEAR(muP2_p4_pt); CLEAR(muP2_p4_eta); CLEAR(muP2_p4_phi); CLEAR(muP2_p4_px); CLEAR(muP2_p4_py); CLEAR(muP2_p4_pz); CLEAR(muM2_p4_pt); CLEAR(muM2_p4_eta); CLEAR(muM2_p4_phi); CLEAR(muM2_p4_px); CLEAR(muM2_p4_py); CLEAR(muM2_p4_pz);
@@ -323,6 +350,7 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           if (std::abs(iMuon1->charge()) != 1 || std::abs(iMuon2->charge()) != 1 || std::abs(iMuon3->charge()) != 1 || std::abs(iMuon4->charge()) != 1) continue;
           if (iMuon1->charge() + iMuon2->charge() + iMuon3->charge() + iMuon4->charge() != 0) continue;
           if (iMuon1->pt() < 2.0 || iMuon2->pt() < 2.0 || iMuon3->pt() < 2.0 || iMuon4->pt() < 2.0) continue;
+          if (std::max({iMuon1->pt(), iMuon2->pt(), iMuon3->pt(), iMuon4->pt()}) <= 20.0) continue;
 
           reco::TrackRef trkP1, trkP2, trkM1, trkM2;
           const pat::Muon *muP1 = nullptr, *muP2 = nullptr, *muM1 = nullptr, *muM2 = nullptr;
@@ -394,6 +422,7 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           }
 
           const std::vector<TLorentzVector> selectedMuonP4{M1, M2, M3, M4};
+          const std::vector<const pat::Muon*> selectedMuons{muP1, muM1, muP2, muM2};
           const float iso1_03 = pairTrackIso(*packedCandHandle, MM1, selectedMuonP4, 0.3f);
           const float iso1_04 = pairTrackIso(*packedCandHandle, MM1, selectedMuonP4, 0.4f);
           const float iso2_03 = pairTrackIso(*packedCandHandle, MM2, selectedMuonP4, 0.3f);
@@ -495,6 +524,15 @@ void miniAODmmmm::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
           PUSH_MUON(muP2, muP2);
           PUSH_MUON(muM2, muM2);
 #undef PUSH_MUON
+
+          muP1_trackAbsIso03_paper->push_back(muTrackAbsIso03Paper(*muP1, selectedMuons));
+          muP1_trackRelIso03_paper->push_back(muTrackRelIso03Paper(*muP1, selectedMuons));
+          muM1_trackAbsIso03_paper->push_back(muTrackAbsIso03Paper(*muM1, selectedMuons));
+          muM1_trackRelIso03_paper->push_back(muTrackRelIso03Paper(*muM1, selectedMuons));
+          muP2_trackAbsIso03_paper->push_back(muTrackAbsIso03Paper(*muP2, selectedMuons));
+          muP2_trackRelIso03_paper->push_back(muTrackRelIso03Paper(*muP2, selectedMuons));
+          muM2_trackAbsIso03_paper->push_back(muTrackAbsIso03Paper(*muM2, selectedMuons));
+          muM2_trackRelIso03_paper->push_back(muTrackRelIso03Paper(*muM2, selectedMuons));
 
           muP1_dxy->push_back(dxy(trkP1, bestVtx)); muM1_dxy->push_back(dxy(trkM1, bestVtx)); muP1_dz->push_back(dz(trkP1, bestVtx)); muM1_dz->push_back(dz(trkM1, bestVtx));
           muP2_dxy->push_back(dxy(trkP2, bestVtx)); muM2_dxy->push_back(dxy(trkM2, bestVtx)); muP2_dz->push_back(dz(trkP2, bestVtx)); muM2_dz->push_back(dz(trkM2, bestVtx));

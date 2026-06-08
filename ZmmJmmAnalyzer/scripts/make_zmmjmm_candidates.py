@@ -9,7 +9,7 @@ Design choices:
   * Does not write string branches, for compatibility with older uproot writers.
   * Can run in old-compatible reproduction mode or optimized score mode.
   * Applies the combined old preselection+selection cuts in Task 2, while Task 1 remains broad.
-  * Can keep all candidates or deduplicate to one candidate per event.
+  * Can keep all candidates or reduce to one candidate per event.
 
 Required packages:
   pip install uproot awkward numpy
@@ -43,49 +43,73 @@ import uproot
 # User configuration
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# Input/output paths
+# -----------------------------------------------------------------------------
+DATA_PRESELECTION = "prep/skimmed_TTree_13TeV_mmmm_UL_Run2.root"
+SIGNAL_PRESELECTION = "prep/zmmjmm_mc_v3_2018_ss.root"
+OUTDIR = "selection"
+TREE_NAME = "ntuple"
+
+# Candidate variants to write.
+#   onecand: reduce to one candidate per (run, lumi, event) after final cuts
+#   allcand: keep all selected candidates
+MAKE_ONECAND = True
+MAKE_ALLCAND = True
+
+# Output samples to write.
 MAKE_SIGNAL = True
 MAKE_BACKGROUND = True
 MAKE_FINAL_BLINDED = True
 MAKE_FINAL_UNBLINDED = True  # keep False until you are ready to inspect/unblind
 
-DATA_PRESELECTION = "preselection/skimmed_with_ROOT_v2/skimmed_TTree_13TeV_mmmm_UL_Run2.root"
-SIGNAL_PRESELECTION = "preselection/run2_mc/zmmjmm/zmmjmm_mc_v3_2018_ss.root"
-OUTDIR = "selection"
-TREE_NAME = "ntuple"
-
-# Data analysis window and blinded/masked Higgs window
-# The data analysis region is the broad four-muon mass range used for candidate production.
-# The mask window is the narrow Higgs window to exclude from blinded data/background training.
+# -----------------------------------------------------------------------------
+# Four-muon mass regions
+# -----------------------------------------------------------------------------
+# The analysis window is the broad four-muon mass range used for candidate production.
+# The mask window is the narrow Higgs region excluded from blinded data/background training.
 ANALYSIS_LOW = 112.0
 ANALYSIS_HIGH = 162.0
 MASK_LOW = 120.0
 MASK_HIGH = 130.0
 
-# -----------------------------------------------------------------------------
-# Selection mode switches
-# -----------------------------------------------------------------------------
-# Start with this old-compatible mode to reproduce the previous AnalysisWithIso_*
-# candidate yields. Once that is understood, switch PAIRING_MODE to "score" and
-# DEDUPLICATE to True for the cleaner ML production.
-PAIRING_MODE = "old_compatible"  # "old_compatible" or "score"
-DEDUPLICATE = False              # old scripts wrote candidates, not one/event
+# Optional broad four-muon range for background training files.
+# Currently the default background sample uses analysis_sideband, so this is only
+# used if you switch a sample fourmu_region to background_masked later.
+BACKGROUND_FOURMU_RANGE = None  # example: (80.0, 200.0)
 
-# Broad topology layer: reproduces the old miniAOD-level requirement that one
-# dimuon is low-mass and the other is Z-like.  This is intentionally loose.
+# -----------------------------------------------------------------------------
+# Pairing / topology selection
+# -----------------------------------------------------------------------------
+# Keep old_compatible first for reproducibility. score is available for later tests.
+PAIRING_MODE = "old_compatible"  # "old_compatible" or "score"
+
+# Broad topology layer. This should match the new miniAOD preselector concept:
+# at least one disjoint OS-pair topology with one J-like pair and one Z-like pair.
 APPLY_OLD_BROAD_TOPOLOGY = True
-LOW_MASS_WINDOW = (0.0, 12.0)
-BROAD_Z_WINDOW = (70.0, 110.0)
+LOW_MASS_WINDOW = (2.0, 4.0)
+BROAD_Z_WINDOW = (60.0, 120.0)
 BROAD_PAIR_VTXPROB_MIN = 0.001
 BROAD_FOURMU_VTXPROB_MIN = 0.001
 
-# Final physics-selection layer. These are the old post-selection style cuts.
+# Pairing score constants. These are practical relative weights for choosing the
+# Z/Jpsi assignment, not detector-resolution measurements.
+M_JPSI = 3.0969
+M_Z = 91.1876
+SIGMA_JPSI_SCORE = 0.10
+SIGMA_Z_SCORE = 10.0
+MASS_SCORE_CLOSE = 0.5
+
+# -----------------------------------------------------------------------------
+# Final physics-selection layer
+# -----------------------------------------------------------------------------
 APPLY_TRIGGER_FOR_DATA = True     # applies to background/final samples only
 APPLY_SOFT_MUON = True
 APPLY_MUON_KINEMATICS = True
 APPLY_VERTEX_CUTS = True
 APPLY_DIMUON_PT_CUTS = True
 APPLY_FOURMU_PT_CUT = True
-APPLY_ISOLATION = False           # keep off until the old isolation definition is confirmed
+APPLY_ISOLATION = False           # enable only after validating the isolation choice
 
 MUON_PT_MIN = 3.0
 MUON_ABS_ETA_MAX = 2.4
@@ -94,39 +118,46 @@ PAIR_VTXPROB_MIN = 0.01
 DIMUON_PT_MIN = 5.0
 FOURMU_PT_MIN = 5.0
 
-# Placeholder if APPLY_ISOLATION=True later.  This uses the maximum per-muon
-# pfRelIso03 among the selected four muons. Do not enable until validated.
-MAX_MUON_RELISO03 = 0.35
+# Placeholder if APPLY_ISOLATION=True later. This uses the maximum per-muon
+# paper-style track relative isolation among the selected four muons.
+MAX_MUON_TRACKRELISO03_PAPER = 0.50
 
-# Pairing score constants. These are not detector resolutions; they are practical
-# relative weights for choosing the Z/Jpsi assignment.
-M_JPSI = 3.0969
-M_Z = 91.1876
-SIGMA_JPSI_SCORE = 0.10
-SIGMA_Z_SCORE = 10.0
-MASS_SCORE_CLOSE = 0.5
-
-# Sample-specific mass windows. Pairing choice and selection use these windows.
+# -----------------------------------------------------------------------------
+# Sample-specific mass windows and output modes
+# -----------------------------------------------------------------------------
 CUTS = {
     "signal": {
+        "enabled": MAKE_SIGNAL,
+        "input_kind": "signal",
+        "output_name": "signal_candidates.root",
         "jpsi_mass": (3.0, 3.2),
         "z_mass": (80.0, 100.0),
-        "fourmu_region": "analysis_window",  # old signal selection used 112--162
+        "fourmu_region": "analysis_window",
         "label": 1,
     },
     "background": {
+        "enabled": MAKE_BACKGROUND,
+        "input_kind": "data",
+        "output_name": "background_candidates.root",
         "jpsi_mass": (2.8, 3.4),
         "z_mass": (70.0, 110.0),
-        "fourmu_region": "outside_mask",  # no fourMu mass limit except the 120--130 mask
+        # Blinded background sample: analysis sidebands only.
+        "fourmu_region": "analysis_sideband",
         "label": 0,
     },
     "final_blinded": {
+        "enabled": MAKE_FINAL_BLINDED,
+        "input_kind": "data",
+        "output_name": "final_blinded_candidates.root",
         "jpsi_mass": (2.8, 3.4),
         "z_mass": (70.0, 110.0),
         "fourmu_region": "analysis_sideband",
         "label": -1,
     },
     "final_unblinded": {
+        "enabled": MAKE_FINAL_UNBLINDED,
+        "input_kind": "data",
+        "output_name": "final_unblinded_candidates.root",
         "jpsi_mass": (2.8, 3.4),
         "z_mass": (70.0, 110.0),
         "fourmu_region": "analysis_window",
@@ -141,20 +172,16 @@ STEP_SIZE = "100 MB"
 PRINT_PROGRESS = True
 PROGRESS_EVERY_CHUNKS = 1
 
-# Output file names
-OUTPUTS = {
-    "signal": "signal_candidates.root",
-    "background": "background_candidates.root",
-    "final_blinded": "final_blinded_candidates.root",
-    "final_unblinded": "final_unblinded_candidates.root",
-}
+# Derived list of output variants. Usually you should only edit MAKE_ONECAND and MAKE_ALLCAND above.
+CANDIDATE_VARIANTS = []
+if MAKE_ONECAND:
+    CANDIDATE_VARIANTS.append(("onecand", True))
+if MAKE_ALLCAND:
+    CANDIDATE_VARIANTS.append(("allcand", False))
 
 # =============================================================================
 # Internal helpers
 # =============================================================================
-
-SCALAR_DEFAULT_FLOAT = -999.0
-SCALAR_DEFAULT_INT = -999
 
 
 @dataclass(frozen=True)
@@ -196,11 +223,18 @@ def fourmu_region_mask(fourmu_mass: np.ndarray, region: str) -> np.ndarray:
       analysis_window   : 112--162 GeV
       mask_window       : 120--130 GeV
       analysis_sideband : 112--162 GeV excluding 120--130 GeV
-      outside_mask      : all masses excluding 120--130 GeV
-      outside_analysis  : outside 112--162 GeV
+      outside_mask           : all masses excluding 120--130 GeV
+      outside_analysis       : outside 112--162 GeV
+      background_masked      : optional background range, excluding 120--130
     """
     analysis = (fourmu_mass > ANALYSIS_LOW) & (fourmu_mass < ANALYSIS_HIGH)
     mask = (fourmu_mass > MASK_LOW) & (fourmu_mass < MASK_HIGH)
+
+    if BACKGROUND_FOURMU_RANGE is None:
+        background_range = np.ones_like(fourmu_mass, dtype=bool)
+    else:
+        blo, bhi = BACKGROUND_FOURMU_RANGE
+        background_range = (fourmu_mass > blo) & (fourmu_mass < bhi)
 
     if region == "all":
         return np.ones_like(fourmu_mass, dtype=bool)
@@ -214,6 +248,8 @@ def fourmu_region_mask(fourmu_mass: np.ndarray, region: str) -> np.ndarray:
         return ~mask
     if region == "outside_analysis":
         return ~analysis
+    if region == "background_masked":
+        return background_range & (~mask)
     raise ValueError(f"Unknown fourmu_region: {region}")
 
 
@@ -232,7 +268,7 @@ def flatten_branch(arrays: ak.Array, name: str, dtype=None) -> np.ndarray:
     return values
 
 
-def event_level_flatten(arrays: ak.Array, branch: str, n_cands_per_event: ak.Array, dtype=None) -> np.ndarray:
+def event_level_flatten(arrays: ak.Array, branch: str, dtype=None) -> np.ndarray:
     """Repeat event-level vector values to match candidate-level flattened arrays.
 
     In the preselection, Run/Lumi/Event/nPV are stored as vectors filled once per candidate,
@@ -262,7 +298,7 @@ def required_branches() -> List[str]:
         branches += [
             f"{mu}_pt", f"{mu}_eta", f"{mu}_phi", f"{mu}_charge",
             f"{mu}_soft", f"{mu}_tight", f"{mu}_loose",
-            f"{mu}_pfRelIso03", f"{mu}_pfRelIso04", f"{mu}_dB3D",
+            f"{mu}_pfRelIso03", f"{mu}_pfRelIso04", f"{mu}_trackAbsIso03_paper", f"{mu}_trackRelIso03_paper", f"{mu}_dB3D",
             f"{mu}_dxy", f"{mu}_dz", f"{mu}_normChi2", f"{mu}_nValidHits", f"{mu}_nValidPixelHits",
         ]
     return branches
@@ -319,20 +355,7 @@ def broad_topology_mask(flat: Dict[str, np.ndarray]) -> np.ndarray:
     return four_vtx & ((group_a_mass & group_a_vtx) | (group_b_mass & group_b_vtx))
 
 
-def choose_pairing(flat: Dict[str, np.ndarray], cfg: SampleConfig) -> Dict[str, np.ndarray]:
-    """Choose the selected J/psi/Z assignment for each flattened 4mu candidate.
-
-    In old_compatible mode, valid final mass-window assignments are preferred,
-    and vertex-product breaks near mass-score ties. This preserves the old idea
-    of choosing between disjoint pair groups using vertex quality, while also
-    allowing either pair in a group to be the J/psi.
-
-    In score mode, the lowest J/psi/Z mass score dominates, with vertex-product
-    only as the tie-breaker.
-    """
-    opts = pairing_options(flat)
-    n = len(flat["fourMu_mass"])
-
+def compute_pairing_arrays(flat: Dict[str, np.ndarray], cfg: SampleConfig, opts: List[Dict[str, object]]):
     scores = []
     valid = []
     vtx_products = []
@@ -343,9 +366,11 @@ def choose_pairing(flat: Dict[str, np.ndarray], cfg: SampleConfig) -> Dict[str, 
         valid.append(in_window(flat[f"{jp}_mass"], cfg.jpsi_mass_window) & in_window(flat[f"{zz}_mass"], cfg.z_mass_window))
         vtx_products.append(safe_vertex_product(flat[f"{jp}_vtxProb"], flat[f"{zz}_vtxProb"]))
 
-    score_arr = np.vstack(scores)          # shape: (4, n)
-    valid_arr = np.vstack(valid)           # shape: (4, n)
-    vtx_arr = np.vstack(vtx_products)      # shape: (4, n)
+    return np.vstack(scores), np.vstack(valid), np.vstack(vtx_products)
+
+
+def choose_best_pairing_indices(score_arr: np.ndarray, valid_arr: np.ndarray, vtx_arr: np.ndarray) -> np.ndarray:
+    n_options, n_candidates = score_arr.shape
 
     if PAIRING_MODE == "score":
         # Invalid assignments get a large penalty, but are still selectable if no
@@ -353,15 +378,16 @@ def choose_pairing(flat: Dict[str, np.ndarray], cfg: SampleConfig) -> Dict[str, 
         penalized = score_arr + np.where(valid_arr, 0.0, 1e6)
         no_valid = ~np.any(valid_arr, axis=0)
         penalized[:, no_valid] = score_arr[:, no_valid]
-        best_idx = np.argmin(penalized, axis=0)
-    elif PAIRING_MODE == "old_compatible":
+        return np.argmin(penalized, axis=0)
+
+    if PAIRING_MODE == "old_compatible":
         # Prefer assignments passing the final mass windows. Among valid options,
         # lower mass score wins unless close, then higher vertex-product wins.
-        best_idx = np.zeros(n, dtype=np.int32)
-        for i in range(n):
+        best_idx = np.zeros(n_candidates, dtype=np.int32)
+        for i in range(n_candidates):
             candidates = np.nonzero(valid_arr[:, i])[0]
             if len(candidates) == 0:
-                candidates = np.arange(len(opts))
+                candidates = np.arange(n_options)
 
             best = int(candidates[0])
             for cand in candidates[1:]:
@@ -372,77 +398,137 @@ def choose_pairing(flat: Dict[str, np.ndarray], cfg: SampleConfig) -> Dict[str, 
                     if vtx_arr[cand, i] > vtx_arr[best, i]:
                         best = cand
             best_idx[i] = best
-    else:
-        raise ValueError(f"Unknown PAIRING_MODE: {PAIRING_MODE}")
+        return best_idx
 
-    selected: Dict[str, np.ndarray] = {
-        "pairing": np.asarray([int(opts[i]["code"]) for i in best_idx], dtype=np.int32),
-    }
+    raise ValueError(f"Unknown PAIRING_MODE: {PAIRING_MODE}")
 
-    def choose_from_pairs(suffix: str, kind: str) -> np.ndarray:
-        vals = np.empty(n, dtype=np.float32)
-        for idx, opt in enumerate(opts):
-            pair = str(opt[kind])
-            mask = best_idx == idx
-            vals[mask] = flat[f"{pair}_{suffix}"][mask]
-        return vals
+
+def choose_pair_branch(flat: Dict[str, np.ndarray], opts: List[Dict[str, object]], best_idx: np.ndarray, suffix: str, kind: str) -> np.ndarray:
+    vals = np.empty(len(best_idx), dtype=np.float32)
+    for idx, opt in enumerate(opts):
+        pair = str(opt[kind])
+        mask = best_idx == idx
+        vals[mask] = flat[f"{pair}_{suffix}"][mask]
+    return vals
+
+
+def choose_muon_branch(
+    flat: Dict[str, np.ndarray],
+    opts: List[Dict[str, object]],
+    best_idx: np.ndarray,
+    var: str,
+    role: str,
+    dtype,
+) -> np.ndarray:
+    vals = np.empty(len(best_idx), dtype=dtype)
+    for idx, opt in enumerate(opts):
+        mu = str(opt[role])
+        mask = best_idx == idx
+        vals[mask] = flat[f"{mu}_{var}"][mask]
+    return vals
+
+
+def build_selected_pair_branches(flat: Dict[str, np.ndarray], opts: List[Dict[str, object]], best_idx: np.ndarray) -> Dict[str, np.ndarray]:
+    selected: Dict[str, np.ndarray] = {}
 
     for suffix in ("mass", "pt", "eta", "phi", "rapidity", "vtxProb"):
-        selected[f"jpsi_{suffix}"] = choose_from_pairs(suffix, "jpsi")
-        selected[f"z_{suffix}"] = choose_from_pairs(suffix, "z")
+        selected[f"jpsi_{suffix}"] = choose_pair_branch(flat, opts, best_idx, suffix, "jpsi")
+        selected[f"z_{suffix}"] = choose_pair_branch(flat, opts, best_idx, suffix, "z")
 
-    selected["jpsi_dR_mumu"] = choose_from_pairs("dR", "jpsi")
-    selected["z_dR_mumu"] = choose_from_pairs("dR", "z")
+    selected["jpsi_dR_mumu"] = choose_pair_branch(flat, opts, best_idx, "dR", "jpsi")
+    selected["z_dR_mumu"] = choose_pair_branch(flat, opts, best_idx, "dR", "z")
     for suffix in ("trackIso03", "trackIso04", "relIso03", "relIso04", "cosThetaMu"):
-        selected[f"jpsi_{suffix}"] = choose_from_pairs(suffix, "jpsi")
-        selected[f"z_{suffix}"] = choose_from_pairs(suffix, "z")
+        selected[f"jpsi_{suffix}"] = choose_pair_branch(flat, opts, best_idx, suffix, "jpsi")
+        selected[f"z_{suffix}"] = choose_pair_branch(flat, opts, best_idx, suffix, "z")
 
     selected["cosTheta_jpsiMu"] = selected.pop("jpsi_cosThetaMu")
     selected["cosTheta_zMu"] = selected.pop("z_cosThetaMu")
 
-    phi_plane = np.empty(n, dtype=np.float32)
+    phi_plane = np.empty(len(best_idx), dtype=np.float32)
     for idx, opt in enumerate(opts):
         mask = best_idx == idx
         phi_plane[mask] = flat[str(opt["plane"])][mask]
     selected["phi_decayPlane"] = phi_plane
 
-    selected["pairing_massScore"] = score_arr[best_idx, np.arange(n)]
-    selected["pairing_vertexProduct"] = vtx_arr[best_idx, np.arange(n)]
-
     selected["dR_jpsi_z"] = np.sqrt((selected["jpsi_eta"] - selected["z_eta"]) ** 2 + delta_phi(selected["jpsi_phi"], selected["z_phi"]) ** 2)
     selected["dPhi_jpsi_z"] = delta_phi(selected["jpsi_phi"], selected["z_phi"])
     selected["dEta_jpsi_z"] = selected["jpsi_eta"] - selected["z_eta"]
     selected["dY_jpsi_z"] = selected["jpsi_rapidity"] - selected["z_rapidity"]
+    return selected
 
-    # Daughter assignment for the selected Jpsi/Z option.
-    for var in ("pt", "eta", "phi", "pfRelIso03", "pfRelIso04", "dB3D", "dxy", "dz", "normChi2"):
-        for out_prefix, role in (("jpsi_muP", "jpsiP"), ("jpsi_muM", "jpsiM"), ("z_muP", "zP"), ("z_muM", "zM")):
-            vals = np.empty(n, dtype=np.float32)
-            for idx, opt in enumerate(opts):
-                mu = str(opt[role])
-                mask = best_idx == idx
-                vals[mask] = flat[f"{mu}_{var}"][mask]
-            selected[f"{out_prefix}_{var}"] = vals
 
-    for var in ("nValidHits", "nValidPixelHits"):
-        for out_prefix, role in (("jpsi_muP", "jpsiP"), ("jpsi_muM", "jpsiM"), ("z_muP", "zP"), ("z_muM", "zM")):
-            vals = np.empty(n, dtype=np.int32)
-            for idx, opt in enumerate(opts):
-                mu = str(opt[role])
-                mask = best_idx == idx
-                vals[mask] = flat[f"{mu}_{var}"][mask]
-            selected[f"{out_prefix}_{var}"] = vals
+def build_selected_daughter_branches(flat: Dict[str, np.ndarray], opts: List[Dict[str, object]], best_idx: np.ndarray) -> Dict[str, np.ndarray]:
+    selected: Dict[str, np.ndarray] = {}
+
+    charge_ordered_prefixes = ("jpsi_muP", "jpsi_muM", "z_muP", "z_muM")
+    role_for_prefix = {
+        "jpsi_muP": "jpsiP",
+        "jpsi_muM": "jpsiM",
+        "z_muP": "zP",
+        "z_muM": "zM",
+    }
+
+    float_vars = (
+        "pt", "eta", "phi",
+        "pfRelIso03", "pfRelIso04",
+        "trackAbsIso03_paper", "trackRelIso03_paper",
+        "dB3D", "dxy", "dz", "normChi2",
+    )
+    int_vars = ("charge", "nValidHits", "nValidPixelHits")
+    bool_vars = ("soft", "tight", "loose")
+
+    # Keep the charge-labelled daughter branches for compatibility/debugging.
+    for var in float_vars:
+        for out_prefix in charge_ordered_prefixes:
+            selected[f"{out_prefix}_{var}"] = choose_muon_branch(flat, opts, best_idx, var, role_for_prefix[out_prefix], np.float32)
+
+    for var in int_vars:
+        for out_prefix in charge_ordered_prefixes:
+            selected[f"{out_prefix}_{var}"] = choose_muon_branch(flat, opts, best_idx, var, role_for_prefix[out_prefix], np.int32)
+
+    for var in bool_vars:
+        for out_prefix in charge_ordered_prefixes:
+            selected[f"{out_prefix}_{var}"] = choose_muon_branch(flat, opts, best_idx, var, role_for_prefix[out_prefix], np.bool_)
+
+    # Add pT-ordered daughter branches after the selected J/psi and Z assignment.
+    # mu1 is the leading-pT daughter within that resonance; mu2 is subleading.
+    all_vars = float_vars + int_vars + bool_vars
+    resonance_pairs = (
+        ("jpsi", "jpsi_muP", "jpsi_muM"),
+        ("z", "z_muP", "z_muM"),
+    )
+    for resonance, first_charge_prefix, second_charge_prefix in resonance_pairs:
+        first_is_leading = selected[f"{first_charge_prefix}_pt"] >= selected[f"{second_charge_prefix}_pt"]
+        for var in all_vars:
+            first_values = selected[f"{first_charge_prefix}_{var}"]
+            second_values = selected[f"{second_charge_prefix}_{var}"]
+            selected[f"{resonance}_mu1_{var}"] = np.where(first_is_leading, first_values, second_values)
+            selected[f"{resonance}_mu2_{var}"] = np.where(first_is_leading, second_values, first_values)
 
     return selected
 
+def choose_pairing(flat: Dict[str, np.ndarray], cfg: SampleConfig) -> Dict[str, np.ndarray]:
+    """Choose and materialize the selected J/psi/Z assignment."""
+    opts = pairing_options(flat)
+    score_arr, valid_arr, vtx_arr = compute_pairing_arrays(flat, cfg, opts)
+    best_idx = choose_best_pairing_indices(score_arr, valid_arr, vtx_arr)
+
+    selected: Dict[str, np.ndarray] = {
+        "pairing": np.asarray([int(opts[i]["code"]) for i in best_idx], dtype=np.int32),
+        "pairing_massScore": score_arr[best_idx, np.arange(len(best_idx))],
+        "pairing_vertexProduct": vtx_arr[best_idx, np.arange(len(best_idx))],
+    }
+    selected.update(build_selected_pair_branches(flat, opts, best_idx))
+    selected.update(build_selected_daughter_branches(flat, opts, best_idx))
+    return selected
+
 def flatten_input_chunk(arrays: ak.Array) -> Dict[str, np.ndarray]:
-    n_cands = ak.num(arrays["fourMu_mass"], axis=1)
     flat: Dict[str, np.ndarray] = {}
     for branch in required_branches():
         if branch in ("Run", "LumiBlock", "nPV"):
-            flat[branch] = event_level_flatten(arrays, branch, n_cands, dtype=np.uint64 if branch != "nPV" else np.int32)
+            flat[branch] = event_level_flatten(arrays, branch, dtype=np.uint64 if branch != "nPV" else np.int32)
         elif branch == "Event":
-            flat[branch] = event_level_flatten(arrays, branch, n_cands, dtype=np.uint64)
+            flat[branch] = event_level_flatten(arrays, branch, dtype=np.uint64)
         elif branch.startswith("mu") and branch.endswith(("charge", "nValidHits", "nValidPixelHits")):
             flat[branch] = flatten_branch(arrays, branch, dtype=np.int32)
         elif branch.endswith(("soft", "tight", "loose", "passMuonTrigger")) or branch == "passMuonTrigger":
@@ -489,10 +575,10 @@ def build_selection_mask(flat: Dict[str, np.ndarray], chosen: Dict[str, np.ndarr
     iso_mask = np.ones_like(flat["fourMu_mass"], dtype=bool)
     if APPLY_ISOLATION:
         max_iso = np.maximum.reduce([
-            flat["muP1_pfRelIso03"], flat["muM1_pfRelIso03"],
-            flat["muP2_pfRelIso03"], flat["muM2_pfRelIso03"],
+            flat["muP1_trackRelIso03_paper"], flat["muM1_trackRelIso03_paper"],
+            flat["muP2_trackRelIso03_paper"], flat["muM2_trackRelIso03_paper"],
         ])
-        iso_mask &= max_iso < MAX_MUON_RELISO03
+        iso_mask &= max_iso < MAX_MUON_TRACKRELISO03_PAPER
 
     fourmu_mask = fourmu_region_mask(flat["fourMu_mass"], cfg.fourmu_region)
     finite_mask = np.isfinite(chosen["pairing_massScore"]) & np.isfinite(flat["fourMu_mass"])
@@ -512,11 +598,13 @@ def output_template() -> Dict[str, List]:
         "z_trackIso03", "z_trackIso04", "z_relIso03", "z_relIso04",
         "cosTheta_jpsiMu", "cosTheta_zMu", "phi_decayPlane",
     ]
-    for prefix in ("jpsi_muP", "jpsi_muM", "z_muP", "z_muM"):
+    for prefix in ("jpsi_muP", "jpsi_muM", "z_muP", "z_muM", "jpsi_mu1", "jpsi_mu2", "z_mu1", "z_mu2"):
         keys += [
-            f"{prefix}_pt", f"{prefix}_eta", f"{prefix}_phi",
-            f"{prefix}_pfRelIso03", f"{prefix}_pfRelIso04", f"{prefix}_dB3D",
-            f"{prefix}_dxy", f"{prefix}_dz", f"{prefix}_normChi2",
+            f"{prefix}_pt", f"{prefix}_eta", f"{prefix}_phi", f"{prefix}_charge",
+            f"{prefix}_soft", f"{prefix}_loose", f"{prefix}_tight",
+            f"{prefix}_pfRelIso03", f"{prefix}_pfRelIso04",
+            f"{prefix}_trackAbsIso03_paper", f"{prefix}_trackRelIso03_paper",
+            f"{prefix}_dB3D", f"{prefix}_dxy", f"{prefix}_dz", f"{prefix}_normChi2",
             f"{prefix}_nValidHits", f"{prefix}_nValidPixelHits",
         ]
     return {k: [] for k in keys}
@@ -555,7 +643,7 @@ def append_selected_rows(out: Dict[str, List], flat: Dict[str, np.ndarray], chos
         out[dst].extend(chosen[src][indices].tolist())
 
 
-def deduplicate_one_chunk(out: Dict[str, List]) -> Dict[str, List]:
+def keep_best_candidate_per_event(out: Dict[str, List]) -> Dict[str, List]:
     """Keep one candidate per event within the already accumulated output.
 
     Ranking:
@@ -600,25 +688,62 @@ def deduplicate_one_chunk(out: Dict[str, List]) -> Dict[str, List]:
 def convert_for_uproot(out: Dict[str, List]) -> Dict[str, np.ndarray]:
     arrays: Dict[str, np.ndarray] = {}
     int_keys = {"run", "lumi", "event", "nPV", "label", "pairing"}
-    bool_keys = {"passMuonTrigger"}
     for key, values in out.items():
-        if key in int_keys:
-            # ROOT handles uint64 fine for event ids; use signed int for smaller labels/pairing.
-            if key in {"run", "lumi", "event"}:
-                arrays[key] = np.asarray(values, dtype=np.uint64)
-            else:
-                arrays[key] = np.asarray(values, dtype=np.int32)
-        elif key in bool_keys:
+        is_bool = key == "passMuonTrigger" or key.endswith(("_soft", "_tight", "_loose"))
+        is_int = key in int_keys or key.endswith(("_charge", "_nValidHits", "_nValidPixelHits"))
+        if key in {"run", "lumi", "event"}:
+            arrays[key] = np.asarray(values, dtype=np.uint64)
+        elif is_int:
+            arrays[key] = np.asarray(values, dtype=np.int32)
+        elif is_bool:
             arrays[key] = np.asarray(values, dtype=np.bool_)
         else:
             arrays[key] = np.asarray(values, dtype=np.float32)
     return arrays
 
 
-def process_sample(cfg: SampleConfig) -> None:
-    input_path = Path(cfg.input_path)
-    if not input_path.exists() and not str(input_path).startswith(("root://", "file:")):
-        raise FileNotFoundError(f"Input file not found: {cfg.input_path}")
+def is_remote_input(path: str) -> bool:
+    return path.startswith(("root://", "file:"))
+
+
+def ensure_input_exists(path: str) -> None:
+    input_path = Path(path)
+    if not input_path.exists() and not is_remote_input(path):
+        raise FileNotFoundError(f"Input file not found: {path}")
+
+
+def input_tree_path(path: str) -> str:
+    return f"{path}:{TREE_NAME}"
+
+
+def count_tree_entries(path: str) -> Optional[int]:
+    try:
+        with uproot.open(input_tree_path(path)) as tree_for_count:
+            return int(tree_for_count.num_entries)
+    except Exception:
+        return None
+
+
+def iter_input_chunks(path: str):
+    return uproot.iterate(input_tree_path(path), expressions=required_branches(), step_size=STEP_SIZE, library="ak")
+
+
+def reduce_candidates_and_write(cfg: SampleConfig, out: Dict[str, List], keep_one_candidate_per_event: bool) -> Tuple[int, int]:
+    before = len(out["event"])
+    if keep_one_candidate_per_event:
+        out = keep_best_candidate_per_event(out)
+    after = len(out["event"])
+
+    output_path = Path(cfg.output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with uproot.recreate(output_path) as fout:
+        fout[TREE_NAME] = convert_for_uproot(out)
+
+    return before, after
+
+
+def process_sample(cfg: SampleConfig, keep_one_candidate_per_event: bool) -> None:
+    ensure_input_exists(cfg.input_path)
 
     print(f"\nProcessing {cfg.name}")
     print(f"  input : {cfg.input_path}")
@@ -630,23 +755,18 @@ def process_sample(cfg: SampleConfig) -> None:
     print(f"  mask window    : ({MASK_LOW}, {MASK_HIGH})")
     print(f"  step size      : {STEP_SIZE}")
     print(f"  pairing mode: {PAIRING_MODE}")
-    print(f"  deduplicate : {DEDUPLICATE}")
+    print(f"  one candidate per event: {keep_one_candidate_per_event}")
 
     out = output_template()
     total_flat = 0
-    total_selected_before_dedup = 0
+    total_selected_before_reduction = 0
     total_events_seen = 0
     chunk_index = 0
     t0 = time()
 
-    tree_path = f"{cfg.input_path}:{TREE_NAME}"
-    try:
-        with uproot.open(tree_path) as tree_for_count:
-            total_entries = int(tree_for_count.num_entries)
-    except Exception:
-        total_entries = None
+    total_entries = count_tree_entries(cfg.input_path)
 
-    for arrays in uproot.iterate(tree_path, expressions=required_branches(), step_size=STEP_SIZE, library="ak"):
+    for arrays in iter_input_chunks(cfg.input_path):
         chunk_index += 1
         n_events_chunk = len(arrays["fourMu_mass"])
         total_events_seen += n_events_chunk
@@ -665,7 +785,7 @@ def process_sample(cfg: SampleConfig) -> None:
         mask = build_selection_mask(flat, chosen, cfg)
         indices = np.nonzero(mask)[0]
 
-        total_selected_before_dedup += len(indices)
+        total_selected_before_reduction += len(indices)
 
         if len(indices) > 0:
             append_selected_rows(out, flat, chosen, indices, cfg)
@@ -681,86 +801,54 @@ def process_sample(cfg: SampleConfig) -> None:
             print(
                 f"    chunk {chunk_index:5d}: events {total_events_seen}{denom}, "
                 f"flat +{n_flat_chunk}, selected +{len(indices)}, "
-                f"selected total {total_selected_before_dedup}, kept so far {len(out['event'])}, "
+                f"selected total {total_selected_before_reduction}, kept so far {len(out['event'])}, "
                 f"rate {rate:.1f} events/s",
                 flush=True,
             )
 
-    n_before = len(out["event"])
-    if DEDUPLICATE:
-        out = deduplicate_one_chunk(out)
-    n_after = len(out["event"])
-
-    output_path = Path(cfg.output_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with uproot.recreate(output_path) as fout:
-        fout[TREE_NAME] = convert_for_uproot(out)
+    n_before, n_after = reduce_candidates_and_write(cfg, out, keep_one_candidate_per_event)
 
     elapsed = time() - t0
     print(f"  elapsed seconds              : {elapsed:.1f}")
     print(f"  input events processed       : {total_events_seen}")
     print(f"  flattened candidates         : {total_flat}")
-    print(f"  selected before deduplication: {total_selected_before_dedup}")
-    print(f"  written before deduplication : {n_before}")
-    print(f"  written after deduplication  : {n_after}")
+    print(f"  selected before reduction: {total_selected_before_reduction}")
+    print(f"  written before reduction : {n_before}")
+    print(f"  written after reduction  : {n_after}")
 
 
-def build_signal_config() -> Optional[SampleConfig]:
-    outdir = Path(OUTDIR)
-    if not MAKE_SIGNAL:
-        return None
-    c = CUTS["signal"]
+def make_sample_config(name: str, sample: dict, outdir: Path) -> SampleConfig:
+    input_path = SIGNAL_PRESELECTION if sample["input_kind"] == "signal" else DATA_PRESELECTION
     return SampleConfig(
-        name="signal",
-        input_path=SIGNAL_PRESELECTION,
-        output_path=str(outdir / OUTPUTS["signal"]),
-        jpsi_mass_window=c["jpsi_mass"],
-        z_mass_window=c["z_mass"],
-        fourmu_region=c["fourmu_region"],
-        label=c["label"],
+        name=name,
+        input_path=input_path,
+        output_path=str(outdir / sample["output_name"]),
+        jpsi_mass_window=sample["jpsi_mass"],
+        z_mass_window=sample["z_mass"],
+        fourmu_region=sample["fourmu_region"],
+        label=sample["label"],
     )
 
 
-def build_data_configs() -> List[SampleConfig]:
-    outdir = Path(OUTDIR)
+def sample_definition(name: str) -> dict:
+    if name not in CUTS:
+        raise KeyError(f"Unknown sample definition: {name}")
+    return CUTS[name]
+
+
+def build_signal_config(outdir: Path) -> Optional[SampleConfig]:
+    sample = CUTS["signal"]
+    if not sample["enabled"]:
+        return None
+    return make_sample_config("signal", sample, outdir)
+
+
+def build_data_configs(outdir: Path) -> List[SampleConfig]:
     configs: List[SampleConfig] = []
-
-    if MAKE_BACKGROUND:
-        c = CUTS["background"]
-        configs.append(SampleConfig(
-            name="background",
-            input_path=DATA_PRESELECTION,
-            output_path=str(outdir / OUTPUTS["background"]),
-            jpsi_mass_window=c["jpsi_mass"],
-            z_mass_window=c["z_mass"],
-            fourmu_region=c["fourmu_region"],
-            label=c["label"],
-        ))
-
-    if MAKE_FINAL_BLINDED:
-        c = CUTS["final_blinded"]
-        configs.append(SampleConfig(
-            name="final_blinded",
-            input_path=DATA_PRESELECTION,
-            output_path=str(outdir / OUTPUTS["final_blinded"]),
-            jpsi_mass_window=c["jpsi_mass"],
-            z_mass_window=c["z_mass"],
-            fourmu_region=c["fourmu_region"],
-            label=c["label"],
-        ))
-
-    if MAKE_FINAL_UNBLINDED:
-        c = CUTS["final_unblinded"]
-        configs.append(SampleConfig(
-            name="final_unblinded",
-            input_path=DATA_PRESELECTION,
-            output_path=str(outdir / OUTPUTS["final_unblinded"]),
-            jpsi_mass_window=c["jpsi_mass"],
-            z_mass_window=c["z_mass"],
-            fourmu_region=c["fourmu_region"],
-            label=c["label"],
-        ))
-
+    for name in ("background", "final_blinded", "final_unblinded"):
+        sample = CUTS[name]
+        if sample["enabled"]:
+            configs.append(make_sample_config(name, sample, outdir))
     return configs
 
 
@@ -784,7 +872,7 @@ def validate_data_configs(configs: List[SampleConfig]) -> None:
             )
 
 
-def process_data_once(configs: List[SampleConfig]) -> None:
+def process_data_once(configs: List[SampleConfig], keep_one_candidate_per_event: bool) -> None:
     """Read the data preselection file once and fill all requested data outputs.
 
     This avoids reading the same large Run-2 data file separately for background,
@@ -795,9 +883,7 @@ def process_data_once(configs: List[SampleConfig]) -> None:
 
     validate_data_configs(configs)
 
-    input_path = Path(DATA_PRESELECTION)
-    if not input_path.exists() and not str(input_path).startswith(("root://", "file:")):
-        raise FileNotFoundError(f"Input file not found: {DATA_PRESELECTION}")
+    ensure_input_exists(DATA_PRESELECTION)
 
     print("\nProcessing data once for:")
     for cfg in configs:
@@ -807,10 +893,12 @@ def process_data_once(configs: List[SampleConfig]) -> None:
     print(f"  Z window    : {configs[0].z_mass_window}")
     print(f"  analysis window: ({ANALYSIS_LOW}, {ANALYSIS_HIGH})")
     print(f"  mask window    : ({MASK_LOW}, {MASK_HIGH})")
-    print(f"  background region: {CUTS['background']['fourmu_region']}")
+    background = sample_definition("background")
+    print(f"  background region: {background['fourmu_region'] if background['enabled'] else 'disabled'}")
+    print(f"  optional background mass range: {BACKGROUND_FOURMU_RANGE}")
     print(f"  step size      : {STEP_SIZE}")
     print(f"  pairing mode   : {PAIRING_MODE}")
-    print(f"  deduplicate    : {DEDUPLICATE}")
+    print(f"  one candidate per event: {keep_one_candidate_per_event}")
 
     outputs = {cfg.name: output_template() for cfg in configs}
     total_flat = 0
@@ -819,17 +907,12 @@ def process_data_once(configs: List[SampleConfig]) -> None:
     chunk_index = 0
     t0 = time()
 
-    tree_path = f"{DATA_PRESELECTION}:{TREE_NAME}"
-    try:
-        with uproot.open(tree_path) as tree_for_count:
-            total_entries = int(tree_for_count.num_entries)
-    except Exception:
-        total_entries = None
+    total_entries = count_tree_entries(DATA_PRESELECTION)
 
     # Pairing choice is common across the data outputs because J/psi/Z windows are common.
     pair_cfg = configs[0]
 
-    for arrays in uproot.iterate(tree_path, expressions=required_branches(), step_size=STEP_SIZE, library="ak"):
+    for arrays in iter_input_chunks(DATA_PRESELECTION):
         chunk_index += 1
         n_events_chunk = len(arrays["fourMu_mass"])
         total_events_seen += n_events_chunk
@@ -881,21 +964,13 @@ def process_data_once(configs: List[SampleConfig]) -> None:
             )
 
     for cfg in configs:
-        out = outputs[cfg.name]
-        before = len(out["event"])
-        if DEDUPLICATE:
-            out = deduplicate_one_chunk(out)
-        after = len(out["event"])
-
-        Path(cfg.output_path).parent.mkdir(parents=True, exist_ok=True)
-        with uproot.recreate(cfg.output_path) as fout:
-            fout[TREE_NAME] = convert_for_uproot(out)
+        before, after = reduce_candidates_and_write(cfg, outputs[cfg.name], keep_one_candidate_per_event)
 
         print(f"\nFinished {cfg.name}")
         print(f"  output: {cfg.output_path}")
-        print(f"  selected before deduplication: {totals_selected[cfg.name]}")
-        print(f"  written before deduplication : {before}")
-        print(f"  written after deduplication  : {after}")
+        print(f"  selected before reduction: {totals_selected[cfg.name]}")
+        print(f"  written before reduction : {before}")
+        print(f"  written after reduction  : {after}")
 
     elapsed = max(time() - t0, 1e-9)
     print("\nFinished one-pass data processing")
@@ -905,17 +980,30 @@ def process_data_once(configs: List[SampleConfig]) -> None:
 
 
 def main() -> None:
-    signal_cfg = build_signal_config()
-    data_cfgs = build_data_configs()
+    if not CANDIDATE_VARIANTS:
+        raise RuntimeError("CANDIDATE_VARIANTS is empty.")
 
-    if signal_cfg is None and not data_cfgs:
+    if not any(sample["enabled"] for sample in CUTS.values()):
         raise RuntimeError("No outputs requested. Enable at least one MAKE_* switch.")
 
-    if signal_cfg is not None:
-        process_sample(signal_cfg)
+    base_outdir = Path(OUTDIR)
 
-    # The data file is read once for background/final outputs.
-    process_data_once(data_cfgs)
+    for variant_name, keep_one_candidate_per_event in CANDIDATE_VARIANTS:
+        variant_outdir = base_outdir / variant_name
+        print("\n" + "=" * 80)
+        print(f"Candidate variant: {variant_name}")
+        print(f"  output directory: {variant_outdir}")
+        print(f"  one candidate per event: {keep_one_candidate_per_event}")
+        print("=" * 80)
+
+        signal_cfg = build_signal_config(variant_outdir)
+        data_cfgs = build_data_configs(variant_outdir)
+
+        if signal_cfg is not None:
+            process_sample(signal_cfg, keep_one_candidate_per_event=keep_one_candidate_per_event)
+
+        # The data file is read once per candidate variant for background/final outputs.
+        process_data_once(data_cfgs, keep_one_candidate_per_event=keep_one_candidate_per_event)
 
 
 if __name__ == "__main__":
