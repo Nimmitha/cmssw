@@ -7,7 +7,7 @@ Design choices:
   * Reads two preselection files: merged Run-2 data and signal MC.
   * Produces signal once, and processes the data file once to make background/final outputs.
   * Does not write string branches, for compatibility with older uproot writers.
-  * Can run in old-compatible reproduction mode or optimized score mode.
+  * Uses the old-compatible pairing choice by default.
   * Applies the combined old preselection+selection cuts in Task 2, while Task 1 remains broad.
   * Can keep all candidates or reduce to one candidate per event.
 
@@ -43,31 +43,31 @@ import uproot
 # User configuration
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# Input/output paths
-# -----------------------------------------------------------------------------
-DATA_PRESELECTION = "prep/skimmed_TTree_13TeV_mmmm_UL_Run2.root"
-SIGNAL_PRESELECTION = "prep/zmmjmm_mc_v3_2018_ss.root"
-OUTDIR = "selection"
 TREE_NAME = "ntuple"
+OUTDIR = "selection"
 
-# Candidate variants to write.
-#   onecand: reduce to one candidate per (run, lumi, event) after final cuts
-#   allcand: keep all selected candidates
-MAKE_ONECAND = True
-MAKE_ALLCAND = True
-
-# Output samples to write.
 MAKE_SIGNAL = True
 MAKE_BACKGROUND = True
 MAKE_FINAL_BLINDED = True
 MAKE_FINAL_UNBLINDED = True  # keep False until you are ready to inspect/unblind
 
-# -----------------------------------------------------------------------------
-# Four-muon mass regions
-# -----------------------------------------------------------------------------
-# The analysis window is the broad four-muon mass range used for candidate production.
-# The mask window is the narrow Higgs region excluded from blinded data/background training.
+SIGNAL_PRESELECTION = "prep/zmmjmm_mc_v3_2018_ss.root"
+DATA_PRESELECTION = "prep/skimmed_TTree_13TeV_mmmm_UL_Run2.root"
+
+OUTPUTS = {
+    "signal": "signal_candidates.root",
+    "background": "background_candidates.root",
+    "final_blinded": "final_blinded_candidates.root",
+    "final_unblinded": "final_unblinded_candidates.root",
+}
+
+# Candidate variants to write.
+#   onecand: reduce to one candidate per (Run, LumiBlock, Event) after final cuts
+#   allcand: keep all selected candidates
+MAKE_ONECAND = True
+MAKE_ALLCAND = True
+
+# Analysis and blinded Higgs windows
 ANALYSIS_LOW = 112.0
 ANALYSIS_HIGH = 162.0
 MASK_LOW = 120.0
@@ -78,92 +78,39 @@ MASK_HIGH = 130.0
 # used if you switch a sample fourmu_region to background_masked later.
 BACKGROUND_FOURMU_RANGE = None  # example: (80.0, 200.0)
 
-# -----------------------------------------------------------------------------
-# Pairing / topology selection
-# -----------------------------------------------------------------------------
-# Keep old_compatible first for reproducibility. score is available for later tests.
-PAIRING_MODE = "old_compatible"  # "old_compatible" or "score"
-
-# Broad topology layer. This should match the new miniAOD preselector concept:
-# at least one disjoint OS-pair topology with one J-like pair and one Z-like pair.
-APPLY_OLD_BROAD_TOPOLOGY = True
-LOW_MASS_WINDOW = (2.0, 4.0)
-BROAD_Z_WINDOW = (60.0, 120.0)
-BROAD_PAIR_VTXPROB_MIN = 0.001
-BROAD_FOURMU_VTXPROB_MIN = 0.001
-
-# Pairing score constants. These are practical relative weights for choosing the
-# Z/Jpsi assignment, not detector-resolution measurements.
+# Pairing score constants. These are practical relative weights for old-compatible
+# J/psi/Z assignment, not detector-resolution measurements.
 M_JPSI = 3.0969
 M_Z = 91.1876
 SIGMA_JPSI_SCORE = 0.10
 SIGMA_Z_SCORE = 10.0
 MASS_SCORE_CLOSE = 0.5
 
-# -----------------------------------------------------------------------------
-# Final physics-selection layer
-# -----------------------------------------------------------------------------
-APPLY_TRIGGER_FOR_DATA = True     # applies to background/final samples only
-APPLY_SOFT_MUON = True
-APPLY_MUON_KINEMATICS = True
-APPLY_VERTEX_CUTS = True
-APPLY_DIMUON_PT_CUTS = True
-APPLY_FOURMU_PT_CUT = True
-APPLY_ISOLATION = False           # enable only after validating the isolation choice
+# Broad topology cuts. These mirror the miniAOD preselector.
+BROAD_LOW_MASS = (2.0, 4.0)
+BROAD_Z_MASS = (60.0, 120.0)
+BROAD_PAIR_VTXPROB_MIN = 0.005
+BROAD_FOURMU_VTXPROB_MIN = 0.005
+
+# Final physics-selection cuts.
+SIGNAL_JPSI_MASS = (3.0, 3.2)
+DATA_JPSI_MASS = (2.8, 3.4)
+SIGNAL_Z_MASS = (80.0, 100.0)
+DATA_Z_MASS = (70.0, 110.0)
 
 MUON_PT_MIN = 3.0
 MUON_ABS_ETA_MAX = 2.4
-FOURMU_VTXPROB_MIN = 0.01
+REQUIRE_SOFT_MUONS = True
+
 PAIR_VTXPROB_MIN = 0.01
+FOURMU_VTXPROB_MIN = 0.01
 DIMUON_PT_MIN = 5.0
 FOURMU_PT_MIN = 5.0
 
-# Placeholder if APPLY_ISOLATION=True later. This uses the maximum per-muon
-# paper-style track relative isolation among the selected four muons.
-MAX_MUON_TRACKRELISO03 = 0.50
-
-# -----------------------------------------------------------------------------
-# Sample-specific mass windows and output modes
-# -----------------------------------------------------------------------------
-CUTS = {
-    "signal": {
-        "enabled": MAKE_SIGNAL,
-        "input_kind": "signal",
-        "output_name": "signal_candidates.root",
-        "jpsi_mass": (3.0, 3.2),
-        "z_mass": (80.0, 100.0),
-        "fourmu_region": "analysis_window",
-        "label": 1,
-    },
-    "background": {
-        "enabled": MAKE_BACKGROUND,
-        "input_kind": "data",
-        "output_name": "background_candidates.root",
-        "jpsi_mass": (2.8, 3.4),
-        "z_mass": (70.0, 110.0),
-        # Blinded background sample: analysis sidebands only.
-        "fourmu_region": "analysis_sideband",
-        "label": 0,
-    },
-    "final_blinded": {
-        "enabled": MAKE_FINAL_BLINDED,
-        "input_kind": "data",
-        "output_name": "final_blinded_candidates.root",
-        "jpsi_mass": (2.8, 3.4),
-        "z_mass": (70.0, 110.0),
-        "fourmu_region": "analysis_sideband",
-        "label": -1,
-    },
-    "final_unblinded": {
-        "enabled": MAKE_FINAL_UNBLINDED,
-        "input_kind": "data",
-        "output_name": "final_unblinded_candidates.root",
-        "jpsi_mass": (2.8, 3.4),
-        "z_mass": (70.0, 110.0),
-        "fourmu_region": "analysis_window",
-        "label": -1,
-    },
-}
+BACKGROUND_FOURMU_REGION = "analysis_sideband"
+FINAL_BLINDED_FOURMU_REGION = "analysis_sideband"
+FINAL_UNBLINDED_FOURMU_REGION = "analysis_window"
+SIGNAL_FOURMU_REGION = "analysis_window"
 
 # Chunk size for uproot.iterate. Increase if memory is fine.
 STEP_SIZE = "100 MB"
@@ -326,24 +273,21 @@ def pairing_options(flat: Dict[str, np.ndarray]) -> List[Dict[str, object]]:
 
 
 def broad_topology_mask(flat: Dict[str, np.ndarray]) -> np.ndarray:
-    """Old loose topology: one low-mass dimuon and one Z-like dimuon.
+    """Preselection topology: one low-mass dimuon and one Z-like dimuon.
 
     This is applied on either disjoint pair group, with either pair allowed to be
     the low-mass object.  It is deliberately broader than the final J/psi mass
     selection.
     """
-    if not APPLY_OLD_BROAD_TOPOLOGY:
-        return np.ones_like(flat["fourMu_mass"], dtype=bool)
+    p12_low = in_window(flat["pair12_mass"], BROAD_LOW_MASS)
+    p34_low = in_window(flat["pair34_mass"], BROAD_LOW_MASS)
+    p14_low = in_window(flat["pair14_mass"], BROAD_LOW_MASS)
+    p23_low = in_window(flat["pair23_mass"], BROAD_LOW_MASS)
 
-    p12_low = in_window(flat["pair12_mass"], LOW_MASS_WINDOW)
-    p34_low = in_window(flat["pair34_mass"], LOW_MASS_WINDOW)
-    p14_low = in_window(flat["pair14_mass"], LOW_MASS_WINDOW)
-    p23_low = in_window(flat["pair23_mass"], LOW_MASS_WINDOW)
-
-    p12_z = in_window(flat["pair12_mass"], BROAD_Z_WINDOW)
-    p34_z = in_window(flat["pair34_mass"], BROAD_Z_WINDOW)
-    p14_z = in_window(flat["pair14_mass"], BROAD_Z_WINDOW)
-    p23_z = in_window(flat["pair23_mass"], BROAD_Z_WINDOW)
+    p12_z = in_window(flat["pair12_mass"], BROAD_Z_MASS)
+    p34_z = in_window(flat["pair34_mass"], BROAD_Z_MASS)
+    p14_z = in_window(flat["pair14_mass"], BROAD_Z_MASS)
+    p23_z = in_window(flat["pair23_mass"], BROAD_Z_MASS)
 
     group_a_mass = (p12_low & p34_z) | (p34_low & p12_z)
     group_b_mass = (p14_low & p23_z) | (p23_low & p14_z)
@@ -372,35 +316,31 @@ def compute_pairing_arrays(flat: Dict[str, np.ndarray], cfg: SampleConfig, opts:
 def choose_best_pairing_indices(score_arr: np.ndarray, valid_arr: np.ndarray, vtx_arr: np.ndarray) -> np.ndarray:
     n_options, n_candidates = score_arr.shape
 
-    if PAIRING_MODE == "score":
-        # Invalid assignments get a large penalty, but are still selectable if no
-        # assignment is valid; this keeps diagnostics possible.
-        penalized = score_arr + np.where(valid_arr, 0.0, 1e6)
-        no_valid = ~np.any(valid_arr, axis=0)
-        penalized[:, no_valid] = score_arr[:, no_valid]
-        return np.argmin(penalized, axis=0)
+    # Score-mode reference, kept here for later studies but not active:
+    #   penalized = score_arr + np.where(valid_arr, 0.0, 1e6)
+    #   no_valid = ~np.any(valid_arr, axis=0)
+    #   penalized[:, no_valid] = score_arr[:, no_valid]
+    #   return np.argmin(penalized, axis=0)
 
-    if PAIRING_MODE == "old_compatible":
-        # Prefer assignments passing the final mass windows. Among valid options,
-        # lower mass score wins unless close, then higher vertex-product wins.
-        best_idx = np.zeros(n_candidates, dtype=np.int32)
-        for i in range(n_candidates):
-            candidates = np.nonzero(valid_arr[:, i])[0]
-            if len(candidates) == 0:
-                candidates = np.arange(n_options)
+    # Old-compatible default: prefer assignments passing the final mass windows.
+    # Among valid options, lower mass score wins unless close, then higher
+    # vertex-product wins.
+    best_idx = np.zeros(n_candidates, dtype=np.int32)
+    for i in range(n_candidates):
+        candidates = np.nonzero(valid_arr[:, i])[0]
+        if len(candidates) == 0:
+            candidates = np.arange(n_options)
 
-            best = int(candidates[0])
-            for cand in candidates[1:]:
-                cand = int(cand)
-                if score_arr[cand, i] < score_arr[best, i] - MASS_SCORE_CLOSE:
+        best = int(candidates[0])
+        for cand in candidates[1:]:
+            cand = int(cand)
+            if score_arr[cand, i] < score_arr[best, i] - MASS_SCORE_CLOSE:
+                best = cand
+            elif abs(score_arr[cand, i] - score_arr[best, i]) <= MASS_SCORE_CLOSE:
+                if vtx_arr[cand, i] > vtx_arr[best, i]:
                     best = cand
-                elif abs(score_arr[cand, i] - score_arr[best, i]) <= MASS_SCORE_CLOSE:
-                    if vtx_arr[cand, i] > vtx_arr[best, i]:
-                        best = cand
-            best_idx[i] = best
-        return best_idx
-
-    raise ValueError(f"Unknown PAIRING_MODE: {PAIRING_MODE}")
+        best_idx[i] = best
+    return best_idx
 
 
 def choose_pair_branch(flat: Dict[str, np.ndarray], opts: List[Dict[str, object]], best_idx: np.ndarray, suffix: str, kind: str) -> np.ndarray:
@@ -448,12 +388,13 @@ def build_selected_pair_branches(flat: Dict[str, np.ndarray], opts: List[Dict[st
     for idx, opt in enumerate(opts):
         mask = best_idx == idx
         phi_plane[mask] = flat[str(opt["plane"])][mask]
-    selected["phi_decayPlane_Z_Jpsi"] = phi_plane
+    selected["phi_decayPlane_z_jpsi"] = phi_plane
 
-    selected["dR_jpsi_z"] = np.sqrt((selected["jpsi_eta"] - selected["z_eta"]) ** 2 + delta_phi(selected["jpsi_phi"], selected["z_phi"]) ** 2)
-    selected["dPhi_jpsi_z"] = delta_phi(selected["jpsi_phi"], selected["z_phi"])
-    selected["dEta_jpsi_z"] = selected["jpsi_eta"] - selected["z_eta"]
-    selected["dY_jpsi_z"] = selected["jpsi_rapidity"] - selected["z_rapidity"]
+    selected["z_jpsi_dR"] = np.sqrt((selected["z_eta"] - selected["jpsi_eta"]) ** 2 + delta_phi(selected["z_phi"], selected["jpsi_phi"]) ** 2)
+    selected["z_jpsi_dPhi"] = delta_phi(selected["z_phi"], selected["jpsi_phi"])
+    selected["z_jpsi_dEta"] = selected["z_eta"] - selected["jpsi_eta"]
+    selected["z_jpsi_dY"] = selected["z_rapidity"] - selected["jpsi_rapidity"]
+    selected["pt_balance"] = np.abs(selected["z_pt"] - selected["jpsi_pt"]) / (selected["z_pt"] + selected["jpsi_pt"])
     return selected
 
 
@@ -539,64 +480,48 @@ def flatten_input_chunk(arrays: ak.Array) -> Dict[str, np.ndarray]:
 
 
 def build_selection_mask(flat: Dict[str, np.ndarray], chosen: Dict[str, np.ndarray], cfg: SampleConfig) -> np.ndarray:
-    # Broad old-preselection-equivalent topology, if enabled.
     topology_mask = broad_topology_mask(flat)
 
-    # Trigger: apply only to data-derived samples, not signal MC, unless you choose otherwise.
+    # Trigger is required for data-derived samples only.
     trigger_mask = np.ones_like(flat["fourMu_mass"], dtype=bool)
-    if APPLY_TRIGGER_FOR_DATA and cfg.name != "signal":
+    if cfg.name != "signal":
         trigger_mask &= flat["passMuonTrigger"]
 
     # Four basic muon cuts. Use the original charge-ordered muons, independent of pairing choice.
     muon_mask = np.ones_like(flat["fourMu_mass"], dtype=bool)
-    if APPLY_MUON_KINEMATICS or APPLY_SOFT_MUON:
-        for mu in ("muP1", "muM1", "muP2", "muM2"):
-            if APPLY_MUON_KINEMATICS:
-                muon_mask &= flat[f"{mu}_pt"] > MUON_PT_MIN
-                muon_mask &= np.abs(flat[f"{mu}_eta"]) < MUON_ABS_ETA_MAX
-            if APPLY_SOFT_MUON:
-                muon_mask &= flat[f"{mu}_soft"]
+    for mu in ("muP1", "muM1", "muP2", "muM2"):
+        muon_mask &= flat[f"{mu}_pt"] > MUON_PT_MIN
+        muon_mask &= np.abs(flat[f"{mu}_eta"]) < MUON_ABS_ETA_MAX
+        if REQUIRE_SOFT_MUONS:
+            muon_mask &= flat[f"{mu}_soft"]
 
     pair_mass_mask = in_window(chosen["jpsi_mass"], cfg.jpsi_mass_window) & in_window(chosen["z_mass"], cfg.z_mass_window)
 
-    vtx_mask = np.ones_like(flat["fourMu_mass"], dtype=bool)
-    if APPLY_VERTEX_CUTS:
-        vtx_mask &= flat["fourMu_vtxProb"] > FOURMU_VTXPROB_MIN
-        vtx_mask &= chosen["jpsi_vtxProb"] > PAIR_VTXPROB_MIN
-        vtx_mask &= chosen["z_vtxProb"] > PAIR_VTXPROB_MIN
+    vtx_mask = flat["fourMu_vtxProb"] > FOURMU_VTXPROB_MIN
+    vtx_mask &= chosen["jpsi_vtxProb"] > PAIR_VTXPROB_MIN
+    vtx_mask &= chosen["z_vtxProb"] > PAIR_VTXPROB_MIN
 
-    pt_mask = np.ones_like(flat["fourMu_mass"], dtype=bool)
-    if APPLY_DIMUON_PT_CUTS:
-        pt_mask &= chosen["jpsi_pt"] > DIMUON_PT_MIN
-        pt_mask &= chosen["z_pt"] > DIMUON_PT_MIN
-    if APPLY_FOURMU_PT_CUT:
-        pt_mask &= flat["fourMu_pt"] > FOURMU_PT_MIN
-
-    iso_mask = np.ones_like(flat["fourMu_mass"], dtype=bool)
-    if APPLY_ISOLATION:
-        max_iso = np.maximum.reduce([
-            flat["muP1_trackRelIso03"], flat["muM1_trackRelIso03"],
-            flat["muP2_trackRelIso03"], flat["muM2_trackRelIso03"],
-        ])
-        iso_mask &= max_iso < MAX_MUON_TRACKRELISO03
+    pt_mask = chosen["jpsi_pt"] > DIMUON_PT_MIN
+    pt_mask &= chosen["z_pt"] > DIMUON_PT_MIN
+    pt_mask &= flat["fourMu_pt"] > FOURMU_PT_MIN
 
     fourmu_mask = fourmu_region_mask(flat["fourMu_mass"], cfg.fourmu_region)
     finite_mask = np.isfinite(chosen["pairing_massScore"]) & np.isfinite(flat["fourMu_mass"])
 
-    return topology_mask & trigger_mask & muon_mask & pair_mass_mask & vtx_mask & pt_mask & iso_mask & fourmu_mask & finite_mask
+    return topology_mask & trigger_mask & muon_mask & pair_mass_mask & vtx_mask & pt_mask & fourmu_mask & finite_mask
 
 def output_template() -> Dict[str, List]:
     keys = [
-        "run", "lumi", "event", "nPV", "label", "pairing",
+        "Run", "LumiBlock", "Event", "nPV", "label", "pairing",
         "fourMu_mass", "fourMu_pt", "fourMu_eta", "fourMu_phi", "fourMu_rapidity", "fourMu_vtxProb",
         "passMuonTrigger",
-        "jpsi_mass", "jpsi_pt", "jpsi_eta", "jpsi_phi", "jpsi_rapidity", "jpsi_vtxProb",
-        "z_mass", "z_pt", "z_eta", "z_phi", "z_rapidity", "z_vtxProb",
+        "jpsi_mass", "jpsi_pt", "jpsi_eta", "jpsi_phi", "jpsi_rapidity", "jpsi_vtxProb", "jpsi_dR_mumu",
+        "z_mass", "z_pt", "z_eta", "z_phi", "z_rapidity", "z_vtxProb", "z_dR_mumu",
         "pairing_massScore", "pairing_vertexProduct",
-        "dR_mumu_jpsi", "dR_mumu_z", "dR_jpsi_z", "dPhi_jpsi_z", "dEta_jpsi_z", "dY_jpsi_z",
+        "z_jpsi_dR", "z_jpsi_dPhi", "z_jpsi_dEta", "z_jpsi_dY", "pt_balance",
         "jpsi_trackIso03", "jpsi_trackIso04", "jpsi_relIso03", "jpsi_relIso04",
         "z_trackIso03", "z_trackIso04", "z_relIso03", "z_relIso04",
-        "cosTheta_jpsiMuP", "cosTheta_zMuP", "phi_decayPlane_Z_Jpsi",
+        "cosTheta_jpsiMuP", "cosTheta_zMuP", "phi_decayPlane_z_jpsi",
     ]
     for prefix in ("jpsi_muP", "jpsi_muM", "z_muP", "z_muM", "jpsi_mu1", "jpsi_mu2", "z_mu1", "z_mu2"):
         keys += [
@@ -612,35 +537,17 @@ def output_template() -> Dict[str, List]:
 
 def append_selected_rows(out: Dict[str, List], flat: Dict[str, np.ndarray], chosen: Dict[str, np.ndarray], indices: np.ndarray, cfg: SampleConfig) -> None:
     # Event identifiers and four-muon quantities
-    mapping = {
-        "run": flat["Run"],
-        "lumi": flat["LumiBlock"],
-        "event": flat["Event"],
-        "nPV": flat["nPV"],
-        "passMuonTrigger": flat["passMuonTrigger"],
-        "fourMu_mass": flat["fourMu_mass"],
-        "fourMu_pt": flat["fourMu_pt"],
-        "fourMu_eta": flat["fourMu_eta"],
-        "fourMu_phi": flat["fourMu_phi"],
-        "fourMu_rapidity": flat["fourMu_rapidity"],
-        "fourMu_vtxProb": flat["fourMu_vtxProb"],
-    }
-    for key, values in mapping.items():
-        out[key].extend(values[indices].tolist())
+    for key in (
+        "Run", "LumiBlock", "Event", "nPV", "passMuonTrigger",
+        "fourMu_mass", "fourMu_pt", "fourMu_eta", "fourMu_phi", "fourMu_rapidity", "fourMu_vtxProb",
+    ):
+        out[key].extend(flat[key][indices].tolist())
 
     out["label"].extend([cfg.label] * len(indices))
 
-    chosen_mapping_keys = [k for k in out.keys() if k in chosen]
-    for key in chosen_mapping_keys:
+    selected_keys = [k for k in out.keys() if k in chosen]
+    for key in selected_keys:
         out[key].extend(chosen[key][indices].tolist())
-
-    # Rename chosen keys to stable output names where needed
-    rename = {
-        "jpsi_dR_mumu": "dR_mumu_jpsi",
-        "z_dR_mumu": "dR_mumu_z",
-    }
-    for src, dst in rename.items():
-        out[dst].extend(chosen[src][indices].tolist())
 
 
 def keep_best_candidate_per_event(out: Dict[str, List]) -> Dict[str, List]:
@@ -651,13 +558,13 @@ def keep_best_candidate_per_event(out: Dict[str, List]) -> Dict[str, List]:
       2. highest fourMu_vtxProb when mass scores are close
       3. highest pairing_vertexProduct
     """
-    n = len(out["event"])
+    n = len(out["Event"])
     if n == 0:
         return out
 
-    events = np.asarray(out["event"], dtype=np.uint64)
-    runs = np.asarray(out["run"], dtype=np.uint64)
-    lumis = np.asarray(out["lumi"], dtype=np.uint64)
+    events = np.asarray(out["Event"], dtype=np.uint64)
+    runs = np.asarray(out["Run"], dtype=np.uint64)
+    lumis = np.asarray(out["LumiBlock"], dtype=np.uint64)
     mass_score_arr = np.asarray(out["pairing_massScore"], dtype=float)
     four_vtx_arr = np.asarray(out["fourMu_vtxProb"], dtype=float)
     pair_vtx_arr = np.asarray(out["pairing_vertexProduct"], dtype=float)
@@ -687,11 +594,11 @@ def keep_best_candidate_per_event(out: Dict[str, List]) -> Dict[str, List]:
 
 def convert_for_uproot(out: Dict[str, List]) -> Dict[str, np.ndarray]:
     arrays: Dict[str, np.ndarray] = {}
-    int_keys = {"run", "lumi", "event", "nPV", "label", "pairing"}
+    int_keys = {"Run", "LumiBlock", "Event", "nPV", "label", "pairing"}
     for key, values in out.items():
         is_bool = key == "passMuonTrigger" or key.endswith(("_soft", "_tight", "_loose"))
         is_int = key in int_keys or key.endswith(("_charge", "_nValidHits", "_nValidPixelHits"))
-        if key in {"run", "lumi", "event"}:
+        if key in {"Run", "LumiBlock", "Event"}:
             arrays[key] = np.asarray(values, dtype=np.uint64)
         elif is_int:
             arrays[key] = np.asarray(values, dtype=np.int32)
@@ -729,10 +636,10 @@ def iter_input_chunks(path: str):
 
 
 def reduce_candidates_and_write(cfg: SampleConfig, out: Dict[str, List], keep_one_candidate_per_event: bool) -> Tuple[int, int]:
-    before = len(out["event"])
+    before = len(out["Event"])
     if keep_one_candidate_per_event:
         out = keep_best_candidate_per_event(out)
-    after = len(out["event"])
+    after = len(out["Event"])
 
     output_path = Path(cfg.output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -754,7 +661,7 @@ def process_sample(cfg: SampleConfig, keep_one_candidate_per_event: bool) -> Non
     print(f"  analysis window: ({ANALYSIS_LOW}, {ANALYSIS_HIGH})")
     print(f"  mask window    : ({MASK_LOW}, {MASK_HIGH})")
     print(f"  step size      : {STEP_SIZE}")
-    print(f"  pairing mode: {PAIRING_MODE}")
+    print("  pairing mode: old_compatible")
     print(f"  one candidate per event: {keep_one_candidate_per_event}")
 
     out = output_template()
@@ -778,7 +685,7 @@ def process_sample(cfg: SampleConfig, keep_one_candidate_per_event: bool) -> Non
         if n_flat_chunk == 0:
             if PRINT_PROGRESS and (chunk_index % PROGRESS_EVERY_CHUNKS == 0):
                 denom = f"/{total_entries}" if total_entries is not None else ""
-                print(f"    chunk {chunk_index:5d}: events {total_events_seen}{denom}, flat +0, selected +0, kept so far {len(out['event'])}", flush=True)
+                print(f"    chunk {chunk_index:5d}: events {total_events_seen}{denom}, flat +0, selected +0, kept so far {len(out['Event'])}", flush=True)
             continue
 
         chosen = choose_pairing(flat, cfg)
@@ -801,7 +708,7 @@ def process_sample(cfg: SampleConfig, keep_one_candidate_per_event: bool) -> Non
             print(
                 f"    chunk {chunk_index:5d}: events {total_events_seen}{denom}, "
                 f"flat +{n_flat_chunk}, selected +{len(indices)}, "
-                f"selected total {total_selected_before_reduction}, kept so far {len(out['event'])}, "
+                f"selected total {total_selected_before_reduction}, kept so far {len(out['Event'])}, "
                 f"rate {rate:.1f} events/s",
                 flush=True,
             )
@@ -817,38 +724,77 @@ def process_sample(cfg: SampleConfig, keep_one_candidate_per_event: bool) -> Non
     print(f"  written after reduction  : {n_after}")
 
 
-def make_sample_config(name: str, sample: dict, outdir: Path) -> SampleConfig:
-    input_path = SIGNAL_PRESELECTION if sample["input_kind"] == "signal" else DATA_PRESELECTION
+def make_sample_config(
+    name: str,
+    input_path: str,
+    output_name: str,
+    jpsi_mass_window: Tuple[float, float],
+    z_mass_window: Tuple[float, float],
+    fourmu_region: str,
+    label: int,
+    outdir: Path,
+) -> SampleConfig:
     return SampleConfig(
         name=name,
         input_path=input_path,
-        output_path=str(outdir / sample["output_name"]),
-        jpsi_mass_window=sample["jpsi_mass"],
-        z_mass_window=sample["z_mass"],
-        fourmu_region=sample["fourmu_region"],
-        label=sample["label"],
+        output_path=str(outdir / output_name),
+        jpsi_mass_window=jpsi_mass_window,
+        z_mass_window=z_mass_window,
+        fourmu_region=fourmu_region,
+        label=label,
     )
 
 
-def sample_definition(name: str) -> dict:
-    if name not in CUTS:
-        raise KeyError(f"Unknown sample definition: {name}")
-    return CUTS[name]
-
-
 def build_signal_config(outdir: Path) -> Optional[SampleConfig]:
-    sample = CUTS["signal"]
-    if not sample["enabled"]:
+    if not MAKE_SIGNAL:
         return None
-    return make_sample_config("signal", sample, outdir)
+    return make_sample_config(
+        "signal",
+        SIGNAL_PRESELECTION,
+        OUTPUTS["signal"],
+        SIGNAL_JPSI_MASS,
+        SIGNAL_Z_MASS,
+        SIGNAL_FOURMU_REGION,
+        1,
+        outdir,
+    )
 
 
 def build_data_configs(outdir: Path) -> List[SampleConfig]:
     configs: List[SampleConfig] = []
-    for name in ("background", "final_blinded", "final_unblinded"):
-        sample = CUTS[name]
-        if sample["enabled"]:
-            configs.append(make_sample_config(name, sample, outdir))
+    if MAKE_BACKGROUND:
+        configs.append(make_sample_config(
+            "background",
+            DATA_PRESELECTION,
+            OUTPUTS["background"],
+            DATA_JPSI_MASS,
+            DATA_Z_MASS,
+            BACKGROUND_FOURMU_REGION,
+            0,
+            outdir,
+        ))
+    if MAKE_FINAL_BLINDED:
+        configs.append(make_sample_config(
+            "final_blinded",
+            DATA_PRESELECTION,
+            OUTPUTS["final_blinded"],
+            DATA_JPSI_MASS,
+            DATA_Z_MASS,
+            FINAL_BLINDED_FOURMU_REGION,
+            -1,
+            outdir,
+        ))
+    if MAKE_FINAL_UNBLINDED:
+        configs.append(make_sample_config(
+            "final_unblinded",
+            DATA_PRESELECTION,
+            OUTPUTS["final_unblinded"],
+            DATA_JPSI_MASS,
+            DATA_Z_MASS,
+            FINAL_UNBLINDED_FOURMU_REGION,
+            -1,
+            outdir,
+        ))
     return configs
 
 
@@ -893,11 +839,10 @@ def process_data_once(configs: List[SampleConfig], keep_one_candidate_per_event:
     print(f"  Z window    : {configs[0].z_mass_window}")
     print(f"  analysis window: ({ANALYSIS_LOW}, {ANALYSIS_HIGH})")
     print(f"  mask window    : ({MASK_LOW}, {MASK_HIGH})")
-    background = sample_definition("background")
-    print(f"  background region: {background['fourmu_region'] if background['enabled'] else 'disabled'}")
+    print(f"  background region: {BACKGROUND_FOURMU_REGION if MAKE_BACKGROUND else 'disabled'}")
     print(f"  optional background mass range: {BACKGROUND_FOURMU_RANGE}")
     print(f"  step size      : {STEP_SIZE}")
-    print(f"  pairing mode   : {PAIRING_MODE}")
+    print("  pairing mode   : old_compatible")
     print(f"  one candidate per event: {keep_one_candidate_per_event}")
 
     outputs = {cfg.name: output_template() for cfg in configs}
@@ -953,7 +898,7 @@ def process_data_once(configs: List[SampleConfig], keep_one_candidate_per_event:
                 for name in selected_this_chunk
             )
             kept_so_far = ", ".join(
-                f"{name} {len(outputs[name]['event'])}"
+                f"{name} {len(outputs[name]['Event'])}"
                 for name in outputs
             )
             print(
@@ -983,7 +928,7 @@ def main() -> None:
     if not CANDIDATE_VARIANTS:
         raise RuntimeError("CANDIDATE_VARIANTS is empty.")
 
-    if not any(sample["enabled"] for sample in CUTS.values()):
+    if not (MAKE_SIGNAL or MAKE_BACKGROUND or MAKE_FINAL_BLINDED or MAKE_FINAL_UNBLINDED):
         raise RuntimeError("No outputs requested. Enable at least one MAKE_* switch.")
 
     base_outdir = Path(OUTDIR)
