@@ -44,7 +44,7 @@ ROOT.gROOT.SetBatch(True)
 # User configuration
 # =============================================================================
 
-INPUT_FILE = "selection/signal_candidates.root"
+INPUT_FILE = "selection/background_candidates.root"
 TREE_NAME = "ntuple"
 OUTDIR = "duplicate_check"
 

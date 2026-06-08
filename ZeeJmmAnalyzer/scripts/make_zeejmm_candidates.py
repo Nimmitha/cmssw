@@ -35,12 +35,12 @@ TREE_NAME = "ntuple"
 OUTDIR = "selection"
 
 MAKE_SIGNAL = True
-MAKE_BACKGROUND = False
-MAKE_FINAL_BLINDED = False
-MAKE_FINAL_UNBLINDED = False  # keep False until ready to inspect/unblind
+MAKE_BACKGROUND = True
+MAKE_FINAL_BLINDED = True
+MAKE_FINAL_UNBLINDED = True  # keep False until ready to inspect/unblind
 
 SIGNAL_PRESELECTION = "preselection/zeejmm_mc_2018_v1.root"
-DATA_PRESELECTION = "test.root"
+DATA_PRESELECTION = "preselection/TTree_13TeV_eemm_UL_Run2.root"
 
 OUTPUTS = {
     "signal": "signal_candidates.root",
@@ -51,7 +51,7 @@ OUTPUTS = {
 
 # Analysis and blinded Higgs windows
 ANALYSIS_LOW = 112.0
-ANALYSIS_HIGH = 162.0
+ANALYSIS_HIGH = 142.0
 MASK_LOW = 120.0
 MASK_HIGH = 130.0
 
@@ -60,7 +60,7 @@ REQUIRE_ELE_TRIGGER = True
 REQUIRE_TRIGGER_MATCH = False  # set True only if you explicitly want offline electron-HLT matching
 REQUIRE_SOFT_MUONS = True
 REQUIRE_ELECTRON_ID = True
-ELECTRON_ID = "WP90"  # options: "Loose", "WP90", "WP80"
+ELECTRON_ID = "Loose"  # options: "Loose", "WP90", "WP80"
 
 MUON_PT_MIN = 3.0
 MUON_ABS_ETA_MAX = 2.4
@@ -70,17 +70,18 @@ ELE_ABS_ETA_MAX = 2.5
 
 PAIR_VTXPROB_MIN = 0.01
 FOURL_VTXPROB_MIN = 0.01
+FOURL_PT_MIN = 5.0
 
 SIGNAL_JPSI_MASS = (3.0, 3.2)
-DATA_JPSI_MASS = (2.8, 4.0)
-Z_MASS = (70.0, 110.0)
-SIGNAL_FOURL_MASS = (112.0, 162.0)
+DATA_JPSI_MASS = (3.0, 3.2)
+Z_MASS = (80.0, 100.0)
+SIGNAL_FOURL_MASS = (112.0, 142.0)
 
 # Optional: keep one best candidate per input TTree entry.
 # This is the safest default for both data and your merged private MC:
 #   * data: one TTree entry should correspond to one collision event;
-#   * private MC: run/lumi/event may be duplicated across merged files, so do NOT
-#     deduplicate globally by (run,lumi,event).
+#   * private MC: Run/LumiBlock/Event may be duplicated across merged files, so do NOT
+#     deduplicate globally by (Run,LumiBlock,Event).
 # Best candidate rule: highest fourL_vtxProb only.
 DEDUPLICATE_ONE_PER_ENTRY = False
 
@@ -102,21 +103,13 @@ FLOAT_BRANCHES = [
 ]
 
 INT_BRANCHES = [
-    "run", "lumi", "event", "nPV", "label",
+    "Run", "LumiBlock", "Event", "nPV", "label",
     "passEleTrigger", "passEleTriggerMatch",
     "e1_charge", "e2_charge", "e1_passLooseID", "e2_passLooseID", "e1_passWP90", "e2_passWP90", "e1_passWP80", "e2_passWP80",
     "e1_triggerMatched", "e2_triggerMatched",
     "mu1_charge", "mu2_charge", "mu1_soft", "mu2_soft", "mu1_loose", "mu2_loose", "mu1_tight", "mu2_tight",
     "nExtraLooseElectrons", "nExtraLooseMuons",
 ]
-
-# Map output scalar names to input vector branch names for event identifiers.
-EVENT_BRANCH_MAP = {
-    "run": "Run",
-    "lumi": "LumiBlock",
-    "event": "Event",
-    "nPV": "nPV",
-}
 
 # =============================================================================
 # Helpers
@@ -154,7 +147,7 @@ def electron_id_pass(tree: ROOT.TTree, idx: int) -> bool:
     if ELECTRON_ID == "WP90":
         return bool(get_vec_value(tree, "e1_passWP90", idx)) or bool(get_vec_value(tree, "e2_passWP90", idx))
     if ELECTRON_ID == "WP80":
-        return bool(get_vec_value(tree, "e1_passWP80", idx)) and bool(get_vec_value(tree, "e2_passWP80", idx))
+        return bool(get_vec_value(tree, "e1_passWP80", idx)) or bool(get_vec_value(tree, "e2_passWP80", idx))
     raise ValueError(f"Unknown ELECTRON_ID = {ELECTRON_ID}")
 
 
@@ -200,6 +193,8 @@ def common_selection(tree: ROOT.TTree, idx: int) -> bool:
     if get_vec_value(tree, "Jpsi_vtxProb", idx) <= PAIR_VTXPROB_MIN:
         return False
     if get_vec_value(tree, "fourL_vtxProb", idx) <= FOURL_VTXPROB_MIN:
+        return False
+    if get_vec_value(tree, "fourL_pt", idx) <= FOURL_PT_MIN:
         return False
 
     if not in_window(get_vec_value(tree, "Z_mass", idx), *Z_MASS):
@@ -264,8 +259,8 @@ def make_output_tree() -> tuple[ROOT.TFile, ROOT.TTree, Dict[str, array]]:
         tout.Branch(name, arrays[name], f"{name}/F")
 
     for name in INT_BRANCHES:
-        # Event can exceed signed 32-bit; store run/lumi/event as unsigned long long for safety.
-        if name in {"run", "lumi", "event"}:
+        # Event can exceed signed 32-bit; store event identifiers as unsigned long long for safety.
+        if name in {"Run", "LumiBlock", "Event"}:
             arrays[name] = array("L", [0])
             tout.Branch(name, arrays[name], f"{name}/l")
         else:
@@ -276,16 +271,13 @@ def make_output_tree() -> tuple[ROOT.TFile, ROOT.TTree, Dict[str, array]]:
 
 
 def fill_output(tree: ROOT.TTree, idx: int, out_arrays: Dict[str, array], label: int) -> None:
-    for out_name, in_name in EVENT_BRANCH_MAP.items():
-        out_arrays[out_name][0] = int(get_vec_value(tree, in_name, idx))
-
     out_arrays["label"][0] = label
 
     for name in FLOAT_BRANCHES:
         out_arrays[name][0] = float(get_vec_value(tree, name, idx))
 
     for name in INT_BRANCHES:
-        if name in EVENT_BRANCH_MAP or name == "label":
+        if name == "label":
             continue
         out_arrays[name][0] = int(get_vec_value(tree, name, idx))
 
@@ -294,7 +286,7 @@ def selected_indices_for_entry(tree: ROOT.TTree, sample: str, deduplicate: bool)
     """Return selected candidate indices for one input TTree entry.
 
     If deduplicate=True, keep only the candidate with the highest fourL_vtxProb
-    within this entry. This avoids using run/lumi/event as a global key, which is
+    within this entry. This avoids using Run/LumiBlock/Event as a global key, which is
     important for your private MC where those numbers can repeat after merging.
     """
     n_cands = int(tree.nB)
@@ -320,9 +312,7 @@ def process_sample(sample: str, input_path: str, output_path: str, label: int) -
     if not tree:
         raise RuntimeError(f"Could not find tree '{TREE_NAME}' in {input_path}")
 
-    required = ["nB"] + list(EVENT_BRANCH_MAP.values()) + FLOAT_BRANCHES + [
-        b for b in INT_BRANCHES if b not in EVENT_BRANCH_MAP and b != "label"
-    ]
+    required = ["nB"] + FLOAT_BRANCHES + [b for b in INT_BRANCHES if b != "label"]
     for branch in sorted(set(required)):
         require_branch(tree, branch)
 
