@@ -56,7 +56,7 @@ MASK_LOW = 120.0
 MASK_HIGH = 130.0
 
 # Core physics cuts from ZeeJmm studies / AN-style preselection
-REQUIRE_ELE_TRIGGER = True
+REQUIRE_ELE_TRIGGER_MC = True
 REQUIRE_TRIGGER_MATCH = False  # set True only if you explicitly want offline electron-HLT matching
 REQUIRE_SOFT_MUONS = True
 REQUIRE_ELECTRON_ID = True
@@ -77,13 +77,18 @@ DATA_JPSI_MASS = (3.0, 3.2)
 Z_MASS = (80.0, 100.0)
 SIGNAL_FOURL_MASS = (112.0, 142.0)
 
-# Optional: keep one best candidate per input TTree entry.
-# This is the safest default for both data and your merged private MC:
-#   * data: one TTree entry should correspond to one collision event;
-#   * private MC: Run/LumiBlock/Event may be duplicated across merged files, so do NOT
-#     deduplicate globally by (Run,LumiBlock,Event).
-# Best candidate rule: highest fourL_vtxProb only.
-DEDUPLICATE_ONE_PER_ENTRY = False
+# Candidate variants to write.
+#   onecand: keep one best candidate per input TTree entry
+#   allcand: keep all selected candidates
+# Best-candidate rule: highest fourL_vtxProb only.
+MAKE_ONECAND = True
+MAKE_ALLCAND = True
+
+CANDIDATE_VARIANTS = []
+if MAKE_ONECAND:
+    CANDIDATE_VARIANTS.append(("onecand", True))
+if MAKE_ALLCAND:
+    CANDIDATE_VARIANTS.append(("allcand", False))
 
 # =============================================================================
 # Output content
@@ -151,9 +156,10 @@ def electron_id_pass(tree: ROOT.TTree, idx: int) -> bool:
     raise ValueError(f"Unknown ELECTRON_ID = {ELECTRON_ID}")
 
 
-def common_selection(tree: ROOT.TTree, idx: int) -> bool:
+def common_selection(tree: ROOT.TTree, idx: int, sample: str) -> bool:
     """Cuts common to signal, background, and final data candidates."""
-    if REQUIRE_ELE_TRIGGER and not bool(get_vec_value(tree, "passEleTrigger", idx)):
+    require_ele_trigger = sample != "signal" or REQUIRE_ELE_TRIGGER_MC
+    if require_ele_trigger and not bool(get_vec_value(tree, "passEleTrigger", idx)):
         return False
 
     if REQUIRE_TRIGGER_MATCH and not bool(get_vec_value(tree, "passEleTriggerMatch", idx)):
@@ -204,7 +210,7 @@ def common_selection(tree: ROOT.TTree, idx: int) -> bool:
 
 
 def sample_selection(tree: ROOT.TTree, idx: int, sample: str) -> bool:
-    if not common_selection(tree, idx):
+    if not common_selection(tree, idx, sample):
         return False
 
     jmass = get_vec_value(tree, "Jpsi_mass", idx)
@@ -299,7 +305,7 @@ def selected_indices_for_entry(tree: ROOT.TTree, sample: str, deduplicate: bool)
     return [best]
 
 
-def process_sample(sample: str, input_path: str, output_path: str, label: int) -> None:
+def process_sample(sample: str, input_path: str, output_path: str, label: int, deduplicate: bool) -> None:
     print(f"\nProcessing {sample}")
     print(f"  input : {input_path}")
     print(f"  output: {output_path}")
@@ -337,7 +343,7 @@ def process_sample(sample: str, input_path: str, output_path: str, label: int) -
             n_selected_candidates_before_dedup += len(selected_before)
 
         indices_to_save = selected_indices_for_entry(
-            tree, sample, deduplicate=DEDUPLICATE_ONE_PER_ENTRY
+            tree, sample, deduplicate=deduplicate
         )
         if indices_to_save:
             n_saved_entries += 1
@@ -372,28 +378,42 @@ def process_sample(sample: str, input_path: str, output_path: str, label: int) -
 
 
 def main() -> None:
+    if not CANDIDATE_VARIANTS:
+        raise RuntimeError("CANDIDATE_VARIANTS is empty.")
+
+    if not (MAKE_SIGNAL or MAKE_BACKGROUND or MAKE_FINAL_BLINDED or MAKE_FINAL_UNBLINDED):
+        raise RuntimeError("No outputs requested. Enable at least one MAKE_* switch.")
+
     print("ZeeJmm targeted selection")
     print(f"  Electron ID: {ELECTRON_ID}")
-    print(f"  Ele trigger required: {REQUIRE_ELE_TRIGGER}")
+    print("  Ele trigger required for data: True")
+    print(f"  Ele trigger required for MC: {REQUIRE_ELE_TRIGGER_MC}")
     print(f"  Trigger match required: {REQUIRE_TRIGGER_MATCH}")
-    print(f"  Deduplicate one/input entry: {DEDUPLICATE_ONE_PER_ENTRY}")
     print("  Best-candidate rule: highest fourL_vtxProb")
 
-    outdir = Path(OUTDIR)
+    base_outdir = Path(OUTDIR)
 
-    if MAKE_SIGNAL:
-        process_sample("signal", SIGNAL_PRESELECTION, str(outdir / OUTPUTS["signal"]), label=1)
+    for variant_name, deduplicate in CANDIDATE_VARIANTS:
+        outdir = base_outdir / variant_name
+        print("\n" + "=" * 80)
+        print(f"Candidate variant: {variant_name}")
+        print(f"  output directory: {outdir}")
+        print(f"  one candidate per input entry: {deduplicate}")
+        print("=" * 80)
 
-    # Read data once per output. This is slightly less efficient than the Zmm script,
-    # but much easier to review and debug.
-    if MAKE_BACKGROUND:
-        process_sample("background", DATA_PRESELECTION, str(outdir / OUTPUTS["background"]), label=0)
+        if MAKE_SIGNAL:
+            process_sample("signal", SIGNAL_PRESELECTION, str(outdir / OUTPUTS["signal"]), label=1, deduplicate=deduplicate)
 
-    if MAKE_FINAL_BLINDED:
-        process_sample("final_blinded", DATA_PRESELECTION, str(outdir / OUTPUTS["final_blinded"]), label=-1)
+        # Read data once per output. This is slightly less efficient than the Zmm script,
+        # but much easier to review and debug.
+        if MAKE_BACKGROUND:
+            process_sample("background", DATA_PRESELECTION, str(outdir / OUTPUTS["background"]), label=0, deduplicate=deduplicate)
 
-    if MAKE_FINAL_UNBLINDED:
-        process_sample("final_unblinded", DATA_PRESELECTION, str(outdir / OUTPUTS["final_unblinded"]), label=-1)
+        if MAKE_FINAL_BLINDED:
+            process_sample("final_blinded", DATA_PRESELECTION, str(outdir / OUTPUTS["final_blinded"]), label=-1, deduplicate=deduplicate)
+
+        if MAKE_FINAL_UNBLINDED:
+            process_sample("final_unblinded", DATA_PRESELECTION, str(outdir / OUTPUTS["final_unblinded"]), label=-1, deduplicate=deduplicate)
 
 
 if __name__ == "__main__":
