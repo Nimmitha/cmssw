@@ -39,7 +39,7 @@ MAKE_BACKGROUND = True
 MAKE_FINAL_BLINDED = True
 MAKE_FINAL_UNBLINDED = True  # keep False until ready to inspect/unblind
 
-SIGNAL_PRESELECTION = "preselection/zeejmm_mc_2018_v1.root"
+SIGNAL_PRESELECTION = "preselection/zeejmm_mc_2018_v2.root"
 DATA_PRESELECTION = "preselection/TTree_13TeV_eemm_UL_Run2.root"
 
 OUTPUTS = {
