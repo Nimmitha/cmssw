@@ -50,6 +50,7 @@ MAKE_SIGNAL = True
 MAKE_BACKGROUND = True
 MAKE_FINAL_BLINDED = True
 MAKE_FINAL_UNBLINDED = True  # keep False until you are ready to inspect/unblind
+REQUIRE_MU_TRIGGER_MC = True
 
 SIGNAL_PRESELECTION = "preselection/zmmjmm_mc_2018_v2.root"
 DATA_PRESELECTION = "prep/skimmed_TTree_13TeV_mmmm_UL_Run2.root"
@@ -86,11 +87,11 @@ SIGMA_JPSI_SCORE = 0.10
 SIGMA_Z_SCORE = 10.0
 MASS_SCORE_CLOSE = 0.5
 
-# Broad topology cuts. These mirror the miniAOD preselector.
-BROAD_LOW_MASS = (2.0, 4.0)
-BROAD_Z_MASS = (60.0, 120.0)
-BROAD_PAIR_VTXPROB_MIN = 0.005
-BROAD_FOURMU_VTXPROB_MIN = 0.005
+# Topology cuts. These mirror the miniAOD preselector.
+TOPOLOGY_LOW_MASS = (2.0, 4.0)
+TOPOLOGY_Z_MASS = (60.0, 120.0)
+TOPOLOGY_PAIR_VTXPROB_MIN = 0.005
+TOPOLOGY_FOURMU_VTXPROB_MIN = 0.005
 
 # Final physics-selection cuts.
 SIGNAL_JPSI_MASS = (3.0, 3.2)
@@ -125,6 +126,70 @@ if MAKE_ONECAND:
     CANDIDATE_VARIANTS.append(("onecand", True))
 if MAKE_ALLCAND:
     CANDIDATE_VARIANTS.append(("allcand", False))
+
+# =============================================================================
+# Output content
+# =============================================================================
+
+FLOAT_BRANCHES = [
+    "fourMu_mass", "fourMu_pt", "fourMu_eta", "fourMu_phi", "fourMu_rapidity", "fourMu_vtxProb",
+    "jpsi_mass", "jpsi_pt", "jpsi_eta", "jpsi_phi", "jpsi_rapidity", "jpsi_vtxProb", "jpsi_dR_mumu",
+    "z_mass", "z_pt", "z_eta", "z_phi", "z_rapidity", "z_vtxProb", "z_dR_mumu",
+    "pairing_massScore", "pairing_vertexProduct",
+    "z_jpsi_dR", "z_jpsi_dPhi", "z_jpsi_dEta", "z_jpsi_dY", "pt_balance",
+    "jpsi_trackIso03", "jpsi_trackIso04", "jpsi_relIso03", "jpsi_relIso04",
+    "z_trackIso03", "z_trackIso04", "z_relIso03", "z_relIso04",
+    "cosTheta_jpsiMuP", "cosTheta_zMuP", "phi_decayPlane_z_jpsi",
+]
+
+INT_BRANCHES = [
+    "Run", "LumiBlock", "Event", "nPV", "label", "pairing",
+]
+
+BOOL_BRANCHES = [
+    "passMuonTrigger",
+]
+
+OUTPUT_BRANCHES = [
+    "Run", "LumiBlock", "Event", "nPV", "label", "pairing",
+    "fourMu_mass", "fourMu_pt", "fourMu_eta", "fourMu_phi", "fourMu_rapidity", "fourMu_vtxProb",
+    "passMuonTrigger",
+    "jpsi_mass", "jpsi_pt", "jpsi_eta", "jpsi_phi", "jpsi_rapidity", "jpsi_vtxProb", "jpsi_dR_mumu",
+    "z_mass", "z_pt", "z_eta", "z_phi", "z_rapidity", "z_vtxProb", "z_dR_mumu",
+    "pairing_massScore", "pairing_vertexProduct",
+    "z_jpsi_dR", "z_jpsi_dPhi", "z_jpsi_dEta", "z_jpsi_dY", "pt_balance",
+    "jpsi_trackIso03", "jpsi_trackIso04", "jpsi_relIso03", "jpsi_relIso04",
+    "z_trackIso03", "z_trackIso04", "z_relIso03", "z_relIso04",
+    "cosTheta_jpsiMuP", "cosTheta_zMuP", "phi_decayPlane_z_jpsi",
+]
+
+DAUGHTER_FLOAT_VARS = [
+    "pt", "eta", "phi",
+    "pfRelIso03", "pfRelIso04",
+    "trackAbsIso03", "trackRelIso03",
+    "dB3D", "dxy", "dz", "normChi2",
+]
+
+DAUGHTER_INT_VARS = [
+    "charge", "nValidHits", "nValidPixelHits",
+]
+
+DAUGHTER_BOOL_VARS = [
+    "soft", "loose", "tight",
+]
+
+for prefix in ("jpsi_muP", "jpsi_muM", "z_muP", "z_muM", "jpsi_mu1", "jpsi_mu2", "z_mu1", "z_mu2"):
+    OUTPUT_BRANCHES += [
+        f"{prefix}_pt", f"{prefix}_eta", f"{prefix}_phi", f"{prefix}_charge",
+        f"{prefix}_soft", f"{prefix}_loose", f"{prefix}_tight",
+        f"{prefix}_pfRelIso03", f"{prefix}_pfRelIso04",
+        f"{prefix}_trackAbsIso03", f"{prefix}_trackRelIso03",
+        f"{prefix}_dB3D", f"{prefix}_dxy", f"{prefix}_dz", f"{prefix}_normChi2",
+        f"{prefix}_nValidHits", f"{prefix}_nValidPixelHits",
+    ]
+    FLOAT_BRANCHES += [f"{prefix}_{var}" for var in DAUGHTER_FLOAT_VARS]
+    INT_BRANCHES += [f"{prefix}_{var}" for var in DAUGHTER_INT_VARS]
+    BOOL_BRANCHES += [f"{prefix}_{var}" for var in DAUGHTER_BOOL_VARS]
 
 # =============================================================================
 # Internal helpers
@@ -272,29 +337,29 @@ def pairing_options(flat: Dict[str, np.ndarray]) -> List[Dict[str, object]]:
     ]
 
 
-def broad_topology_mask(flat: Dict[str, np.ndarray]) -> np.ndarray:
+def topology_mask(flat: Dict[str, np.ndarray]) -> np.ndarray:
     """Preselection topology: one low-mass dimuon and one Z-like dimuon.
 
     This is applied on either disjoint pair group, with either pair allowed to be
     the low-mass object.  It is deliberately broader than the final J/psi mass
     selection.
     """
-    p12_low = in_window(flat["pair12_mass"], BROAD_LOW_MASS)
-    p34_low = in_window(flat["pair34_mass"], BROAD_LOW_MASS)
-    p14_low = in_window(flat["pair14_mass"], BROAD_LOW_MASS)
-    p23_low = in_window(flat["pair23_mass"], BROAD_LOW_MASS)
+    p12_low = in_window(flat["pair12_mass"], TOPOLOGY_LOW_MASS)
+    p34_low = in_window(flat["pair34_mass"], TOPOLOGY_LOW_MASS)
+    p14_low = in_window(flat["pair14_mass"], TOPOLOGY_LOW_MASS)
+    p23_low = in_window(flat["pair23_mass"], TOPOLOGY_LOW_MASS)
 
-    p12_z = in_window(flat["pair12_mass"], BROAD_Z_MASS)
-    p34_z = in_window(flat["pair34_mass"], BROAD_Z_MASS)
-    p14_z = in_window(flat["pair14_mass"], BROAD_Z_MASS)
-    p23_z = in_window(flat["pair23_mass"], BROAD_Z_MASS)
+    p12_z = in_window(flat["pair12_mass"], TOPOLOGY_Z_MASS)
+    p34_z = in_window(flat["pair34_mass"], TOPOLOGY_Z_MASS)
+    p14_z = in_window(flat["pair14_mass"], TOPOLOGY_Z_MASS)
+    p23_z = in_window(flat["pair23_mass"], TOPOLOGY_Z_MASS)
 
     group_a_mass = (p12_low & p34_z) | (p34_low & p12_z)
     group_b_mass = (p14_low & p23_z) | (p23_low & p14_z)
 
-    group_a_vtx = (flat["pair12_vtxProb"] > BROAD_PAIR_VTXPROB_MIN) & (flat["pair34_vtxProb"] > BROAD_PAIR_VTXPROB_MIN)
-    group_b_vtx = (flat["pair14_vtxProb"] > BROAD_PAIR_VTXPROB_MIN) & (flat["pair23_vtxProb"] > BROAD_PAIR_VTXPROB_MIN)
-    four_vtx = flat["fourMu_vtxProb"] > BROAD_FOURMU_VTXPROB_MIN
+    group_a_vtx = (flat["pair12_vtxProb"] > TOPOLOGY_PAIR_VTXPROB_MIN) & (flat["pair34_vtxProb"] > TOPOLOGY_PAIR_VTXPROB_MIN)
+    group_b_vtx = (flat["pair14_vtxProb"] > TOPOLOGY_PAIR_VTXPROB_MIN) & (flat["pair23_vtxProb"] > TOPOLOGY_PAIR_VTXPROB_MIN)
+    four_vtx = flat["fourMu_vtxProb"] > TOPOLOGY_FOURMU_VTXPROB_MIN
 
     return four_vtx & ((group_a_mass & group_a_vtx) | (group_b_mass & group_b_vtx))
 
@@ -480,11 +545,11 @@ def flatten_input_chunk(arrays: ak.Array) -> Dict[str, np.ndarray]:
 
 
 def build_selection_mask(flat: Dict[str, np.ndarray], chosen: Dict[str, np.ndarray], cfg: SampleConfig) -> np.ndarray:
-    topology_mask = broad_topology_mask(flat)
+    topology_selection = topology_mask(flat)
 
-    # Trigger is required for data-derived samples only.
+    # Trigger is always required for data-derived samples and configurable for MC.
     trigger_mask = np.ones_like(flat["fourMu_mass"], dtype=bool)
-    if cfg.name != "signal":
+    if cfg.name != "signal" or REQUIRE_MU_TRIGGER_MC:
         trigger_mask &= flat["passMuonTrigger"]
 
     # Four basic muon cuts. Use the original charge-ordered muons, independent of pairing choice.
@@ -508,31 +573,10 @@ def build_selection_mask(flat: Dict[str, np.ndarray], chosen: Dict[str, np.ndarr
     fourmu_mask = fourmu_region_mask(flat["fourMu_mass"], cfg.fourmu_region)
     finite_mask = np.isfinite(chosen["pairing_massScore"]) & np.isfinite(flat["fourMu_mass"])
 
-    return topology_mask & trigger_mask & muon_mask & pair_mass_mask & vtx_mask & pt_mask & fourmu_mask & finite_mask
+    return topology_selection & trigger_mask & muon_mask & pair_mass_mask & vtx_mask & pt_mask & fourmu_mask & finite_mask
 
 def output_template() -> Dict[str, List]:
-    keys = [
-        "Run", "LumiBlock", "Event", "nPV", "label", "pairing",
-        "fourMu_mass", "fourMu_pt", "fourMu_eta", "fourMu_phi", "fourMu_rapidity", "fourMu_vtxProb",
-        "passMuonTrigger",
-        "jpsi_mass", "jpsi_pt", "jpsi_eta", "jpsi_phi", "jpsi_rapidity", "jpsi_vtxProb", "jpsi_dR_mumu",
-        "z_mass", "z_pt", "z_eta", "z_phi", "z_rapidity", "z_vtxProb", "z_dR_mumu",
-        "pairing_massScore", "pairing_vertexProduct",
-        "z_jpsi_dR", "z_jpsi_dPhi", "z_jpsi_dEta", "z_jpsi_dY", "pt_balance",
-        "jpsi_trackIso03", "jpsi_trackIso04", "jpsi_relIso03", "jpsi_relIso04",
-        "z_trackIso03", "z_trackIso04", "z_relIso03", "z_relIso04",
-        "cosTheta_jpsiMuP", "cosTheta_zMuP", "phi_decayPlane_z_jpsi",
-    ]
-    for prefix in ("jpsi_muP", "jpsi_muM", "z_muP", "z_muM", "jpsi_mu1", "jpsi_mu2", "z_mu1", "z_mu2"):
-        keys += [
-            f"{prefix}_pt", f"{prefix}_eta", f"{prefix}_phi", f"{prefix}_charge",
-            f"{prefix}_soft", f"{prefix}_loose", f"{prefix}_tight",
-            f"{prefix}_pfRelIso03", f"{prefix}_pfRelIso04",
-            f"{prefix}_trackAbsIso03", f"{prefix}_trackRelIso03",
-            f"{prefix}_dB3D", f"{prefix}_dxy", f"{prefix}_dz", f"{prefix}_normChi2",
-            f"{prefix}_nValidHits", f"{prefix}_nValidPixelHits",
-        ]
-    return {k: [] for k in keys}
+    return {k: [] for k in OUTPUT_BRANCHES}
 
 
 def append_selected_rows(out: Dict[str, List], flat: Dict[str, np.ndarray], chosen: Dict[str, np.ndarray], indices: np.ndarray, cfg: SampleConfig) -> None:
@@ -594,15 +638,12 @@ def keep_best_candidate_per_event(out: Dict[str, List]) -> Dict[str, List]:
 
 def convert_for_uproot(out: Dict[str, List]) -> Dict[str, np.ndarray]:
     arrays: Dict[str, np.ndarray] = {}
-    int_keys = {"Run", "LumiBlock", "Event", "nPV", "label", "pairing"}
     for key, values in out.items():
-        is_bool = key == "passMuonTrigger" or key.endswith(("_soft", "_tight", "_loose"))
-        is_int = key in int_keys or key.endswith(("_charge", "_nValidHits", "_nValidPixelHits"))
         if key in {"Run", "LumiBlock", "Event"}:
             arrays[key] = np.asarray(values, dtype=np.uint64)
-        elif is_int:
+        elif key in INT_BRANCHES:
             arrays[key] = np.asarray(values, dtype=np.int32)
-        elif is_bool:
+        elif key in BOOL_BRANCHES:
             arrays[key] = np.asarray(values, dtype=np.bool_)
         else:
             arrays[key] = np.asarray(values, dtype=np.float32)
