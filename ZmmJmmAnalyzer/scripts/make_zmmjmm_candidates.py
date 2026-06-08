@@ -51,7 +51,7 @@ MAKE_BACKGROUND = True
 MAKE_FINAL_BLINDED = True
 MAKE_FINAL_UNBLINDED = True  # keep False until you are ready to inspect/unblind
 
-SIGNAL_PRESELECTION = "prep/zmmjmm_mc_v3_2018_ss.root"
+SIGNAL_PRESELECTION = "preselection/zmmjmm_mc_2018_v2.root"
 DATA_PRESELECTION = "prep/skimmed_TTree_13TeV_mmmm_UL_Run2.root"
 
 OUTPUTS = {

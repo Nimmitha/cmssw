@@ -5,7 +5,7 @@ cmsenv
 
 CFG="miniAODmmmm/python/miniAODmuonsRootupler_mc.py"
 
-INPUT_DIR="/uscms/home/wkarunar/nobackup/datasets/mc/miniAOD/run2/zmmjmm/2018_ss/MiniAOD"
+INPUT_DIR="miniAOD/mc_run2/zmmjmm/2018_ss/MiniAOD"
 OUTPUT_DIR="preselection/2018_ss"
 
 mkdir -p "$OUTPUT_DIR"
