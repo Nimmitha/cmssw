@@ -40,13 +40,6 @@ private:
   std::string muonTriggerString_;
   bool requireTrigger_;
   bool keepEmptyEvents_;
-  bool applyBroadTopologySkim_;
-  double lowMassMin_;
-  double lowMassMax_;
-  double zMassMin_;
-  double zMassMax_;
-  double broadDimuonVtxProbMin_;
-  double broadFourMuVtxProbMin_;
 
   TTree* tree_ = nullptr;
 
@@ -126,14 +119,14 @@ private:
   std::vector<float>* pair12_34_dY = nullptr;
   std::vector<float>* pair23_14_dY = nullptr;
 
-  std::vector<float>* muP1_trackAbsIso03_paper;
-  std::vector<float>* muP1_trackRelIso03_paper;
-  std::vector<float>* muM1_trackAbsIso03_paper;
-  std::vector<float>* muM1_trackRelIso03_paper;
-  std::vector<float>* muP2_trackAbsIso03_paper;
-  std::vector<float>* muP2_trackRelIso03_paper;
-  std::vector<float>* muM2_trackAbsIso03_paper;
-  std::vector<float>* muM2_trackRelIso03_paper;
+  std::vector<float>* muP1_trackAbsIso03;
+  std::vector<float>* muP1_trackRelIso03;
+  std::vector<float>* muM1_trackAbsIso03;
+  std::vector<float>* muM1_trackRelIso03;
+  std::vector<float>* muP2_trackAbsIso03;
+  std::vector<float>* muP2_trackRelIso03;
+  std::vector<float>* muM2_trackAbsIso03;
+  std::vector<float>* muM2_trackRelIso03;
 
   std::vector<float>* pair12_trackIso03 = nullptr;
   std::vector<float>* pair12_trackIso04 = nullptr;

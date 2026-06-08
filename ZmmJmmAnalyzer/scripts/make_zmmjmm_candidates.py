@@ -120,7 +120,7 @@ FOURMU_PT_MIN = 5.0
 
 # Placeholder if APPLY_ISOLATION=True later. This uses the maximum per-muon
 # paper-style track relative isolation among the selected four muons.
-MAX_MUON_TRACKRELISO03_PAPER = 0.50
+MAX_MUON_TRACKRELISO03 = 0.50
 
 # -----------------------------------------------------------------------------
 # Sample-specific mass windows and output modes
@@ -298,7 +298,7 @@ def required_branches() -> List[str]:
         branches += [
             f"{mu}_pt", f"{mu}_eta", f"{mu}_phi", f"{mu}_charge",
             f"{mu}_soft", f"{mu}_tight", f"{mu}_loose",
-            f"{mu}_pfRelIso03", f"{mu}_pfRelIso04", f"{mu}_trackAbsIso03_paper", f"{mu}_trackRelIso03_paper", f"{mu}_dB3D",
+            f"{mu}_pfRelIso03", f"{mu}_pfRelIso04", f"{mu}_trackAbsIso03", f"{mu}_trackRelIso03", f"{mu}_dB3D",
             f"{mu}_dxy", f"{mu}_dz", f"{mu}_normChi2", f"{mu}_nValidHits", f"{mu}_nValidPixelHits",
         ]
     return branches
@@ -441,14 +441,14 @@ def build_selected_pair_branches(flat: Dict[str, np.ndarray], opts: List[Dict[st
         selected[f"jpsi_{suffix}"] = choose_pair_branch(flat, opts, best_idx, suffix, "jpsi")
         selected[f"z_{suffix}"] = choose_pair_branch(flat, opts, best_idx, suffix, "z")
 
-    selected["cosTheta_jpsiMu"] = selected.pop("jpsi_cosThetaMu")
-    selected["cosTheta_zMu"] = selected.pop("z_cosThetaMu")
+    selected["cosTheta_jpsiMuP"] = selected.pop("jpsi_cosThetaMu")
+    selected["cosTheta_zMuP"] = selected.pop("z_cosThetaMu")
 
     phi_plane = np.empty(len(best_idx), dtype=np.float32)
     for idx, opt in enumerate(opts):
         mask = best_idx == idx
         phi_plane[mask] = flat[str(opt["plane"])][mask]
-    selected["phi_decayPlane"] = phi_plane
+    selected["phi_decayPlane_Z_Jpsi"] = phi_plane
 
     selected["dR_jpsi_z"] = np.sqrt((selected["jpsi_eta"] - selected["z_eta"]) ** 2 + delta_phi(selected["jpsi_phi"], selected["z_phi"]) ** 2)
     selected["dPhi_jpsi_z"] = delta_phi(selected["jpsi_phi"], selected["z_phi"])
@@ -471,7 +471,7 @@ def build_selected_daughter_branches(flat: Dict[str, np.ndarray], opts: List[Dic
     float_vars = (
         "pt", "eta", "phi",
         "pfRelIso03", "pfRelIso04",
-        "trackAbsIso03_paper", "trackRelIso03_paper",
+        "trackAbsIso03", "trackRelIso03",
         "dB3D", "dxy", "dz", "normChi2",
     )
     int_vars = ("charge", "nValidHits", "nValidPixelHits")
@@ -575,10 +575,10 @@ def build_selection_mask(flat: Dict[str, np.ndarray], chosen: Dict[str, np.ndarr
     iso_mask = np.ones_like(flat["fourMu_mass"], dtype=bool)
     if APPLY_ISOLATION:
         max_iso = np.maximum.reduce([
-            flat["muP1_trackRelIso03_paper"], flat["muM1_trackRelIso03_paper"],
-            flat["muP2_trackRelIso03_paper"], flat["muM2_trackRelIso03_paper"],
+            flat["muP1_trackRelIso03"], flat["muM1_trackRelIso03"],
+            flat["muP2_trackRelIso03"], flat["muM2_trackRelIso03"],
         ])
-        iso_mask &= max_iso < MAX_MUON_TRACKRELISO03_PAPER
+        iso_mask &= max_iso < MAX_MUON_TRACKRELISO03
 
     fourmu_mask = fourmu_region_mask(flat["fourMu_mass"], cfg.fourmu_region)
     finite_mask = np.isfinite(chosen["pairing_massScore"]) & np.isfinite(flat["fourMu_mass"])
@@ -596,14 +596,14 @@ def output_template() -> Dict[str, List]:
         "dR_mumu_jpsi", "dR_mumu_z", "dR_jpsi_z", "dPhi_jpsi_z", "dEta_jpsi_z", "dY_jpsi_z",
         "jpsi_trackIso03", "jpsi_trackIso04", "jpsi_relIso03", "jpsi_relIso04",
         "z_trackIso03", "z_trackIso04", "z_relIso03", "z_relIso04",
-        "cosTheta_jpsiMu", "cosTheta_zMu", "phi_decayPlane",
+        "cosTheta_jpsiMuP", "cosTheta_zMuP", "phi_decayPlane_Z_Jpsi",
     ]
     for prefix in ("jpsi_muP", "jpsi_muM", "z_muP", "z_muM", "jpsi_mu1", "jpsi_mu2", "z_mu1", "z_mu2"):
         keys += [
             f"{prefix}_pt", f"{prefix}_eta", f"{prefix}_phi", f"{prefix}_charge",
             f"{prefix}_soft", f"{prefix}_loose", f"{prefix}_tight",
             f"{prefix}_pfRelIso03", f"{prefix}_pfRelIso04",
-            f"{prefix}_trackAbsIso03_paper", f"{prefix}_trackRelIso03_paper",
+            f"{prefix}_trackAbsIso03", f"{prefix}_trackRelIso03",
             f"{prefix}_dB3D", f"{prefix}_dxy", f"{prefix}_dz", f"{prefix}_normChi2",
             f"{prefix}_nValidHits", f"{prefix}_nValidPixelHits",
         ]
