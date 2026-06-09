@@ -10,7 +10,7 @@ options.setDefault(
 
 options.setDefault(
     "outputFile",
-    "preselection/2018_ss/zeejmm_mc_2018_v1_1.root"
+    "preselection/2018_ss/zeejmm_mc_2018_v2_1.root"
 )
 
 options.parseArguments()
