@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from array import array
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import ROOT
 
@@ -36,22 +36,23 @@ OUTDIR = "selection"
 
 MAKE_SIGNAL = True
 MAKE_BACKGROUND = True
-MAKE_FINAL_BLINDED = True
+MAKE_SIDEBAND = True
 MAKE_FINAL_UNBLINDED = True  # keep False until ready to inspect/unblind
 
 SIGNAL_PRESELECTION = "preselection/zeejmm_mc_2018_v2.root"
-DATA_PRESELECTION = "preselection/TTree_13TeV_eemm_UL_Run2.root"
+DATA_PRESELECTION = "preselection/TTree_13TeV_eemm_UL_Run2_v2.root"
 
 OUTPUTS = {
     "signal": "signal_candidates.root",
     "background": "background_candidates.root",
-    "final_blinded": "final_blinded_candidates.root",
+    "sideband": "sideband_candidates.root",
     "final_unblinded": "final_unblinded_candidates.root",
 }
 
-# Analysis and blinded Higgs windows
-ANALYSIS_LOW = 112.0
-ANALYSIS_HIGH = 142.0
+# Shared signal/final mass windows and blinded Higgs window.
+SIGNAL_FINAL_FOURL_MASS = (112.0, 162.0)
+SIGNAL_FINAL_JPSI_MASS = (3.0, 3.2)
+SIGNAL_FINAL_Z_MASS = (80.0, 100.0)
 MASK_LOW = 120.0
 MASK_HIGH = 130.0
 
@@ -72,10 +73,10 @@ PAIR_VTXPROB_MIN = 0.01
 FOURL_VTXPROB_MIN = 0.01
 FOURL_PT_MIN = 5.0
 
-SIGNAL_JPSI_MASS = (3.0, 3.2)
-DATA_JPSI_MASS = (3.0, 3.2)
-Z_MASS = (80.0, 100.0)
-SIGNAL_FOURL_MASS = (112.0, 142.0)
+# Background mass windows. Set any of these to None to disable that cut.
+BACKGROUND_FOURL_MASS = None
+BACKGROUND_JPSI_MASS = (2.8, 3.4)
+BACKGROUND_Z_MASS = (70.0, 110.0)
 
 # Candidate variants to write.
 #   onecand: keep one best candidate per input TTree entry
@@ -125,16 +126,20 @@ def in_window(x: float, lo: float, hi: float) -> bool:
     return lo < x < hi
 
 
+def passes_window(x: float, window: Optional[tuple[float, float]]) -> bool:
+    if window is None:
+        return True
+    return in_window(x, *window)
+
+
+def window_label(window: Optional[tuple[float, float]]) -> str:
+    if window is None:
+        return "none"
+    return f"{window[0]}-{window[1]}"
+
+
 def outside_mask_window(mass: float) -> bool:
     return not in_window(mass, MASK_LOW, MASK_HIGH)
-
-
-def analysis_window(mass: float) -> bool:
-    return in_window(mass, ANALYSIS_LOW, ANALYSIS_HIGH)
-
-
-def analysis_sideband(mass: float) -> bool:
-    return analysis_window(mass) and outside_mask_window(mass)
 
 
 def get_vec_value(tree: ROOT.TTree, branch: str, idx: int):
@@ -203,9 +208,6 @@ def common_selection(tree: ROOT.TTree, idx: int, sample: str) -> bool:
     if get_vec_value(tree, "fourL_pt", idx) <= FOURL_PT_MIN:
         return False
 
-    if not in_window(get_vec_value(tree, "Z_mass", idx), *Z_MASS):
-        return False
-
     return True
 
 
@@ -215,29 +217,36 @@ def sample_selection(tree: ROOT.TTree, idx: int, sample: str) -> bool:
 
     jmass = get_vec_value(tree, "Jpsi_mass", idx)
     four_mass = get_vec_value(tree, "fourL_mass", idx)
+    z_mass = get_vec_value(tree, "Z_mass", idx)
 
     if sample == "signal":
         return (
-            in_window(jmass, *SIGNAL_JPSI_MASS)
-            and in_window(four_mass, *SIGNAL_FOURL_MASS)
+            passes_window(z_mass, SIGNAL_FINAL_Z_MASS)
+            and passes_window(jmass, SIGNAL_FINAL_JPSI_MASS)
+            and passes_window(four_mass, SIGNAL_FINAL_FOURL_MASS)
         )
 
     if sample == "background":
         return (
-            in_window(jmass, *DATA_JPSI_MASS)
+            passes_window(z_mass, BACKGROUND_Z_MASS)
+            and passes_window(jmass, BACKGROUND_JPSI_MASS)
+            and passes_window(four_mass, BACKGROUND_FOURL_MASS)
             and outside_mask_window(four_mass)
         )
 
-    if sample == "final_blinded":
+    if sample == "sideband":
         return (
-            in_window(jmass, *DATA_JPSI_MASS)
-            and analysis_sideband(four_mass)
+            passes_window(z_mass, SIGNAL_FINAL_Z_MASS)
+            and passes_window(jmass, SIGNAL_FINAL_JPSI_MASS)
+            and passes_window(four_mass, SIGNAL_FINAL_FOURL_MASS)
+            and outside_mask_window(four_mass)
         )
 
     if sample == "final_unblinded":
         return (
-            in_window(jmass, *DATA_JPSI_MASS)
-            and analysis_window(four_mass)
+            passes_window(z_mass, SIGNAL_FINAL_Z_MASS)
+            and passes_window(jmass, SIGNAL_FINAL_JPSI_MASS)
+            and passes_window(four_mass, SIGNAL_FINAL_FOURL_MASS)
         )
 
     raise ValueError(f"Unknown sample: {sample}")
@@ -381,7 +390,7 @@ def main() -> None:
     if not CANDIDATE_VARIANTS:
         raise RuntimeError("CANDIDATE_VARIANTS is empty.")
 
-    if not (MAKE_SIGNAL or MAKE_BACKGROUND or MAKE_FINAL_BLINDED or MAKE_FINAL_UNBLINDED):
+    if not (MAKE_SIGNAL or MAKE_BACKGROUND or MAKE_SIDEBAND or MAKE_FINAL_UNBLINDED):
         raise RuntimeError("No outputs requested. Enable at least one MAKE_* switch.")
 
     print("ZeeJmm targeted selection")
@@ -390,6 +399,19 @@ def main() -> None:
     print(f"  Ele trigger required for MC: {REQUIRE_ELE_TRIGGER_MC}")
     print(f"  Trigger match required: {REQUIRE_TRIGGER_MATCH}")
     print("  Best-candidate rule: highest fourL_vtxProb")
+    print(
+        "  Signal/final mass windows: "
+        f"fourL={window_label(SIGNAL_FINAL_FOURL_MASS)}, "
+        f"Jpsi={window_label(SIGNAL_FINAL_JPSI_MASS)}, "
+        f"Z={window_label(SIGNAL_FINAL_Z_MASS)}"
+    )
+    print(
+        "  Background mass windows: "
+        f"fourL={window_label(BACKGROUND_FOURL_MASS)}, "
+        f"Jpsi={window_label(BACKGROUND_JPSI_MASS)}, "
+        f"Z={window_label(BACKGROUND_Z_MASS)}"
+    )
+    print(f"  Blinded mass window excluded where applicable: {MASK_LOW}-{MASK_HIGH}")
 
     base_outdir = Path(OUTDIR)
 
@@ -409,8 +431,8 @@ def main() -> None:
         if MAKE_BACKGROUND:
             process_sample("background", DATA_PRESELECTION, str(outdir / OUTPUTS["background"]), label=0, deduplicate=deduplicate)
 
-        if MAKE_FINAL_BLINDED:
-            process_sample("final_blinded", DATA_PRESELECTION, str(outdir / OUTPUTS["final_blinded"]), label=-1, deduplicate=deduplicate)
+        if MAKE_SIDEBAND:
+            process_sample("sideband", DATA_PRESELECTION, str(outdir / OUTPUTS["sideband"]), label=-1, deduplicate=deduplicate)
 
         if MAKE_FINAL_UNBLINDED:
             process_sample("final_unblinded", DATA_PRESELECTION, str(outdir / OUTPUTS["final_unblinded"]), label=-1, deduplicate=deduplicate)
