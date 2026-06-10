@@ -14,7 +14,7 @@ echo "Starting the loop to process files..."
 
 for i in {1..10}; do
     INPUT_FILE="file:${INPUT_DIR}/MiniAOD_${i}.root"
-    OUTPUT_FILE="${OUTPUT_DIR}/zmmjmm_mc_2018_v1_${i}.root"
+    OUTPUT_FILE="${OUTPUT_DIR}/zmmjmm_mc_2018_v2_${i}.root"
 
     echo "Processing file with index $i..."
     echo "Input : $INPUT_FILE"
