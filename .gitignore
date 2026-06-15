@@ -10,7 +10,6 @@ __init__.py
 ZmmJmmAnalyzer/miniAOD
 ZmmJmmAnalyzer/preselection
 ZmmJmmAnalyzer/selection
-ZmmJmmAnalyzer/scripts/old
 
 ZmmJmmAnalyzer/dataSubmit/**/crab_*/inputs/
 ZmmJmmAnalyzer/dataSubmit/**/crab.log

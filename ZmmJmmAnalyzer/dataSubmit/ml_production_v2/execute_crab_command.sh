@@ -45,7 +45,7 @@ for dir in "$year"/*/; do
             (cd "$dir" && crab status -d $CRAB_DIR_PATTERN)
             ;;
         resubmit)
-            (cd "$dir" && crab resubmit -d $CRAB_DIR_PATTERN)
+            (cd "$dir" && crab resubmit -d $CRAB_DIR_PATTERN  --maxjobruntime 180)
             ;;
         report)
             (cd "$dir" && crab report -d $CRAB_DIR_PATTERN)
