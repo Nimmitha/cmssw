@@ -10,11 +10,8 @@ __init__.py
 ZeeJmmAnalyzer/miniAOD
 ZeeJmmAnalyzer/preselection
 ZeeJmmAnalyzer/selection
-ZeeJmmAnalyzer/scripts/old
 
 ZeeJmmAnalyzer/dataSubmit/**/crab_*/inputs/
 ZeeJmmAnalyzer/dataSubmit/**/crab.log
 ZeeJmmAnalyzer/dataSubmit/**/*.gz
 ZeeJmmAnalyzer/dataSubmit/**/.requestcache
-
-ZeeJmmAnalyzer/duplicate_check/
