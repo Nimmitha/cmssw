@@ -1,0 +1,5 @@
+Same analyzer and configs as v4 (eventTime and TriggerFired branches enabled in miniAODmmmm.cc)
+Lumi masks for all selected emittance scans of 2023-2025 (scan LS +- 120 s), from
+dimuon_vdm_calibration/workflows/00_scan_inventory/lumimasks
+Task folders made by make_tasks.py: <era><PD><version>, datasets and GTs as in production_reduced_size_v6
+2023: 31 runs, 32 tasks (C3, C4, D1, D2) | 2024: 203 runs, 72 tasks (C-I) | 2025: 109 runs, 56 tasks (C-G)
