@@ -1,0 +1,3 @@
+Same analyzer and configs as v3, with eventTime and TriggerFired branches enabled in miniAODmmmm.cc
+Included more scans in lumi mask (20 runs, fills 9919-9945; v3 had 16 runs)
+Fill 9945 (run 383811) is in 2024G, not processed by these 2024F tasks

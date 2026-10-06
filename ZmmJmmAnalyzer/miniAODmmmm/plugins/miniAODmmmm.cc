@@ -445,8 +445,8 @@ void miniAODmmmm::beginJob() {
   tree_->Branch("Run", &Run);
   tree_->Branch("LumiBlock", &LumiBlock);
   // tree_->Branch("Event", &Event);
-  // tree_->Branch("eventTime", &eventTime);
-  // tree_->Branch("TriggerFired", &TriggerFired);
+  tree_->Branch("eventTime", &eventTime);
+  tree_->Branch("TriggerFired", &TriggerFired);
 
   tree_->Branch("nPV", &nPV);
   tree_->Branch("B_J1_mass", &B_J1_mass);
