@@ -11,7 +11,7 @@ config.JobType.pluginName = 'Analysis'                              # Specify: a
 config.JobType.psetName = 'miniAODmuonsRootupler.py'           # parameter-set config file
 config.JobType.allowUndistributedCMSSW = True                       # Allow CMSSW release possibly not available at sites
 config.JobType.outputFiles = ['PDMLM0_Run2025D1_Data.root']   # List of output files that needs to be collected
-config.JobType.maxJobRuntimeMin = 60                                  # Maximum job runtime in minutes
+config.JobType.maxJobRuntimeMin = 120                                  # Maximum job runtime in minutes
 # config.JobType.maxMemoryMB = 1000
 
 # data to be analyzed
