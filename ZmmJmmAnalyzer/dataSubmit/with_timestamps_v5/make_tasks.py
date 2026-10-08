@@ -57,6 +57,13 @@ DATASETS = {
     ],
 }
 
+# Per-PD processing versions that differ from PD0 (as in the production_reduced_size configs):
+# (year, era, version digit, PD) -> dataset name after /ParkingDoubleMuonLowMass<n>/
+PD_DATASET_OVERRIDES = {
+    ("2023", "C", 4, 3): "Run2023C-22Sep2023_v4-v2",
+    ("2023", "D", 2, 4): "Run2023D-22Sep2023_v2-v2",
+}
+
 CRAB = """from CRABClient.UserUtilities import config
 config = config()
 
@@ -159,7 +166,7 @@ def main():
                 output = f"PDMLM{pd}_Run{year}{era}{ver}_Data.root"
                 (tdir / "crabConfig_TTree.py").write_text(CRAB.format(
                     request=f"PDMLM{pd}_mm_{year}{era}{ver}_emit_{VERSION}", output=output,
-                    dataset=f"/ParkingDoubleMuonLowMass{pd}/{name}/MINIAOD", mask=mask_name))
+                    dataset=f"/ParkingDoubleMuonLowMass{pd}/{PD_DATASET_OVERRIDES.get((year, era, ver, pd), name)}/MINIAOD", mask=mask_name))
                 (tdir / "miniAODmuonsRootupler.py").write_text(CMSSW.format(gt=gt, output=output))
                 shutil.copy2(ydir / mask_name, tdir / mask_name)
             print(f"{year} {era}{ver} {name}: {len(ds_runs)} runs -> {era}0{ver} ... {era}7{ver}")

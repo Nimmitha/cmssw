@@ -16,7 +16,7 @@ config.JobType.maxJobRuntimeMin = 120                                  # Maximum
 
 # data to be analyzed
 config.Data.inputDBS = 'global'
-config.Data.inputDataset = '/ParkingDoubleMuonLowMass4/Run2023D-22Sep2023_v2-v1/MINIAOD'               # Name of the dataset
+config.Data.inputDataset = '/ParkingDoubleMuonLowMass4/Run2023D-22Sep2023_v2-v2/MINIAOD'               # Name of the dataset
 config.Data.lumiMask = 'lumi_mask_emit_2023.json' # Lumi-section filter
 config.Data.splitting = 'LumiBased'                                                         # Split the task based on
 config.Data.unitsPerJob = 50                                                                # Number of splitted units per job
