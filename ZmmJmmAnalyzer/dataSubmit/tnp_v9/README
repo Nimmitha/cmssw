@@ -1,0 +1,36 @@
+tnp_v9: one production for the J/psi long-term efficiency study (analyzer miniAODmmmm/plugins/mytagAndProbeV9.cc).
+Replaces the part-by-part TnP productions (v1/v6/v7: soft ID given a tracker muon only).
+
+Streams (task folders made by make_tasks.py; datasets, GTs, golden JSONs as production_reduced_size_v6):
+  muon/<year>/   Muon0, Muon1, tag: tight, pt > 8, matched to IsoMu24 or a non-isolated single-muon path (bitmask
+                 tag_trig; IsoMu24 may veto J/psi with a close probe track, compare by bit). Trees:
+                 sa   standalone probe -> high-purity inner track of the same muon (tracking; pixel hits/layers,
+                      BPix L1) + nearest other muon / high-purity track (pass definition chosen offline)
+                 trk  high-purity track probe -> muon; soft/loose ID; L1 muon and HLT_Mu0_L1DoubleMu object match;
+                      Kalman vertex prob of tag+probe; event decision of HLT_Mu0_L1DoubleMu (trigger)
+                 2023: 14, 2024: 18, 2025: 16 tasks (25 LS per job)
+  pdmlm/<year>/  ParkingDoubleMuonLowMass0-7, tag matched to HLT_Mu0_L1DoubleMu (tight, pt > 3), sa tree only,
+                 every 20th event (prescale). Tracking with the analysis kinematics (the L1 seed only uses the muon
+                 system, so the sa probe is unbiased for tracking). 56 / 72 / 64 tasks (200 LS per job)
+Both trees: run, lumi, bx, nPV (analysis definition), tag kinematics/trigger bits, pair mass/pt/dR.
+
+Steps (on LPC, in the CMSSW area):
+  1. copy plugins/mytagAndProbeV9.cc and python/run_mytagAndProbeV9.py; add to the LPC plugins/BuildFile.xml (do
+     not overwrite it: the LPC area has diverged, e.g. the v6 production ran a module tnp_tracking) the lines
+       <use name="DataFormats/L1Trigger"/> <use name="DataFormats/SiPixelDetId"/> <use name="CommonTools/Statistics"/>
+       <use name="RecoVertex/VertexPrimitives"/> <use name="FWCore/Common"/>
+     then scram b
+  2. local test, one Muon0 2024 MINIAOD file and one ParkingDoubleMuonLowMass0 2024 file (5000 events each; for the
+     latter set tagPaths HLT_Mu0_L1DoubleMu_v, tagMinPt 3, fillTrk False). Required (endJob summary + tree):
+       - no "MISSING product" line; events with a tag > 0; sa and trk entries > 0
+       - the "fired" list: the real names of the non-isolated single-muon paths -> fix MUON_TAGS in make_tasks.py
+       - sa: entries with pass == 0 exist; trk: isMuon == 0 exist; l1dR and hltdR peak near 0; psAnalysis filled
+       - sa pair_dR for pass vs fail per tag bit (IsoMu24 isolation bias)
+       - time per event (CRAB: 25 LS per job for muon, 200 for pdmlm)
+  3. ./check_datasets.sh                        # all 48 Muon datasets must exist; fix MISSING ones
+  4. pilot: submit one muon task (muon/2024/G01) and one pdmlm task (pdmlm/2024/G01) with config.Data.totalUnits
+     = 200; check the outputs (per-region efficiency) before the rest
+  5. ./execute_crab_command.sh muon/2024 submit (and muon/2023, muon/2025, pdmlm/<year>)
+The pdmlm sa tree is the primary tracking measurement (analysis kinematics, no isolation bias); do not drop it.
+slimmedMuons keeps standalone-only muons only above ~3 GeV (check the release's selection): cut sa pt offline.
+Output: /store/user/nkarunar/tnp_v9/
