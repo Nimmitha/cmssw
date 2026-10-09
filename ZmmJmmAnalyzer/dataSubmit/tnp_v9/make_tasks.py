@@ -26,7 +26,12 @@ PRESCALE = 20
 MUON_PDS = (0, 1)
 # Muon stream: IsoMu24 plus non-isolated single-muon paths (bits 0..; a name the menu lacks just never fires): the
 # isolated tag can veto J/psi whose probe track is close (HLT isolation cone ~ opening angle) -> compare by tag bit.
-MUON_TAGS = '"HLT_IsoMu24_v", "HLT_Mu50_v", "HLT_Mu8_v", "HLT_Mu17_v", "HLT_Mu3_PFJet40_v", "HLT_Mu12eta2p3_v"'
+# bits 0..11 of tag_trig, in this order (names checked on a 2024G Muon0 file, 2026-10-09). Mu7p5_L2Mu2_Jpsi: standard
+# tracking TnP path (second leg = L2 standalone muon: unbiased for tracking), prescaled. Double-muon / TkMu paths left
+# out: their second leg biases the probe.
+MUON_TAGS = ('"HLT_IsoMu24_v", "HLT_Mu50_v", "HLT_Mu8_v", "HLT_Mu17_v", "HLT_Mu3_PFJet40_v", "HLT_Mu12eta2p3_v", '
+             '"HLT_Mu3_L1SingleMu5orSingleMu7_v", "HLT_Mu7p5_L2Mu2_Jpsi_v", "HLT_Mu15_v", "HLT_Mu19_v", "HLT_Mu20_v", '
+             '"HLT_Mu27_v", "HLT_Mu55_v"')
 TAG = {"muon": dict(tagPaths=MUON_TAGS, tagMinPt=8.0, prescale=1, fillSA=True, fillTrk=True),
        "pdmlm": dict(tagPaths='"HLT_Mu0_L1DoubleMu_v"', tagMinPt=3.0, prescale=PRESCALE, fillSA=True, fillTrk=False)}
 

@@ -2,8 +2,10 @@ tnp_v9: one production for the J/psi long-term efficiency study (analyzer miniAO
 Replaces the part-by-part TnP productions (v1/v6/v7: soft ID given a tracker muon only).
 
 Streams (task folders made by make_tasks.py; datasets, GTs, golden JSONs as production_reduced_size_v6):
-  muon/<year>/   Muon0, Muon1, tag: tight, pt > 8, matched to IsoMu24 or a non-isolated single-muon path (bitmask
-                 tag_trig; IsoMu24 may veto J/psi with a close probe track, compare by bit). Trees:
+  muon/<year>/   Muon0, Muon1, tag: tight, pt > 8, matched to one of the paths in MUON_TAGS (make_tasks.py; bit i of
+                 tag_trig = i-th path: IsoMu24, Mu50, Mu8, Mu17, Mu3_PFJet40, Mu12eta2p3, Mu3_L1SingleMu5orSingleMu7,
+                 Mu7p5_L2Mu2_Jpsi, Mu15, Mu19, Mu20, Mu27, Mu55). IsoMu24 may veto J/psi with a close probe track:
+                 compare by bit. Trees:
                  sa   standalone probe -> high-purity inner track of the same muon (tracking; pixel hits/layers,
                       BPix L1) + nearest other muon / high-purity track (pass definition chosen offline)
                  trk  high-purity track probe -> muon; soft/loose ID; L1 muon and HLT_Mu0_L1DoubleMu object match;
