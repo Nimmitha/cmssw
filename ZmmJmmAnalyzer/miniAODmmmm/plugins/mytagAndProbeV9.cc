@@ -106,7 +106,7 @@ private:
   ULong64_t event_;
   Int_t bx_, nPV_;
   Bool_t passAnalysis_;
-  Int_t psAnalysis_;
+  Float_t psAnalysis_;
   // tag
   Float_t tag_pt_, tag_eta_, tag_phi_;
   Int_t tag_trig_;
@@ -204,7 +204,7 @@ void mytagAndProbeV9::beginJob() {
     t->Branch("bx", &bx_, "bx/I");
     t->Branch("nPV", &nPV_, "nPV/I");
     t->Branch("passAnalysis", &passAnalysis_, "passAnalysis/O");
-    t->Branch("psAnalysis", &psAnalysis_, "psAnalysis/I");
+    t->Branch("psAnalysis", &psAnalysis_, "psAnalysis/F");
     t->Branch("tag_pt", &tag_pt_, "tag_pt/F");
     t->Branch("tag_eta", &tag_eta_, "tag_eta/F");
     t->Branch("tag_phi", &tag_phi_, "tag_phi/F");
@@ -299,12 +299,12 @@ void mytagAndProbeV9::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 
   const edm::TriggerNames& names = iEvent.triggerNames(*bits);
   passAnalysis_ = false;
-  psAnalysis_ = -1;
+  psAnalysis_ = -1.f;
   bool anyTag = false;
   for (unsigned i = 0; i < bits->size(); ++i) {
     const std::string& n = names.triggerName(i);
     if (n.rfind(analysisPath_, 0) == 0)
-      psAnalysis_ = prescales->getPrescaleForIndex(i);
+      psAnalysis_ = prescales->getPrescaleForIndex<double>(i);
     if (!bits->accept(i))
       continue;
     if (n.rfind("HLT_Mu", 0) == 0 || n.rfind("HLT_IsoMu", 0) == 0)
