@@ -35,4 +35,4 @@ Steps (on LPC, in the CMSSW area):
   5. ./execute_crab_command.sh muon/2024 submit (and muon/2023, muon/2025, pdmlm/<year>)
 The pdmlm sa tree is the primary tracking measurement (analysis kinematics, no isolation bias); do not drop it.
 slimmedMuons keeps standalone-only muons only above ~3 GeV (check the release's selection): cut sa pt offline.
-Output: /store/user/nkarunar/tnp_v9/
+Output: /store/user/nkarunar/tag/<dataset>/crab_<PD>_mm_<year><era><ver>_tnp_v9/ (the pilot of 2026-10-09 went to /store/user/nkarunar/tnp_v9/)

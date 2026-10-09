@@ -37,5 +37,5 @@ process.rootuple = cms.EDAnalyzer('mytagAndProbeV9',
     fillSA = cms.bool(True),
     fillTrk = cms.bool(False),
 )
-process.TFileService = cms.Service("TFileService", fileName = cms.string('PDMLM3_2023C1_tnp_v9.root'))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('PDMLM3_mm_2023C1_tnp_v9.root'))
 process.p = cms.Path(process.rootuple)

@@ -8,7 +8,8 @@ Two input streams, same analyzer, one submission round:
 Eras, processing versions, Global Tags and golden JSONs as the analysis production (production_reduced_size_v6):
 the PDMLM dataset names are read from its configs, the Muon names follow the same processing strings and must be
 checked on DAS (check_datasets.sh, written here) before submitting.
-Folders: <stream>/<year>/<era><PD><version>, e.g. muon/2024/G01, pdmlm/2024/G51.
+Folders: <stream>/<year>/<era><PD><version>, e.g. muon/2024/G01, pdmlm/2024/G51. Output as the earlier tag-and-probe
+productions: /store/user/nkarunar/tag/<primary dataset>/crab_<PD>_mm_<year><era><version>_tnp_v9/ (requestName).
 Usage: python3 make_tasks.py [--streams muon pdmlm] [--years 2023 2024 2025]
 Rerunning overwrites configs and JSONs, never crab_* directories.
 """
@@ -54,7 +55,7 @@ config.Data.lumiMask = '{mask}'
 config.Data.splitting = 'LumiBased'
 config.Data.unitsPerJob = {units}
 config.Data.totalUnits = -1
-config.Data.outLFNDirBase = '/store/user/nkarunar/tnp_v9/'
+config.Data.outLFNDirBase = '/store/user/nkarunar/tag/'
 config.Data.publication = False
 
 config.Site.storageSite = 'T3_US_FNALLPC'
@@ -140,7 +141,7 @@ def main():
         tasks = analysis_tasks(year)
         if "pdmlm" in a.streams:
             for name, pd, ds, gt, mask in tasks:
-                write(HERE / "pdmlm" / year / name, "pdmlm", f"PDMLM{pd}_{year}{name[0]}{name[2]}_tnp_{VERSION}", ds, gt,
+                write(HERE / "pdmlm" / year / name, "pdmlm", f"PDMLM{pd}_mm_{year}{name[0]}{name[2]}_tnp_{VERSION}", ds, gt,
                       mask, 200)
             print(f"pdmlm {year}: {len(tasks)} tasks")
         if "muon" in a.streams:
@@ -153,7 +154,7 @@ def main():
                     mds = f"/Muon{mpd}/{proc}/MINIAOD"
                     muon_datasets.append(mds)
                     write(HERE / "muon" / year / f"{name[0]}{mpd}{name[2]}", "muon",
-                          f"Muon{mpd}_{year}{name[0]}{name[2]}_tnp_{VERSION}", mds, gt, mask, 25)
+                          f"Muon{mpd}_mm_{year}{name[0]}{name[2]}_tnp_{VERSION}", mds, gt, mask, 25)
                     n += 1
             print(f"muon {year}: {n} tasks")
     if muon_datasets:
