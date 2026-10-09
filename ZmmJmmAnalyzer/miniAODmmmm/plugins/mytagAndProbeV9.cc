@@ -107,6 +107,7 @@ private:
   Int_t bx_, nPV_;
   Bool_t passAnalysis_;
   Float_t psAnalysis_;
+  Int_t nL1_;  // BX-0 L1 muons in the event (close pairs can merge into one at L1)
   // tag
   Float_t tag_pt_, tag_eta_, tag_phi_;
   Int_t tag_trig_;
@@ -160,12 +161,23 @@ mytagAndProbeV9::mytagAndProbeV9(const edm::ParameterSet& cfg)
 
 mytagAndProbeV9::Match mytagAndProbeV9::matchL1(
     float eta, float phi, const l1t::MuonBxCollection& l1, float etaVeto, float phiVeto) const {
-  // nearest BX-0 L1 muon (at the vertex), skipping the one nearest the tag (dR < 0.3)
+  // nearest BX-0 L1 muon (at the vertex), skipping only the single L1 muon nearest the tag (if within dR < 0.3):
+  // in boosted J/psi the probe's own L1 muon can lie within 0.3 of the tag
   Match m;
   if (l1.isEmpty(0))
     return m;
-  for (auto it = l1.begin(0); it != l1.end(0); ++it) {
-    if (reco::deltaR(etaVeto, phiVeto, it->etaAtVtx(), it->phiAtVtx()) < 0.3)
+  int veto = -1, k = 0;
+  float dTag = 0.3f;
+  for (auto it = l1.begin(0); it != l1.end(0); ++it, ++k) {
+    const float d = reco::deltaR(etaVeto, phiVeto, it->etaAtVtx(), it->phiAtVtx());
+    if (d < dTag) {
+      dTag = d;
+      veto = k;
+    }
+  }
+  k = 0;
+  for (auto it = l1.begin(0); it != l1.end(0); ++it, ++k) {
+    if (k == veto)
       continue;
     const float d = reco::deltaR(eta, phi, it->etaAtVtx(), it->phiAtVtx());
     if (d < m.dR) {
@@ -205,6 +217,7 @@ void mytagAndProbeV9::beginJob() {
     t->Branch("nPV", &nPV_, "nPV/I");
     t->Branch("passAnalysis", &passAnalysis_, "passAnalysis/O");
     t->Branch("psAnalysis", &psAnalysis_, "psAnalysis/F");
+    t->Branch("nL1", &nL1_, "nL1/I");
     t->Branch("tag_pt", &tag_pt_, "tag_pt/F");
     t->Branch("tag_eta", &tag_eta_, "tag_eta/F");
     t->Branch("tag_phi", &tag_phi_, "tag_phi/F");
@@ -300,6 +313,7 @@ void mytagAndProbeV9::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   const edm::TriggerNames& names = iEvent.triggerNames(*bits);
   passAnalysis_ = false;
   psAnalysis_ = -1.f;
+  nL1_ = l1->isEmpty(0) ? 0 : static_cast<int>(l1->size(0));
   bool anyTag = false;
   for (unsigned i = 0; i < bits->size(); ++i) {
     const std::string& n = names.triggerName(i);
