@@ -36,3 +36,6 @@ ZmmJmmAnalyzer/scripts/lumi_calibration_all_in_one/BPIX_test
 ZmmJmmAnalyzer/scripts/emittance/direct_count/output
 ZmmJmmAnalyzer/scripts/emittance/direct_count/scan_JSON
 ZmmJmmAnalyzer/scripts/emittance/fit_count
+
+# local log and status files (e.g. dataSubmit/tnp_v9/status_pending.sh)
+*.log

@@ -1,20 +1,20 @@
 #!/bin/bash
 # crab status for the tnp_v9 tasks that are not finished yet.
 #
-# First run: builds pending_tasks.txt from the current crab_* directory of every task folder
+# First run: builds pending_tasks.log from the current crab_* directory of every task folder
 # (<stream>/<year>/<task>/crab_*; old tasks moved to <task>/removed/ are ignored).
-# Every run: queries only the tasks in pending_tasks.txt. A task whose jobs are all finished is moved to
-# done_tasks.txt; the others stay pending and are summarized (scheduler status, job states, exit codes).
-# Full crab output of the run: status_out.txt.
+# Every run: queries only the tasks in pending_tasks.log. A task whose jobs are all finished is moved to
+# done_tasks.log; the others stay pending and are summarized (scheduler status, job states, exit codes).
+# Full crab output of the run: status_out.log.
 #
 # Usage (in tnp_v9/): ./status_pending.sh          # pending tasks only
 #                     ./status_pending.sh --reset  # rebuild the list from all task folders
-# After resubmitting a task into a new crab_* directory, add that directory to pending_tasks.txt (or --reset).
+# After resubmitting a task into a new crab_* directory, add that directory to pending_tasks.log (or --reset).
 
 cd "$(dirname "$0")" || exit 1
-PENDING=pending_tasks.txt
-DONE=done_tasks.txt
-OUT=status_out.txt
+PENDING=pending_tasks.log
+DONE=done_tasks.log
+OUT=status_out.log
 
 if [ "$1" == "--reset" ] || [ ! -f "$PENDING" ]; then
     ls -d muon/*/*/crab_* pdmlm/*/*/crab_* 2>/dev/null > "$PENDING"
