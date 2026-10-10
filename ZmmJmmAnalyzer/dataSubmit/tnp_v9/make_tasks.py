@@ -12,6 +12,8 @@ Folders: <stream>/<year>/<era><PD><version>, e.g. muon/2024/G01, pdmlm/2024/G51.
 productions: /store/user/nkarunar/tag/<primary dataset>/crab_<PD>_mm_<year><era><version>_tnp_v9/ (requestName).
 Usage: python3 make_tasks.py [--streams muon pdmlm] [--years 2023 2024 2025]
 Rerunning overwrites configs and JSONs, never crab_* directories.
+Hand edit after generation: muon/2023/C14 uses /Muon1/Run2023C-22Sep2023_v4-v2/MINIAOD (the correct version; the
+generated -v1 name is wrong). Redo it after any regeneration.
 """
 from __future__ import annotations
 
@@ -48,6 +50,7 @@ config.JobType.psetName = 'miniAODmuonsRootupler.py'
 config.JobType.allowUndistributedCMSSW = True
 config.JobType.outputFiles = ['{output}']
 config.JobType.maxJobRuntimeMin = 240
+config.JobType.maxMemoryMB = 3000          # default 2000 MB: jobs reach ~1.6-1.95 GB and were removed; 3000 = CRAB maximum for 1 core (2026-10-10)
 
 config.Data.inputDBS = 'global'
 config.Data.inputDataset = '{dataset}'
@@ -159,10 +162,14 @@ def main():
             print(f"muon {year}: {n} tasks")
     if muon_datasets:
         sh = HERE / "check_datasets.sh"
-        sh.write_text("#!/bin/bash\n# Run on LPC/lxplus with a grid proxy: every Muon dataset must exist (else fix the\n"
-                      "# processing string in the task's crabConfig_TTree.py; DAS: dataset=/Muon*/<era>*/MINIAOD).\n"
-                      + "".join(f'n=$(dasgoclient -query="dataset={d}" | wc -l); [ "$n" = 1 ] && echo "ok      {d}" '
-                                f'|| echo "MISSING {d}"\n' for d in muon_datasets))
+        sh.write_text("#!/bin/bash\n# Run on LPC/lxplus with a grid proxy: every Muon dataset must be VALID in DBS and have\n"
+                      "# files (a plain dataset= query also returns INVALID datasets, e.g. the Muon1 2023C v4-v1).\n"
+                      "# BAD: fix the processing string in the task's crabConfig_TTree.py (DAS: dataset=/Muon*/<era>*/MINIAOD).\n"
+                      + "".join(f's=$(dasgoclient -query="dataset dataset={d} status=*" -json 2>/dev/null | '
+                                f'grep -o \'"dataset_access_type":"[A-Z]*"\' | head -1 | cut -d\'"\' -f4); '
+                                f'n=$(dasgoclient -query="file dataset={d}" 2>/dev/null | wc -l); '
+                                f'[ "$s" = VALID ] && [ "$n" -gt 0 ] && echo "ok      {d} ($n files)" '
+                                f'|| echo "BAD     {d} (status ${{s:-none}}, $n files)"\n' for d in muon_datasets))
         sh.chmod(0o755)
         print(f"{sh.name}: {len(muon_datasets)} Muon datasets to check")
 

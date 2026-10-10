@@ -10,6 +10,7 @@ config.JobType.psetName = 'miniAODmuonsRootupler.py'
 config.JobType.allowUndistributedCMSSW = True
 config.JobType.outputFiles = ['PDMLM1_mm_2023D2_tnp_v9.root']
 config.JobType.maxJobRuntimeMin = 240
+config.JobType.maxMemoryMB = 3000          # default 2000 MB: jobs reach ~1.6-1.95 GB and were removed; 3000 = CRAB maximum for 1 core (2026-10-10)
 
 config.Data.inputDBS = 'global'
 config.Data.inputDataset = '/ParkingDoubleMuonLowMass1/Run2023D-22Sep2023_v2-v1/MINIAOD'

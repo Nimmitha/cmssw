@@ -10,9 +10,10 @@ config.JobType.psetName = 'miniAODmuonsRootupler.py'
 config.JobType.allowUndistributedCMSSW = True
 config.JobType.outputFiles = ['Muon1_mm_2023C4_tnp_v9.root']
 config.JobType.maxJobRuntimeMin = 240
+config.JobType.maxMemoryMB = 3000          # default 2000 MB: jobs reach ~1.6-1.95 GB and were removed; 3000 = CRAB maximum for 1 core (2026-10-10)
 
 config.Data.inputDBS = 'global'
-config.Data.inputDataset = '/Muon1/Run2023C-22Sep2023_v4-v1/MINIAOD'
+config.Data.inputDataset = '/Muon1/Run2023C-22Sep2023_v4-v2/MINIAOD'
 config.Data.lumiMask = 'Cert_Collisions2023_366442_370790_Golden.json'
 config.Data.splitting = 'LumiBased'
 config.Data.unitsPerJob = 25
