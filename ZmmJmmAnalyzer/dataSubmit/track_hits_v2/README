@@ -1,0 +1,27 @@
+track_hits_v2 (2026-10-14): muon composition and pixel-layer hits of the J/psi muons.
+
+Analyzer: miniAODmmmm_MuonComp (miniAODmmmm/plugins/miniAODmmmm_MuonComp.cc).
+Selection identical to production_reduced_size_v6 (no muon ID cut). Soft, loose, medium and
+tight ID are stored as flags, so "v6 as run" and "v6 + soft ID" come from the same ntuple.
+
+New branches per muon (mu1_*, mu2_*), all UChar_t:
+  type          bits 0 global, 1 tracker, 2 standalone, 3 PF, 4 soft, 5 loose, 6 medium, 7 tight
+  pixValid      valid hit, bits 0-3 BPix L1-L4, bits 4-6 FPix disks 1-3
+  pixLost       hit expected on the track but missing (TRACK_HITS), same bits
+  firstHit      first valid hit of the inner track, 10*subdet + layer (1 BPix, 2 FPix, 3 TIB, 4 TID, 5 TOB, 6 TEC)
+  nPixLay       pixelLayersWithMeasurement
+  nTrkLay       trackerLayersWithMeasurement
+  nLostInner    missing hits before the first valid hit (MISSING_INNER_HITS)
+  nLostInnerPix the same, pixel only
+The v1 branches mu*_B1..B4 and mu*_F are replaced by pixValid.
+
+Sample: ParkingDoubleMuonLowMass0 only (one of the 8 identical parking PDs), full era, golden JSON:
+  2022: C (start), F (track_hits_v1 era), G (end)
+  2023: C v4 (track_hits_v1 era), D (end)
+  2024: C (start), F (track_hits_v1 era), I (end)
+  2025: C (start), E (middle), G (end)
+Configs copied from production_reduced_size_v6 (same global tags and golden JSONs); only the analyzer
+name, request names (*_hits_v2) and output directory (/store/user/nkarunar/pdmlm/tracker_hits/) changed.
+
+Run (in a built CMSSW area, with the plugin compiled):
+  ./execute_crab_command.sh 2022 submit   (then 2023, 2024, 2025; status / resubmit / report as usual)
